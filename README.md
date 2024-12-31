@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="actx0 Logo" src="/static/logo.png?v=0.1.0" width="180" />
+    <img alt="Actx0 Logo" src="/static/logo.png?v=0.1.0" width="180" />
     <h3 align="center">Actx0</h3>
     <p align="center">A Zero Latency Memory Platform for AI Agents</p>
     <p align="center">
@@ -22,9 +22,9 @@ Your agents forget everything the moment a session ends. You stuff more context 
 
 ### Versioning
 
-For transparency into our release cycle and in striving to maintain backward compatibility, actx0 is maintained under the [Semantic Versioning guidelines](https://semver.org/) and release process is predictable and business-friendly.
+For transparency into our release cycle and in striving to maintain backward compatibility, Actx0 is maintained under the [Semantic Versioning guidelines](https://semver.org/) and release process is predictable and business-friendly.
 
-See the [Releases section of our GitHub project](https://github.com/Actx0/Actx0/releases) for changelogs for each release version of actx0. It contains summaries of the most noteworthy changes made in each release. Also see the [Milestones section](https://github.com/Actx0/Actx0/milestones) for the future roadmap.
+See the [Releases section of our GitHub project](https://github.com/Actx0/Actx0/releases) for changelogs for each release version of Actx0. It contains summaries of the most noteworthy changes made in each release. Also see the [Milestones section](https://github.com/Actx0/Actx0/milestones) for the future roadmap.
 
 
 ### Bug tracker
@@ -34,7 +34,7 @@ If you have any suggestions, bug reports, or annoyances please report them to ou
 
 ### Security Issues
 
-If you discover a security vulnerability within actx0, please send an email to [hello@clivern.com](mailto:hello@clivern.com)
+If you discover a security vulnerability within Actx0, please send an email to [hello@clivern.com](mailto:hello@clivern.com)
 
 
 ### Contributing

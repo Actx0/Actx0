@@ -1,6 +1,6 @@
 # Actx0 MCP
 
-Streamable HTTP MCP proxy for the actx0 management API (session memories).
+Streamable HTTP MCP proxy for the Actx0 management API (session memories).
 
 ## Run
 
