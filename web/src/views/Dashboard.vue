@@ -157,12 +157,14 @@
                   <span>{{ $t(featureKey) }}</span>
                 </li>
               </ul>
-              <router-link
-                to="/docs"
+              <a
+                href="https://actx0.com/docs"
+                target="_blank"
+                rel="noopener"
                 class="btn-secondary mt-4 inline-flex items-center px-3 py-1.5 text-sm"
               >
                 {{ $t('dashboard.whats_new_release_action') }}
-              </router-link>
+              </a>
             </div>
           </div>
 
