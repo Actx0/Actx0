@@ -103,6 +103,12 @@ web:
 	@echo ">> ============= Building Web Assets ============= <<"
 	cd web && npm run build
 
+## website: Build the public marketing website.
+.PHONY: website
+website:
+	@echo ">> ============= Building Website ============= <<"
+	cd web/website && npm run build
+
 
 ## coverage: Create HTML coverage report
 .PHONY: coverage

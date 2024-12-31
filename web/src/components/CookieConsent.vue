@@ -15,9 +15,9 @@
           </p>
           <p id="cookie-banner-desc" class="mt-1.5 text-xs leading-relaxed text-theme-textLight">
             {{ $t('cookies.banner_desc') }}
-            <router-link to="/docs" class="font-medium text-primary-800 hover:text-primary-900 underline-offset-2 hover:underline">
+            <a href="https://actx0.com/docs" class="font-medium text-primary-800 hover:text-primary-900 underline-offset-2 hover:underline" target="_blank" rel="noopener">
               {{ $t('cookies.learn_more') }}
-            </router-link>
+            </a>
           </p>
           <div class="mt-3 flex flex-col gap-2">
             <button type="button" class="btn-primary w-full px-3 py-1.5 text-sm" @click="onAcceptAll">

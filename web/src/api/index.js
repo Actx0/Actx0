@@ -26,8 +26,6 @@ api.interceptors.response.use(
     const isForgotPasswordEndpoint = error.config?.url === 'public/action/forgot-password'
     const isResetPasswordEndpoint = error.config?.url === 'public/action/reset-password'
     const isOnPublicPage = window.location.pathname === '/' ||
-                           window.location.pathname === '/status' ||
-                           window.location.pathname === '/docs' ||
                            window.location.pathname === '/login' ||
                            window.location.pathname === '/setup' ||
                            window.location.pathname.startsWith('/forgot-password') ||
