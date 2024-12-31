@@ -50,6 +50,10 @@ func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
+		case errors.Is(err, module.ErrMemoryPipelineRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "memory_pipeline_requires_paid_plan"),
+			})
 		default:
 			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -201,6 +205,10 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
+			})
+		case errors.Is(err, module.ErrMemoryPipelineRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "memory_pipeline_requires_paid_plan"),
 			})
 		default:
 			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to update agent")

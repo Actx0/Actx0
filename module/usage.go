@@ -14,6 +14,7 @@ import (
 const BytesPerGB = 1024 * 1024 * 1024
 
 var ErrWorkspaceCapacityReached = errors.New("workspace capacity reached")
+var ErrSemanticSearchRequiresPaidPlan = errors.New("semantic search requires a paid plan")
 
 // Usage provides workspace consumption helpers.
 type Usage struct{}

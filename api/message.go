@@ -57,6 +57,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	message, err := mm.CreateSessionMessage(
@@ -140,6 +141,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	messages, err := mm.BatchCreateSessionMessages(
@@ -221,6 +223,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := mm.ListSessionMessages(
@@ -302,6 +305,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	message, err := mm.GetSessionMessage(
@@ -385,6 +389,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	message, err := mm.UpdateSessionMessage(
@@ -471,6 +476,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := mm.DeleteSessionMessage(
@@ -554,6 +560,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := mm.BatchDeleteSessionMessages(
@@ -662,6 +669,7 @@ func SearchSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewAgentRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	mm.Agent = asvc
@@ -693,6 +701,10 @@ func SearchSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrWorkspaceCapacityReached):
 			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
+			})
+		case errors.Is(err, module.ErrSemanticSearchRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "semantic_search_requires_paid_plan"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to search session messages")

@@ -27,6 +27,18 @@ msgstr "Clé API introuvable."
 msgid "agent_not_found"
 msgstr "Agent introuvable."
 
+msgid "memory_pipeline_disabled"
+msgstr "Le pipeline mémoire est désactivé pour cet agent."
+
+msgid "memory_pipeline_requires_paid_plan"
+msgstr "Le pipeline mémoire nécessite un forfait payant."
+
+msgid "semantic_search_requires_paid_plan"
+msgstr "La recherche sémantique nécessite un forfait payant."
+
+msgid "knowledge_requires_paid_plan"
+msgstr "La base de connaissances nécessite un forfait payant."
+
 msgid "agent_session_already_exists"
 msgstr "Une session d'agent avec ces libellés existe déjà."
 

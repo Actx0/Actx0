@@ -10,18 +10,20 @@ import (
 	"time"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/pkg/stripe"
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/samber/lo"
 )
 
 var (
-	ErrAgentNotFound     = errors.New("agent not found")
-	ErrFailedCreateAgent = errors.New("failed create agent")
-	ErrFailedListAgents  = errors.New("failed list agents")
-	ErrFailedGetAgent    = errors.New("failed get agent")
-	ErrFailedUpdateAgent = errors.New("failed update agent")
-	ErrFailedDeleteAgent = errors.New("failed delete agent")
+	ErrAgentNotFound                  = errors.New("agent not found")
+	ErrFailedCreateAgent              = errors.New("failed create agent")
+	ErrFailedListAgents               = errors.New("failed list agents")
+	ErrFailedGetAgent                 = errors.New("failed get agent")
+	ErrFailedUpdateAgent              = errors.New("failed update agent")
+	ErrFailedDeleteAgent              = errors.New("failed delete agent")
+	ErrMemoryPipelineRequiresPaidPlan = errors.New("memory pipeline requires a paid plan")
 )
 
 // Agent is the module for workspace agent CRUD.
@@ -42,14 +44,21 @@ func NewAgent(agents db.AgentRepository, workspaces db.WorkspaceRepository, subs
 
 // CreateAgentRequest is the body for creating an agent.
 type CreateAgentRequest struct {
-	Name        string `json:"name" validate:"required,min=1,max=100" label:"Name"`
-	Description string `json:"description" validate:"required,min=1,max=2000" label:"Description"`
+	Name        string       `json:"name" validate:"required,min=1,max=100" label:"Name"`
+	Description string       `json:"description" validate:"required,min=1,max=2000" label:"Description"`
+	Configs     AgentConfigs `json:"configs" label:"Configs"`
 }
 
 // UpdateAgentRequest is the body for updating an agent.
 type UpdateAgentRequest struct {
-	Name        string `json:"name" validate:"required,min=1,max=100" label:"Name"`
-	Description string `json:"description" validate:"required,min=1,max=2000" label:"Description"`
+	Name        string       `json:"name" validate:"required,min=1,max=100" label:"Name"`
+	Description string       `json:"description" validate:"required,min=1,max=2000" label:"Description"`
+	Configs     AgentConfigs `json:"configs" label:"Configs"`
+}
+
+// AgentConfigs holds agent configuration flags.
+type AgentConfigs struct {
+	MemoryPipeline bool `json:"memoryPipeline" label:"Memory pipeline"`
 }
 
 // AgentResponse is an agent shaped for API responses.
@@ -63,6 +72,7 @@ type AgentResponse struct {
 	Handle      string            `json:"handle"`
 	Description string            `json:"description"`
 	Status      string            `json:"status"`
+	Configs     AgentConfigs      `json:"configs"`
 	CreatedAt   string            `json:"createdAt"`
 	UpdatedAt   string            `json:"updatedAt"`
 }
@@ -96,16 +106,33 @@ func (a *Agent) CreateAgent(workspaceId db.Id, req *CreateAgentRequest) (*AgentR
 		return nil, ErrWorkspaceCapacityReached
 	}
 
+	if req.Configs.MemoryPipeline {
+		subscription, err := a.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+		if err != nil {
+			return nil, err
+		}
+		if subscription == nil || subscription.Plan == stripe.PlanHobby {
+			return nil, ErrMemoryPipelineRequiresPaidPlan
+		}
+	}
+
 	handle, err := a.CreateAgentHandle(4, 8)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateAgent, err)
 	}
+
+	raw, err := json.Marshal(map[string]bool{"memoryPipeline": req.Configs.MemoryPipeline})
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedCreateAgent, err)
+	}
+	config := string(raw)
 
 	agent := &db.Agent{
 		WorkspaceId: workspaceId,
 		Name:        req.Name,
 		Handle:      handle,
 		Description: req.Description,
+		Config:      &config,
 	}
 
 	err = a.AgentRepository.Create(agent)
@@ -122,8 +149,11 @@ func (a *Agent) CreateAgent(workspaceId db.Id, req *CreateAgentRequest) (*AgentR
 		Handle:      agent.Handle,
 		Description: agent.Description,
 		Status:      agent.Status,
-		CreatedAt:   agent.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   agent.UpdatedAt.UTC().Format(time.RFC3339),
+		Configs: AgentConfigs{
+			MemoryPipeline: req.Configs.MemoryPipeline,
+		},
+		CreatedAt: agent.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt: agent.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
 }
 
@@ -154,6 +184,9 @@ func (a *Agent) ListAgents(workspaceId db.Id, limit, offset int) (*ListAgentsRes
 			_ = json.Unmarshal([]byte(*item.KbLabels), &kbLabels)
 		}
 
+		var cfg AgentConfigs
+		_ = json.Unmarshal([]byte(*item.Config), &cfg)
+
 		list = append(list, &AgentResponse{
 			Id:          item.Id,
 			WorkspaceId: item.WorkspaceId,
@@ -164,8 +197,11 @@ func (a *Agent) ListAgents(workspaceId db.Id, limit, offset int) (*ListAgentsRes
 			Handle:      item.Handle,
 			Description: item.Description,
 			Status:      item.Status,
-			CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
-			UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
+			Configs: AgentConfigs{
+				MemoryPipeline: cfg.MemoryPipeline,
+			},
+			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339),
 		})
 	}
 
@@ -195,6 +231,9 @@ func (a *Agent) GetAgent(workspaceId, agentId db.Id) (*AgentResponse, error) {
 		_ = json.Unmarshal([]byte(*agent.KbLabels), &kbLabels)
 	}
 
+	var cfg AgentConfigs
+	_ = json.Unmarshal([]byte(*agent.Config), &cfg)
+
 	return &AgentResponse{
 		Id:          agent.Id,
 		WorkspaceId: agent.WorkspaceId,
@@ -205,8 +244,11 @@ func (a *Agent) GetAgent(workspaceId, agentId db.Id) (*AgentResponse, error) {
 		Handle:      agent.Handle,
 		Description: agent.Description,
 		Status:      agent.Status,
-		CreatedAt:   agent.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   agent.UpdatedAt.UTC().Format(time.RFC3339),
+		Configs: AgentConfigs{
+			MemoryPipeline: cfg.MemoryPipeline,
+		},
+		CreatedAt: agent.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt: agent.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
 }
 
@@ -228,8 +270,25 @@ func (a *Agent) UpdateAgent(workspaceId, agentId db.Id, req *UpdateAgentRequest)
 		return nil, ErrAgentNotFound
 	}
 
+	if req.Configs.MemoryPipeline {
+		subscription, err := a.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+		if err != nil {
+			return nil, err
+		}
+		if subscription == nil || subscription.Plan == stripe.PlanHobby {
+			return nil, ErrMemoryPipelineRequiresPaidPlan
+		}
+	}
+
+	raw, err := json.Marshal(map[string]bool{"memoryPipeline": req.Configs.MemoryPipeline})
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedUpdateAgent, err)
+	}
+	config := string(raw)
+
 	agent.Name = req.Name
 	agent.Description = req.Description
+	agent.Config = &config
 
 	err = a.AgentRepository.Update(agent)
 	if err != nil {
@@ -251,8 +310,11 @@ func (a *Agent) UpdateAgent(workspaceId, agentId db.Id, req *UpdateAgentRequest)
 		Handle:      agent.Handle,
 		Description: agent.Description,
 		Status:      agent.Status,
-		CreatedAt:   agent.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   agent.UpdatedAt.UTC().Format(time.RFC3339),
+		Configs: AgentConfigs{
+			MemoryPipeline: req.Configs.MemoryPipeline,
+		},
+		CreatedAt: agent.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt: agent.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
 }
 

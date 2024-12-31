@@ -33,6 +33,12 @@
                   <dt class="text-theme-textLight">{{ $t('agents_page.created_at') }}</dt>
                   <dd class="mt-0.5 text-theme-text">{{ formatDate(agent.createdAt) }}</dd>
                 </div>
+                <div>
+                  <dt class="text-theme-textLight">{{ $t('agents_page.memory_pipeline') }}</dt>
+                  <dd class="mt-0.5 text-theme-text">
+                    {{ agent.configs.memoryPipeline ? $t('agents_page.memory_pipeline_on') : $t('agents_page.memory_pipeline_off') }}
+                  </dd>
+                </div>
               </dl>
             </div>
             <button v-if="canEdit" type="button" class="btn-secondary shrink-0" @click="openEditModal">
@@ -186,6 +192,15 @@
                 <label for="edit-agent-description" class="form-label">{{ $t('agents_page.description') }}</label>
                 <textarea id="edit-agent-description" v-model="editForm.description" rows="2" required class="input-field" :placeholder="$t('agents_page.description_placeholder')" :disabled="saveLoading" />
               </div>
+              <div class="rounded-lg border border-theme-border bg-theme-hover/40 p-4">
+                <label class="flex items-start gap-3 cursor-pointer">
+                  <input v-model="editForm.memoryPipeline" type="checkbox" class="mt-1 h-4 w-4 rounded border-theme-border text-primary-800 focus:ring-primary-500" :disabled="saveLoading || isHobbyPlan" />
+                  <span>
+                    <span class="block text-sm font-medium text-theme-text">{{ $t('agents_page.memory_pipeline') }}</span>
+                    <span class="mt-0.5 block text-xs text-theme-textLight">{{ $t('agents_page.memory_pipeline_hint') }}</span>
+                  </span>
+                </label>
+              </div>
 
               <div class="flex gap-3 justify-end">
                 <button type="button" class="btn-secondary" :disabled="saveLoading" @click="showEditModal = false">{{ $t('common.cancel') }}</button>
@@ -209,7 +224,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
-import { agent_api, session_api } from '@/api'
+import { agent_api, session_api, billing_api } from '@/api'
 import { sessionPath, formatLabels } from '@/lib/agent'
 import { formatDate, formatDateTime } from '@/utils/dt'
 
@@ -230,7 +245,8 @@ const sessionsTotal = ref(0)
 const showEditModal = ref(false)
 const editError = ref(null)
 const saveLoading = ref(false)
-const editForm = reactive({ name: '', description: '' })
+const editForm = reactive({ name: '', description: '', memoryPipeline: false })
+const isHobbyPlan = ref(true)
 
 const deleteSessionTarget = ref(null)
 const deleteSessionError = ref(null)
@@ -293,11 +309,18 @@ function sessionStatusClass(status) {
   return 'bg-sky-100 text-sky-800'
 }
 
-function openEditModal() {
+async function openEditModal() {
   editForm.name = agent.value.name
   editForm.description = agent.value.description
+  editForm.memoryPipeline = agent.value.configs.memoryPipeline
   editError.value = null
   showEditModal.value = true
+
+  const res = await billing_api.status(currentWorkspace.id)
+  isHobbyPlan.value = res.data.plan === 'hobby'
+  if (isHobbyPlan.value) {
+    editForm.memoryPipeline = false
+  }
 }
 
 function openDeleteSessionModal(session) {
@@ -325,7 +348,13 @@ async function handleSave() {
   saveLoading.value = true
   editError.value = null
   try {
-    const res = await agent_api.update(currentWorkspace.id, agentId.value, { name, description })
+    const res = await agent_api.update(currentWorkspace.id, agentId.value, {
+      name,
+      description,
+      configs: {
+        memoryPipeline: editForm.memoryPipeline,
+      },
+    })
     agent.value = res.data
     showEditModal.value = false
     showFlash(t('common.saved'))

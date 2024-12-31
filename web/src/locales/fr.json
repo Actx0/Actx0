@@ -298,7 +298,10 @@
     "invalid_file_type": "Seuls les fichiers .txt et .md sont pris en charge.",
     "invalid_label_format": "Les labels doivent être au format clé=valeur (ex. tag=faq).",
     "delete_title": "Supprimer le document",
-    "delete_confirm": "Retirer « {name} » de la base de connaissances ? Cette action est irréversible."
+    "delete_confirm": "Retirer « {name} » de la base de connaissances ? Cette action est irréversible.",
+    "paid_required_title": "La base de connaissances est disponible sur les forfaits payants",
+    "paid_required_desc": "Passez à un forfait supérieur pour importer des documents et utiliser la récupération RAG pour vos agents.",
+    "view_plans": "Voir les forfaits"
   },
   "agents_page": {
     "title": "Agents",
@@ -314,6 +317,10 @@
     "description_required": "La description de l'agent est requise.",
     "description": "Description",
     "description_placeholder": "Rôle de cet agent",
+    "memory_pipeline": "Pipeline message → mémoire",
+    "memory_pipeline_hint": "Lorsqu'il est activé, les messages utilisateur extraient et stockent automatiquement des mémoires de session. Désactivé par défaut sur le plan Hobby.",
+    "memory_pipeline_on": "Activé",
+    "memory_pipeline_off": "Désactivé",
     "model": "Modèle",
     "system_prompt": "Prompt système",
     "system_prompt_placeholder": "You are a helpful assistant…",
