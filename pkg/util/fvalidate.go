@@ -74,8 +74,8 @@ func ParseUploadForm(r *http.Request) (*UploadForm, error) {
 	filename := filepath.Base(header.Filename)
 	ext := strings.ToLower(filepath.Ext(filename))
 
-	if !slices.Contains([]string{".txt", ".md"}, ext) {
-		return nil, fmt.Errorf("Only .txt and .md files are allowed")
+	if !slices.Contains([]string{".txt", ".md", ".markdown", ".mdx"}, ext) {
+		return nil, fmt.Errorf("Only .txt, .md, .markdown, and .mdx files are allowed")
 	}
 
 	bytes, err := io.ReadAll(io.LimitReader(file, conf.MaxUploadBytes+1))
@@ -104,7 +104,7 @@ func ParseUploadForm(r *http.Request) (*UploadForm, error) {
 
 	contentType := "application/octet-stream"
 	switch ext {
-	case ".md":
+	case ".md", ".markdown", ".mdx":
 		contentType = "text/markdown"
 	case ".txt":
 		contentType = "text/plain"

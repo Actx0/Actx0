@@ -63,7 +63,7 @@
             <input
               ref="fileInputRef"
               type="file"
-              accept=".txt,.md,text/plain,text/markdown"
+              accept=".txt,.md,.markdown,.mdx,text/plain,text/markdown"
               multiple
               class="sr-only"
               @change="onFileChange"
@@ -373,6 +373,8 @@ function isTextFile(file) {
   return (
     name.endsWith('.txt')
     || name.endsWith('.md')
+    || name.endsWith('.markdown')
+    || name.endsWith('.mdx')
     || file.type === 'text/plain'
     || file.type === 'text/markdown'
   )

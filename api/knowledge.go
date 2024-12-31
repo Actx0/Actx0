@@ -22,7 +22,7 @@ import (
 	"github.com/samber/lo"
 )
 
-// UploadDocumentAction uploads a .txt or .md document to a workspace.
+// UploadDocumentAction uploads a .txt, .md, .markdown, or .mdx document to a workspace.
 func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
