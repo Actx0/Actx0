@@ -12,6 +12,7 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/storage"
+	"github.com/clivern/actx0/pkg/stripe"
 	"github.com/clivern/actx0/pkg/util"
 	"github.com/clivern/actx0/service/knowledge"
 
@@ -20,12 +21,13 @@ import (
 )
 
 var (
-	ErrDocumentNotFound      = errors.New("document not found")
-	ErrFailedCreateDocument  = errors.New("failed create document")
-	ErrFailedStoreDocument   = errors.New("failed store document")
-	ErrFailedListDocuments   = errors.New("failed list documents")
-	ErrFailedDeleteDocument  = errors.New("failed delete document")
-	ErrFailedSearchDocuments = errors.New("failed search documents")
+	ErrDocumentNotFound          = errors.New("document not found")
+	ErrFailedCreateDocument      = errors.New("failed create document")
+	ErrFailedStoreDocument       = errors.New("failed store document")
+	ErrFailedListDocuments       = errors.New("failed list documents")
+	ErrFailedDeleteDocument      = errors.New("failed delete document")
+	ErrFailedSearchDocuments     = errors.New("failed search documents")
+	ErrKnowledgeRequiresPaidPlan = errors.New("knowledge requires a paid plan")
 )
 
 // DocumentMeasure is a numeric document field with a unit for API responses.
@@ -113,6 +115,14 @@ func (d *Document) UploadDocument(ctx context.Context, form *util.UploadForm, wo
 	}
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
+	}
+
+	subscription, err := d.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	if subscription == nil || subscription.Plan == stripe.PlanHobby {
+		return nil, ErrKnowledgeRequiresPaidPlan
 	}
 
 	usage := NewUsage()
@@ -230,6 +240,14 @@ func (d *Document) DeleteDocument(_ context.Context, workspaceId, documentId db.
 		return ErrWorkspaceNotFound
 	}
 
+	subscription, err := d.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return err
+	}
+	if subscription == nil || subscription.Plan == stripe.PlanHobby {
+		return ErrKnowledgeRequiresPaidPlan
+	}
+
 	document, err := d.DocumentRepository.GetById(documentId)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrFailedDeleteDocument, err)
@@ -254,6 +272,14 @@ func (d *Document) ListDocuments(workspaceId db.Id, limit, offset int) (*ListDoc
 	}
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
+	}
+
+	subscription, err := d.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	if subscription == nil || subscription.Plan == stripe.PlanHobby {
+		return nil, ErrKnowledgeRequiresPaidPlan
 	}
 
 	documents, err := d.DocumentRepository.ListByWorkspaceId(workspaceId, limit, offset)
@@ -311,6 +337,14 @@ func (d *Document) SearchDocuments(ctx context.Context, workspaceId db.Id, query
 	}
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
+	}
+
+	subscription, err := d.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	if subscription == nil || subscription.Plan == stripe.PlanHobby {
+		return nil, ErrKnowledgeRequiresPaidPlan
 	}
 
 	usageMod := NewUsage()

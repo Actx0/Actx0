@@ -612,6 +612,10 @@ func RegenerateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
+		case errors.Is(err, module.ErrMemoryPipelineDisabled):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "memory_pipeline_disabled"),
+			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to regenerate session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -819,6 +823,10 @@ func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrWorkspaceCapacityReached):
 			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
+			})
+		case errors.Is(err, module.ErrSemanticSearchRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "semantic_search_requires_paid_plan"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to search session memories")

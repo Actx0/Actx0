@@ -25,6 +25,7 @@ type Agent struct {
 	Handle      string
 	Description string
 	Status      string
+	Config      *string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -89,9 +90,9 @@ func (r *AgentRepositoryPostgres) Create(agent *Agent) error {
 
 	err = r.db.QueryRow(
 		`INSERT INTO agents (
-			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description
+			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, config
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING status, created_at, updated_at`,
 		agent.Id.String(),
 		agent.WorkspaceId.String(),
@@ -101,6 +102,7 @@ func (r *AgentRepositoryPostgres) Create(agent *Agent) error {
 		agent.KbLabels,
 		agent.Handle,
 		agent.Description,
+		agent.Config,
 	).Scan(
 		&agent.Status,
 		&agent.CreatedAt,
@@ -114,7 +116,7 @@ func (r *AgentRepositoryPostgres) GetById(id Id) (*Agent, error) {
 	item := &Agent{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, status, created_at, updated_at
+			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, status, config, created_at, updated_at
 		FROM agents
 		WHERE id = $1`,
 		id.String(),
@@ -128,6 +130,7 @@ func (r *AgentRepositoryPostgres) GetById(id Id) (*Agent, error) {
 		&item.Handle,
 		&item.Description,
 		&item.Status,
+		&item.Config,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
@@ -142,7 +145,7 @@ func (r *AgentRepositoryPostgres) GetByHandle(handle string) (*Agent, error) {
 	item := &Agent{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, status, created_at, updated_at
+			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, status, config, created_at, updated_at
 		FROM agents
 		WHERE handle = $1`,
 		handle,
@@ -156,6 +159,7 @@ func (r *AgentRepositoryPostgres) GetByHandle(handle string) (*Agent, error) {
 		&item.Handle,
 		&item.Description,
 		&item.Status,
+		&item.Config,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
@@ -176,14 +180,16 @@ func (r *AgentRepositoryPostgres) Update(agent *Agent) error {
 			prompt_id = $4,
 			kb_labels = $5,
 			description = $6,
-			updated_at = $7
-		WHERE id = $8`,
+			config = $7,
+			updated_at = $8
+		WHERE id = $9`,
 		agent.WorkspaceId.String(),
 		agent.Name,
 		agent.Kind,
 		lo.FromPtr(agent.PromptId),
 		agent.KbLabels,
 		agent.Description,
+		agent.Config,
 		time.Now().UTC(),
 		agent.Id.String(),
 	)
@@ -204,7 +210,7 @@ func (r *AgentRepositoryPostgres) Delete(id Id) error {
 func (r *AgentRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, offset int) ([]*Agent, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, status, created_at, updated_at
+			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, status, config, created_at, updated_at
 		FROM agents
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
@@ -230,6 +236,7 @@ func (r *AgentRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, offse
 			&item.Handle,
 			&item.Description,
 			&item.Status,
+			&item.Config,
 			&item.CreatedAt,
 			&item.UpdatedAt,
 		); err != nil {

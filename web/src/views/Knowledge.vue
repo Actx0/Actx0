@@ -12,7 +12,24 @@
         {{ errorMessage }}
       </div>
 
-      <div class="rounded-xl border border-theme-border bg-white shadow-sm overflow-hidden">
+      <div v-if="planLoading" class="rounded-xl border border-theme-border bg-white shadow-sm p-12 text-center">
+        <svg class="animate-spin h-8 w-8 mx-auto text-theme-text" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+      </div>
+
+      <div v-else-if="isHobbyPlan" class="rounded-xl border border-theme-border bg-white shadow-sm overflow-hidden">
+        <div class="px-6 py-10 text-center sm:px-10">
+          <h2 class="text-lg font-semibold text-theme-text">{{ $t('knowledge_page.paid_required_title') }}</h2>
+          <p class="mt-2 text-sm text-theme-textLight max-w-lg mx-auto">{{ $t('knowledge_page.paid_required_desc') }}</p>
+          <RouterLink to="/billing" class="btn-primary mt-6 inline-flex">
+            {{ $t('knowledge_page.view_plans') }}
+          </RouterLink>
+        </div>
+      </div>
+
+      <div v-else class="rounded-xl border border-theme-border bg-white shadow-sm overflow-hidden">
         <div class="border-b border-theme-border px-6 py-4">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -257,12 +274,12 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
-import { document_api } from '@/api'
+import { document_api, billing_api } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
 import { formatDate } from '@/utils/dt'
 
@@ -299,6 +316,8 @@ const documents = ref([])
 const total = ref(0)
 const loadingDocuments = ref(false)
 const errorMessage = ref(null)
+const planLoading = ref(true)
+const isHobbyPlan = ref(true)
 const dragActive = ref(false)
 const fileInputRef = ref(null)
 let pollTimer = null
@@ -422,6 +441,7 @@ function onLabelKey(event) {
 }
 
 async function loadDocs({ silent = false } = {}) {
+  if (isHobbyPlan.value) return
   if (!silent) loadingDocuments.value = true
   errorMessage.value = null
 
@@ -438,6 +458,16 @@ async function loadDocs({ silent = false } = {}) {
     total.value = 0
   } finally {
     if (!silent) loadingDocuments.value = false
+  }
+}
+
+async function loadPlan() {
+  planLoading.value = true
+  const res = await billing_api.status(currentWorkspace.id)
+  isHobbyPlan.value = res.data.plan === 'hobby'
+  planLoading.value = false
+  if (!isHobbyPlan.value) {
+    await loadDocs()
   }
 }
 
@@ -537,9 +567,11 @@ watch(hasProcessingDocuments, (processing) => {
   }
 })
 
-watch(() => route.query.page, () => loadDocs())
+watch(() => route.query.page, () => {
+  if (!isHobbyPlan.value) loadDocs()
+})
 
-onMounted(loadDocs)
+onMounted(loadPlan)
 onUnmounted(() => {
   if (pollTimer) clearInterval(pollTimer)
 })

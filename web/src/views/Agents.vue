@@ -167,7 +167,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
-import { agent_api } from '@/api'
+import { agent_api, billing_api } from '@/api'
 import { agentPath } from '@/lib/agent'
 import { formatDate } from '@/utils/dt'
 
@@ -185,7 +185,7 @@ const errorMessage = ref(null)
 const showCreateModal = ref(false)
 const createLoading = ref(false)
 const createError = ref(null)
-const form = reactive({ name: '', description: '' })
+const form = reactive({ name: '', description: '', memoryPipeline: false })
 
 const deleteTarget = ref(null)
 const deleteError = ref(null)
@@ -210,21 +210,15 @@ function goToPage(newOffset) {
   goToOffset(newOffset)
 }
 
-function openCreateModal() {
+async function openCreateModal() {
   form.name = ''
   form.description = ''
+  form.memoryPipeline = false
   createError.value = null
   showCreateModal.value = true
-}
 
-function openDeleteModal(agent) {
-  deleteTarget.value = agent
-  deleteError.value = null
-}
-
-function closeDeleteModal() {
-  deleteTarget.value = null
-  deleteError.value = null
+  const res = await billing_api.status(currentWorkspace.id)
+  form.memoryPipeline = res.data.plan !== 'hobby'
 }
 
 async function handleCreate() {
@@ -242,7 +236,13 @@ async function handleCreate() {
   createLoading.value = true
   createError.value = null
   try {
-    const created = await agent_api.create(currentWorkspace.id, { name, description })
+    const created = await agent_api.create(currentWorkspace.id, {
+      name,
+      description,
+      configs: {
+        memoryPipeline: form.memoryPipeline,
+      },
+    })
     showCreateModal.value = false
     showFlash(t('common.created'))
     router.push(agentPath(created.data.id))
@@ -251,6 +251,16 @@ async function handleCreate() {
   } finally {
     createLoading.value = false
   }
+}
+
+function openDeleteModal(agent) {
+  deleteTarget.value = agent
+  deleteError.value = null
+}
+
+function closeDeleteModal() {
+  deleteTarget.value = null
+  deleteError.value = null
 }
 
 async function confirmDelete() {

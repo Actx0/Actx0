@@ -30,6 +30,18 @@ msgstr "API key not found."
 msgid "agent_not_found"
 msgstr "Agent not found."
 
+msgid "memory_pipeline_disabled"
+msgstr "Memory pipeline is disabled for this agent."
+
+msgid "memory_pipeline_requires_paid_plan"
+msgstr "Memory pipeline requires a paid plan."
+
+msgid "semantic_search_requires_paid_plan"
+msgstr "Semantic search requires a paid plan."
+
+msgid "knowledge_requires_paid_plan"
+msgstr "Knowledge requires a paid plan."
+
 msgid "agent_session_already_exists"
 msgstr "An agent session with these labels already exists."
 

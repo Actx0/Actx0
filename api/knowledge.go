@@ -71,6 +71,10 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
+		case errors.Is(err, module.ErrKnowledgeRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
+			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to upload document")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -129,6 +133,10 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrKnowledgeRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to list documents")
@@ -197,6 +205,10 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrDocumentNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "document_not_found"),
+			})
+		case errors.Is(err, module.ErrKnowledgeRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
 			})
 		default:
 			log.Error().Err(err).Str("documentId", documentId).Msg("Failed to delete document")
@@ -293,6 +305,10 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrWorkspaceCapacityReached):
 			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
+			})
+		case errors.Is(err, module.ErrKnowledgeRequiresPaidPlan):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to search documents")

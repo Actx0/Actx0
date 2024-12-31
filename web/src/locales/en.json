@@ -298,7 +298,10 @@
     "invalid_file_type": "Only .txt and .md files are supported.",
     "invalid_label_format": "Labels must be in key=value format (e.g. tag=faq).",
     "delete_title": "Delete document",
-    "delete_confirm": "Remove \"{name}\" from the knowledge base? This cannot be undone."
+    "delete_confirm": "Remove \"{name}\" from the knowledge base? This cannot be undone.",
+    "paid_required_title": "Knowledge is available on paid plans",
+    "paid_required_desc": "Upgrade to upload documents and use RAG retrieval for your agents.",
+    "view_plans": "View plans"
   },
   "agents_page": {
     "title": "Agents",
@@ -314,6 +317,10 @@
     "description_required": "Agent description is required.",
     "description": "Description",
     "description_placeholder": "What this agent does",
+    "memory_pipeline": "Message → memory pipeline",
+    "memory_pipeline_hint": "When enabled, user messages automatically extract and store session memories. Disabled by default on the Hobby plan.",
+    "memory_pipeline_on": "Enabled",
+    "memory_pipeline_off": "Disabled",
     "model": "Model",
     "system_prompt": "System prompt",
     "system_prompt_placeholder": "You are a helpful assistant…",

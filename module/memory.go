@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/pkg/stripe"
 	"github.com/clivern/actx0/pkg/util"
 	"github.com/clivern/actx0/service/agent"
 
@@ -28,6 +29,7 @@ var (
 	ErrFailedSearchSessionMemories = errors.New("failed search session memories")
 
 	ErrFailedRegenerateSessionMemories = errors.New("failed regenerate session memories")
+	ErrMemoryPipelineDisabled          = errors.New("memory pipeline disabled for agent")
 )
 
 // CreateSessionMemoryRequest is the body for creating a session memory.
@@ -152,9 +154,15 @@ func (m *Memory) CreateSessionMemory(workspaceId, agentId, sessionId db.Id, req 
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
 	}
 
-	err = m.EnqueueIndexTask(workspaceId, memory.Id)
+	subscription, err := m.SubscriptionRepository.GetByWorkspaceId(workspaceId)
 	if err != nil {
 		return nil, err
+	}
+	if subscription != nil && subscription.Plan != stripe.PlanHobby {
+		err = m.EnqueueIndexTask(workspaceId, memory.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &SessionMemoryResponse{
@@ -188,6 +196,12 @@ func (m *Memory) BatchCreateSessionMemories(workspaceId, agentId, sessionId db.I
 		return nil, ErrWorkspaceCapacityReached
 	}
 
+	subscription, err := m.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	indexEnabled := subscription != nil && subscription.Plan != stripe.PlanHobby
+
 	responses := make([]*SessionMemoryResponse, 0, len(req.Memories))
 	for _, item := range req.Memories {
 		memory := &db.SessionMemory{
@@ -202,9 +216,11 @@ func (m *Memory) BatchCreateSessionMemories(workspaceId, agentId, sessionId db.I
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
 		}
 
-		err = m.EnqueueIndexTask(workspaceId, memory.Id)
-		if err != nil {
-			return nil, err
+		if indexEnabled {
+			err = m.EnqueueIndexTask(workspaceId, memory.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		responses = append(responses, &SessionMemoryResponse{
@@ -273,9 +289,15 @@ func (m *Memory) UpdateSessionMemory(workspaceId, agentId, sessionId, memoryId d
 		return nil, fmt.Errorf("%w: %v", ErrFailedUpdateSessionMemory, err)
 	}
 
-	err = m.EnqueueIndexTask(workspaceId, memory.Id)
+	subscription, err := m.SubscriptionRepository.GetByWorkspaceId(workspaceId)
 	if err != nil {
 		return nil, err
+	}
+	if subscription != nil && subscription.Plan != stripe.PlanHobby {
+		err = m.EnqueueIndexTask(workspaceId, memory.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &SessionMemoryResponse{
@@ -384,6 +406,14 @@ func (m *Memory) SearchSessionMemories(ctx context.Context, workspaceId, agentId
 		return nil, err
 	}
 
+	subscription, err := m.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	if subscription == nil || subscription.Plan == stripe.PlanHobby {
+		return nil, ErrSemanticSearchRequiresPaidPlan
+	}
+
 	usageMod := NewUsage()
 
 	reached, err := usageMod.IsAITokensReached(m.UsageRepository, m.SubscriptionRepository, workspaceId, 1)
@@ -453,6 +483,20 @@ func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id
 	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
+	}
+
+	agent, err := m.AgentSession.AgentRepository.GetById(agentId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
+	}
+	if agent == nil || agent.WorkspaceId != workspaceId {
+		return nil, ErrAgentNotFound
+	}
+
+	var cfg AgentConfigs
+	_ = json.Unmarshal([]byte(*agent.Config), &cfg)
+	if !cfg.MemoryPipeline {
+		return nil, ErrMemoryPipelineDisabled
 	}
 
 	err = m.MemoryRepository.DeleteBySessionId(sessionId)

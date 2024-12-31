@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/pkg/stripe"
 	"github.com/clivern/actx0/pkg/util"
 	"github.com/clivern/actx0/service/agent"
 
@@ -91,6 +92,7 @@ type ListSessionMessagesResponse struct {
 type Message struct {
 	MessageRepository      db.SessionMessageRepository
 	SessionRepository      db.AgentSessionRepository
+	AgentRepository        db.AgentRepository
 	Agent                  *agent.Service
 	UsageRepository        db.UsageRepository
 	SubscriptionRepository db.SubscriptionRepository
@@ -100,11 +102,13 @@ type Message struct {
 func NewMessage(
 	messages db.SessionMessageRepository,
 	sessions db.AgentSessionRepository,
+	agents db.AgentRepository,
 	subscriptions db.SubscriptionRepository,
 ) *Message {
 	return &Message{
 		MessageRepository:      messages,
 		SessionRepository:      sessions,
+		AgentRepository:        agents,
 		SubscriptionRepository: subscriptions,
 	}
 }
@@ -158,15 +162,33 @@ func (m *Message) CreateSessionMessage(workspaceId, agentId, sessionId db.Id, re
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMessage, err)
 	}
 
-	err = m.EnqueueIndexTask(workspaceId, message.Id)
+	subscription, err := m.SubscriptionRepository.GetByWorkspaceId(workspaceId)
 	if err != nil {
 		return nil, err
 	}
-
-	if message.Role == "user" {
-		err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
+	if subscription != nil && subscription.Plan != stripe.PlanHobby {
+		err = m.EnqueueIndexTask(workspaceId, message.Id)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	if message.Role == "user" {
+		agent, err := m.AgentRepository.GetById(agentId)
+		if err != nil {
+			return nil, err
+		}
+		if agent == nil || agent.WorkspaceId != workspaceId {
+			return nil, ErrAgentNotFound
+		}
+
+		var cfg AgentConfigs
+		_ = json.Unmarshal([]byte(*agent.Config), &cfg)
+		if cfg.MemoryPipeline {
+			err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -200,6 +222,24 @@ func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.
 		return nil, ErrWorkspaceCapacityReached
 	}
 
+	agent, err := m.AgentRepository.GetById(agentId)
+	if err != nil {
+		return nil, err
+	}
+	if agent == nil || agent.WorkspaceId != workspaceId {
+		return nil, ErrAgentNotFound
+	}
+
+	var cfg AgentConfigs
+	_ = json.Unmarshal([]byte(*agent.Config), &cfg)
+	memoryPipeline := cfg.MemoryPipeline
+
+	subscription, err := m.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	indexEnabled := subscription != nil && subscription.Plan != stripe.PlanHobby
+
 	responses := make([]*SessionMessageResponse, 0, len(req.Messages))
 	var lastCreatedAt time.Time
 	for _, item := range req.Messages {
@@ -225,12 +265,14 @@ func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.
 			CreatedAt: message.CreatedAt.UTC().Format(time.RFC3339),
 		})
 
-		err = m.EnqueueIndexTask(workspaceId, message.Id)
-		if err != nil {
-			return nil, err
+		if indexEnabled {
+			err = m.EnqueueIndexTask(workspaceId, message.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		if message.Role == "user" {
+		if message.Role == "user" && memoryPipeline {
 			err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
 			if err != nil {
 				return nil, err
@@ -397,6 +439,14 @@ func (m *Message) SearchSessionMessages(ctx context.Context, workspaceId, agentI
 	session, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
+	}
+
+	subscription, err := m.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+	if subscription == nil || subscription.Plan == stripe.PlanHobby {
+		return nil, ErrSemanticSearchRequiresPaidPlan
 	}
 
 	usg := NewUsage()
