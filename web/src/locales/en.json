@@ -1082,7 +1082,7 @@
     "developers": {
       "label": "Built for developers",
       "title": "Proof, not promises",
-      "subtitle": "actx0 gives agents persistent memory without pipeline changes. Less redundant context, lower token costs, measurably faster responses.",
+      "subtitle": "Actx0 gives agents persistent memory without pipeline changes. Less redundant context, lower token costs, measurably faster responses.",
       "tabs": {
         "efficiency": "Efficiency",
         "visibility": "Visibility",
@@ -1120,11 +1120,11 @@
     },
     "how_it_works": {
       "label": "How it works",
-      "title": "Add anything. actx0 learns.",
+      "title": "Add anything. Actx0 learns.",
       "add_title": "Add",
-      "add_text": "Send conversations, documents, or structured data. No config or boilerplate. Just point your agent at actx0.",
+      "add_text": "Send conversations, documents, or structured data. No config or boilerplate. Just point your agent at Actx0.",
       "learn_title": "Learn",
-      "learn_text": "actx0 extracts, embeds, and updates memories automatically. Facts evolve as users interact over time.",
+      "learn_text": "Actx0 extracts, embeds, and updates memories automatically. Facts evolve as users interact over time.",
       "retrieve_title": "Retrieve",
       "retrieve_text": "At inference time, the most relevant memories surface in milliseconds, ready to inject into your agent's context window."
     },
@@ -1165,7 +1165,7 @@
     "enterprise": {
       "label": "Enterprise",
       "title": "Built for scale. Designed for control.",
-      "subtitle": "Memory at scale is infrastructure. actx0 gives teams governance, reliability, and observability so engineers build instead of recovering lost context.",
+      "subtitle": "Memory at scale is infrastructure. Actx0 gives teams governance, reliability, and observability so engineers build instead of recovering lost context.",
       "managed_title": "Managed Cloud",
       "managed_text": "Fully managed memory infrastructure. No servers to provision, patch, or scale yourself.",
       "auditable_title": "Auditable",

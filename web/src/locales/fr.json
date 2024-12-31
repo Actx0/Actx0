@@ -1082,7 +1082,7 @@
     "developers": {
       "label": "Conçu pour les développeurs",
       "title": "Des preuves, pas des promesses",
-      "subtitle": "actx0 offre une mémoire persistante aux agents sans changer les pipelines. Moins de contexte redondant, coûts de tokens réduits, réponses mesurablement plus rapides.",
+      "subtitle": "Actx0 offre une mémoire persistante aux agents sans changer les pipelines. Moins de contexte redondant, coûts de tokens réduits, réponses mesurablement plus rapides.",
       "tabs": {
         "efficiency": "Efficacité",
         "visibility": "Visibilité",
@@ -1120,11 +1120,11 @@
     },
     "how_it_works": {
       "label": "Fonctionnement",
-      "title": "Ajoutez n’importe quoi. actx0 apprend.",
+      "title": "Ajoutez n’importe quoi. Actx0 apprend.",
       "add_title": "Ajouter",
-      "add_text": "Envoyez conversations, documents ou données structurées. Pas de config ni de boilerplate. Pointez simplement votre agent vers actx0.",
+      "add_text": "Envoyez conversations, documents ou données structurées. Pas de config ni de boilerplate. Pointez simplement votre agent vers Actx0.",
       "learn_title": "Apprendre",
-      "learn_text": "actx0 extrait, vectorise et met à jour les mémoires automatiquement. Les faits évoluent au fil des interactions.",
+      "learn_text": "Actx0 extrait, vectorise et met à jour les mémoires automatiquement. Les faits évoluent au fil des interactions.",
       "retrieve_title": "Récupérer",
       "retrieve_text": "À l'inférence, les mémoires les plus pertinentes apparaissent en millisecondes, prêtes à être injectées dans le contexte de votre agent."
     },
@@ -1165,7 +1165,7 @@
     "enterprise": {
       "label": "Entreprise",
       "title": "Conçu pour l’échelle. Pensé pour le contrôle.",
-      "subtitle": "La mémoire à grande échelle est une infrastructure. actx0 offre gouvernance, fiabilité et observabilité pour que les ingénieurs construisent au lieu de récupérer le contexte perdu.",
+      "subtitle": "La mémoire à grande échelle est une infrastructure. Actx0 offre gouvernance, fiabilité et observabilité pour que les ingénieurs construisent au lieu de récupérer le contexte perdu.",
       "managed_title": "Cloud géré",
       "managed_text": "Infrastructure mémoire entièrement gérée. Aucun serveur à provisionner, patcher ou dimensionner vous-même.",
       "auditable_title": "Auditable",
