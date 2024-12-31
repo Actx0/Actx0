@@ -4,20 +4,34 @@
 package module
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/pkg/resend"
 	"github.com/clivern/actx0/pkg/util"
 
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
 )
 
 var (
-	ErrCurrentPasswordRequired  = errors.New("current password required")
-	ErrCurrentPasswordIncorrect = errors.New("current password incorrect")
-	ErrFailedGetProfile         = errors.New("failed get profile")
-	ErrFailedUpdateProfile      = errors.New("failed update profile")
+	ErrCurrentPasswordRequired       = errors.New("current password required")
+	ErrCurrentPasswordIncorrect      = errors.New("current password incorrect")
+	ErrFailedGetProfile              = errors.New("failed get profile")
+	ErrFailedUpdateProfile           = errors.New("failed update profile")
+	ErrEmailAlreadyVerified          = errors.New("email already verified")
+	ErrVerifyEmailResendLimitReached = errors.New("verify email resend daily limit reached")
+	ErrFailedResendVerifyEmail       = errors.New("failed resend verify email")
+)
+
+const (
+	VerifyEmailResendMetaKey    = "verify_email_resend"
+	VerifyEmailResendDailyLimit = 5
 )
 
 // UpdateProfileRequest is the body for updating your profile.
@@ -32,13 +46,15 @@ type UpdateProfileRequest struct {
 
 // Profile handles profile updates.
 type Profile struct {
-	UserRepository db.UserRepository
+	UserRepository     db.UserRepository
+	UserMetaRepository db.UserMetaRepository
 }
 
 // NewProfile creates a Profile module with the given repositories.
-func NewProfile(users db.UserRepository) *Profile {
+func NewProfile(users db.UserRepository, meta db.UserMetaRepository) *Profile {
 	return &Profile{
-		UserRepository: users,
+		UserRepository:     users,
+		UserMetaRepository: meta,
 	}
 }
 
@@ -104,4 +120,75 @@ func (p *Profile) UpdateProfile(userId db.Id, req *UpdateProfileRequest) (*db.Us
 	}
 
 	return user, nil
+}
+
+// ResendVerifyEmail sends another verification email, limited to 5 per day.
+func (p *Profile) ResendVerifyEmail(userId db.Id) error {
+	user, err := p.UserRepository.GetById(userId)
+	if err != nil {
+		return fmt.Errorf("%w: get user: %v", ErrFailedResendVerifyEmail, err)
+	}
+	if user == nil {
+		return ErrUserNotFound
+	}
+	if user.IsEmailVerified {
+		return ErrEmailAlreadyVerified
+	}
+
+	today := time.Now().UTC().Format("2006-01-02")
+	count := 0
+	meta, err := p.UserMetaRepository.Get(userId, VerifyEmailResendMetaKey)
+	if err != nil {
+		return fmt.Errorf("%w: get meta: %v", ErrFailedResendVerifyEmail, err)
+	}
+	if meta != nil {
+		var state struct {
+			Day   string `json:"day"`
+			Count int    `json:"count"`
+		}
+		_ = json.Unmarshal([]byte(meta.Value), &state)
+		if state.Day == today {
+			count = state.Count
+		}
+	}
+	if count >= VerifyEmailResendDailyLimit {
+		return ErrVerifyEmailResendLimitReached
+	}
+
+	token := uuid.NewString()
+	user.EmailVerifyToken = &token
+	err = p.UserRepository.Update(user)
+	if err != nil {
+		return fmt.Errorf("%w: update user: %v", ErrFailedResendVerifyEmail, err)
+	}
+
+	raw, err := json.Marshal(map[string]any{
+		"day":   today,
+		"count": count + 1,
+	})
+	if err != nil {
+		return fmt.Errorf("%w: encode meta: %v", ErrFailedResendVerifyEmail, err)
+	}
+	err = p.UserMetaRepository.Upsert(userId, VerifyEmailResendMetaKey, string(raw))
+	if err != nil {
+		return fmt.Errorf("%w: upsert meta: %v", ErrFailedResendVerifyEmail, err)
+	}
+
+	mailer := resend.NewMailer()
+	err = mailer.SendVerifyEmail(
+		user.Email,
+		user.Name,
+		fmt.Sprintf("%s/verify-email/%s", viper.GetString("app.url"), token),
+		viper.GetString("app.name"),
+	)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("userId", user.Id.String()).
+			Str("email", user.Email).
+			Msg("Failed to resend verify email")
+		return fmt.Errorf("%w: %v", ErrFailedResendVerifyEmail, err)
+	}
+
+	return nil
 }

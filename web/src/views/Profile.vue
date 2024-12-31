@@ -13,6 +13,26 @@
           {{ errorMessage }}
         </div>
 
+        <div
+          v-if="!user.isEmailVerified"
+          class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 sm:flex sm:items-start sm:justify-between sm:gap-4"
+        >
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-amber-900">{{ $t('profile.email_unverified_title') }}</p>
+            <p class="mt-1 text-sm text-amber-800">{{ $t('profile.email_unverified_desc') }}</p>
+            <p v-if="resendMessage" class="mt-2 text-sm text-amber-900">{{ resendMessage }}</p>
+            <p v-if="resendError" class="mt-2 text-sm text-red-700">{{ resendError }}</p>
+          </div>
+          <button
+            type="button"
+            class="mt-3 sm:mt-0 shrink-0 inline-flex items-center justify-center rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+            :disabled="resending"
+            @click="resendVerification"
+          >
+            {{ resending ? $t('profile.email_unverified_sending') : $t('profile.email_unverified_resend') }}
+          </button>
+        </div>
+
         <section class="rounded-xl bg-white border border-theme-border shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-theme-border bg-primary-50/50">
             <h2 class="text-base font-semibold text-theme-text">{{ $t('profile.account') }}</h2>
@@ -352,6 +372,9 @@ const { t } = useI18n()
 
 const loading = ref(false)
 const errorMessage = ref(null)
+const resending = ref(false)
+const resendMessage = ref(null)
+const resendError = ref(null)
 const form = reactive({
   name: user.value.name,
   email: user.value.email,
@@ -361,6 +384,20 @@ const form = reactive({
   newPassword: '',
   confirmPassword: ''
 })
+
+async function resendVerification() {
+  resending.value = true
+  resendMessage.value = null
+  resendError.value = null
+  try {
+    const res = await auth_api.resendVerificationEmail()
+    resendMessage.value = res.data.successMessage || t('profile.email_unverified_sent')
+  } catch (err) {
+    resendError.value = err.response?.data?.errorMessage || t('profile.email_unverified_failed')
+  } finally {
+    resending.value = false
+  }
+}
 
 const apiKeys = ref([])
 const apiKeysLoading = ref(false)
