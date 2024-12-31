@@ -73,9 +73,6 @@ jobs:
             fi
           done <<< "$tags"
 
-      - name: Reclaim registry storage
-        run: doctl registry garbage-collection start ${{ env.DO_REGISTRY_NAME }} --include-untagged-manifests --force
-
   audit:
     name: Audit
     runs-on: ubuntu-latest
