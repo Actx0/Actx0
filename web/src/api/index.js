@@ -58,6 +58,7 @@ export const auth_api = {
   logout: () => api.post('public/action/logout'),
   getProfile: () => api.get('/action/profile'),
   updateProfile: (data) => api.put('/action/profile', data),
+  resendVerificationEmail: () => api.post('/action/reverify'),
   forgotPassword: (data) => api.post('public/action/forgot-password', data),
   resetPassword: (data) => api.post('public/action/reset-password', data),
   register: (data) => api.post('public/action/register', data),

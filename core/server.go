@@ -76,6 +76,7 @@ func SetupServer(Static embed.FS) http.Handler {
 		r.Use(middleware.Protect(middleware.Config{Roles: []string{db.UserRoleAdmin, db.UserRoleRegular}}))
 		r.Get("/api/v1/action/profile", api.GetProfileAction)                                        // get user profile
 		r.Put("/api/v1/action/profile", api.UpdateProfileAction)                                     // update user profile
+		r.Post("/api/v1/action/reverify", api.ResendVerifyEmailAction)                               // resend email verification
 		r.Get("/api/v1/action/invites", api.ListUserInvitesAction)                                   // list pending workspace invites
 		r.Get("/api/v1/action/invite-by-token/{token}", api.GetAuthenticatedUserInviteByTokenAction) // get invite details by token
 		r.Post("/api/v1/action/accept-invite/{token}", api.AcceptUserInviteByTokenAction)            // accept workspace invite

@@ -507,6 +507,18 @@ msgstr "Failed to verify email. Please try again later."
 msgid "email_verified_successfully"
 msgstr "Email verified successfully."
 
+msgid "email_already_verified"
+msgstr "Email is already verified."
+
+msgid "verify_email_resent_successfully"
+msgstr "Verification email sent. Please check your inbox."
+
+msgid "verify_email_resend_limit_reached"
+msgstr "You can request at most 5 verification emails per day."
+
+msgid "failed_resend_verify_email"
+msgstr "Failed to send verification email. Please try again later."
+
 msgid "settings_updated_successfully"
 msgstr "Settings updated successfully."
 

@@ -31,7 +31,10 @@ func GetProfileAction(w http.ResponseWriter, r *http.Request) {
 		Str("userId", user.Id.String()).
 		Msg("Getting profile")
 
-	pm := module.NewProfile(db.NewUserRepository(db.GetDB()))
+	pm := module.NewProfile(
+		db.NewUserRepository(db.GetDB()),
+		db.NewUserMetaRepository(db.GetDB()),
+	)
 	profile, err := pm.GetProfile(user.Id)
 
 	if err != nil {
@@ -85,7 +88,10 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pm := module.NewProfile(db.NewUserRepository(db.GetDB()))
+	pm := module.NewProfile(
+		db.NewUserRepository(db.GetDB()),
+		db.NewUserMetaRepository(db.GetDB()),
+	)
 	updated, err := pm.UpdateProfile(user.Id, &req)
 
 	if err != nil {
@@ -142,5 +148,51 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 			"updatedAt":       updated.UpdatedAt.UTC().Format(time.RFC3339),
 		},
 		"successMessage": locale.TR(r, "profile_updated_successfully"),
+	})
+}
+
+// ResendVerifyEmailAction sends another email verification message.
+func ResendVerifyEmailAction(w http.ResponseWriter, r *http.Request) {
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok || user == nil {
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
+			"errorMessage": locale.TR(r, "not_authenticated"),
+		})
+		return
+	}
+
+	pm := module.NewProfile(
+		db.NewUserRepository(db.GetDB()),
+		db.NewUserMetaRepository(db.GetDB()),
+	)
+	err := pm.ResendVerifyEmail(user.Id)
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrEmailAlreadyVerified):
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+				"errorMessage": locale.TR(r, "email_already_verified"),
+			})
+		case errors.Is(err, module.ErrVerifyEmailResendLimitReached):
+			util.WriteJSON(w, http.StatusTooManyRequests, map[string]any{
+				"errorMessage": locale.TR(r, "verify_email_resend_limit_reached"),
+			})
+		case errors.Is(err, module.ErrUserNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "user_not_found"),
+			})
+		default:
+			log.Error().
+				Err(err).
+				Str("userId", user.Id.String()).
+				Msg("Failed to resend verify email")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+				"errorMessage": locale.TR(r, "failed_resend_verify_email"),
+			})
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, map[string]any{
+		"successMessage": locale.TR(r, "verify_email_resent_successfully"),
 	})
 }

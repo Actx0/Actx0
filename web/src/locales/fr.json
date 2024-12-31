@@ -631,7 +631,13 @@
     "failed_load_api_keys": "Échec du chargement des clés API",
     "key_name_required": "Le nom de la clé est requis",
     "failed_create_key": "Échec de la création de la clé",
-    "failed_revoke_key": "Échec de la révocation de la clé"
+    "failed_revoke_key": "Échec de la révocation de la clé",
+    "email_unverified_title": "Vérifiez votre e-mail",
+    "email_unverified_desc": "Consultez votre boîte de réception pour le lien de vérification. Si vous ne l'avez pas reçu, vous pouvez en demander un autre (jusqu'à 5 par jour).",
+    "email_unverified_resend": "Renvoyer l'e-mail de vérification",
+    "email_unverified_sending": "Envoi…",
+    "email_unverified_sent": "E-mail de vérification envoyé. Veuillez vérifier votre boîte de réception.",
+    "email_unverified_failed": "Échec de l'envoi de l'e-mail de vérification."
   },
   "select_workspace": {
     "select_title": "Choisir un espace",

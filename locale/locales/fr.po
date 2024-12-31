@@ -495,6 +495,18 @@ msgstr "Échec de la vérification de l'e-mail. Veuillez réessayer plus tard."
 msgid "email_verified_successfully"
 msgstr "E-mail vérifié avec succès."
 
+msgid "email_already_verified"
+msgstr "L'e-mail est déjà vérifié."
+
+msgid "verify_email_resent_successfully"
+msgstr "E-mail de vérification envoyé. Veuillez vérifier votre boîte de réception."
+
+msgid "verify_email_resend_limit_reached"
+msgstr "Vous pouvez demander au maximum 5 e-mails de vérification par jour."
+
+msgid "failed_resend_verify_email"
+msgstr "Échec de l'envoi de l'e-mail de vérification. Veuillez réessayer plus tard."
+
 msgid "settings_updated_successfully"
 msgstr "Paramètres mis à jour avec succès."
 
