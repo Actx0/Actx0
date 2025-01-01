@@ -3,6 +3,53 @@
 
 package mcp
 
+import "encoding/json"
+
+type Session struct {
+	Id string `json:"id"`
+}
+
+type Memory struct {
+	Id        string          `json:"id"`
+	SessionId string          `json:"sessionId"`
+	Kind      string          `json:"kind"`
+	Content   string          `json:"content"`
+	Meta      json.RawMessage `json:"meta,omitempty"`
+	CreatedAt string          `json:"createdAt"`
+	UpdatedAt string          `json:"updatedAt"`
+}
+
+type ListMemories struct {
+	Memories []Memory `json:"memories"`
+	Meta     struct {
+		Limit  int   `json:"limit"`
+		Offset int   `json:"offset"`
+		Total  int64 `json:"total"`
+	} `json:"_meta"`
+}
+
+type SearchHit struct {
+	Id    string  `json:"id"`
+	Kind  string  `json:"kind"`
+	Score float32 `json:"score"`
+	Text  string  `json:"text"`
+}
+
+type SearchMemories struct {
+	Results []SearchHit `json:"results"`
+}
+
+type MemoryBody struct {
+	Kind    string  `json:"kind,omitempty"`
+	Content string  `json:"content"`
+	Meta    *string `json:"meta,omitempty"`
+}
+
+type SearchBody struct {
+	Query string `json:"query"`
+	Limit int    `json:"limit,omitempty"`
+}
+
 type AddMemoryInput struct {
 	Kind     string         `json:"kind,omitempty" jsonschema:"Memory kind: summary, fact, preference, short_lived, or long_lived"`
 	Content  string         `json:"content" jsonschema:"required,Text content to store"`

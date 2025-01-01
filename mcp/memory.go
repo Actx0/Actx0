@@ -33,7 +33,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		}
 
 		return nil, AddMemoryOutput{
-			MemoryID: memory.ID,
+			MemoryID: memory.Id,
 			Status:   "completed",
 			Message:  "Memory saved",
 		}, nil
@@ -53,7 +53,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		records := make([]MemoryRecord, 0, len(result.Results))
 		for _, hit := range result.Results {
 			records = append(records, MemoryRecord{
-				MemoryID: hit.ID,
+				MemoryID: hit.Id,
 				Kind:     hit.Kind,
 				Memory:   hit.Text,
 				Score:    hit.Score,
@@ -77,7 +77,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		records := make([]MemoryRecord, 0, len(list.Memories))
 		for _, item := range list.Memories {
 			record := MemoryRecord{
-				MemoryID:  item.ID,
+				MemoryID:  item.Id,
 				Kind:      item.Kind,
 				Memory:    item.Content,
 				CreatedAt: item.CreatedAt,
@@ -109,7 +109,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		}
 
 		record := MemoryRecord{
-			MemoryID:  memory.ID,
+			MemoryID:  memory.Id,
 			Kind:      memory.Kind,
 			Memory:    memory.Content,
 			CreatedAt: memory.CreatedAt,
@@ -139,7 +139,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		}
 
 		return nil, UpdateMemoryOutput{
-			MemoryID: memory.ID,
+			MemoryID: memory.Id,
 			Status:   "completed",
 			Message:  "Memory updated",
 		}, nil
