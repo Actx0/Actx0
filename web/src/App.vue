@@ -2,7 +2,6 @@
   <div id="app" class="min-h-screen">
     <FlashNotice :message="flashMessage" :duration="flashDuration" @dismiss="clearFlash" />
     <CookieConsent />
-    <GlobalLoading />
     <router-view />
   </div>
 </template>
@@ -10,7 +9,6 @@
 <script setup>
 import CookieConsent from '@/components/CookieConsent.vue'
 import FlashNotice from '@/components/FlashNotice.vue'
-import GlobalLoading from '@/components/GlobalLoading.vue'
 import { flashMessage, flashDuration, clearFlash } from '@/lib/flash'
 </script>
 

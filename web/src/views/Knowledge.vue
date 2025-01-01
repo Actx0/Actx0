@@ -422,7 +422,7 @@ async function loadDocs({ silent = false } = {}) {
     const res = await documentAPI.list(currentWorkspace.id, {
       limit: limit.value,
       offset: offset.value,
-    }, silent ? { skipGlobalLoading: true } : undefined)
+    })
     documents.value = (res.data.documents || []).map(normDoc)
     total.value = res.data._meta?.total ?? documents.value.length
   } catch (err) {
