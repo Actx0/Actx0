@@ -28,7 +28,7 @@ type UsageRepository interface {
 	GetById(id Id) (*Usage, error)
 	ListByWorkspaceId(workspaceId Id, limit, offset int) ([]*Usage, error)
 	CountByWorkspaceId(workspaceId Id) (int64, error)
-	GetQuantityByPeriod(workspaceId Id, usageType string, periodStart time.Time) (int64, error)
+	GetQuantityByPeriod(workspaceId Id, utype string, pstart time.Time) (int64, error)
 	IncrementByPeriod(workspaceId Id, utype string, pstart, pend time.Time, quantity int64, unit string) error
 }
 
@@ -149,7 +149,7 @@ func (r *UsageRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, err
 }
 
 // GetQuantityByPeriod returns usage quantity for a billing period.
-func (r *UsageRepositoryPostgres) GetQuantityByPeriod(workspaceId Id, usageType string, periodStart time.Time) (int64, error) {
+func (r *UsageRepositoryPostgres) GetQuantityByPeriod(workspaceId Id, utype string, pstart time.Time) (int64, error) {
 	var quantity int64
 	err := r.db.QueryRow(
 		`SELECT COALESCE(quantity, 0)
@@ -158,8 +158,8 @@ func (r *UsageRepositoryPostgres) GetQuantityByPeriod(workspaceId Id, usageType 
 			AND type = $2
 			AND period_start = $3`,
 		workspaceId.String(),
-		usageType,
-		periodStart,
+		utype,
+		pstart,
 	).Scan(&quantity)
 	if isNotFound(err) {
 		return 0, nil

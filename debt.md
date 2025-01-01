@@ -67,15 +67,15 @@ Mark done: `- [x] path/to/file`
 - [x] db/database.go
 - [ ] db/helpers.go
 - [ ] db/integration.go
-- [ ] db/invite.go
+- [x] db/invite.go
 - [ ] db/memory.go
 - [ ] db/message.go
-- [ ] db/preset.go
+- [x] db/preset.go
 - [ ] db/prompt.go
 - [ ] db/session.go
 - [ ] db/subscription.go
 - [ ] db/types.go
-- [ ] db/usage.go
+- [x] db/usage.go
 - [ ] db/user.go
 - [ ] db/user_api_key.go
 - [ ] db/user_session.go
