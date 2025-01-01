@@ -11,6 +11,7 @@ import (
 	"github.com/clivern/actx0/locale"
 	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/util"
+	"github.com/samber/lo"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
@@ -72,7 +73,7 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 // VerifyEmailAction verifies an account email using the token from the email link.
 func VerifyEmailAction(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	if token == "" {
+	if lo.IsEmpty(token) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "verify_link_invalid"),
 		})
