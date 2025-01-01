@@ -31,40 +31,6 @@ var (
 	ErrBillingSubscriptionNotFound = errors.New("workspace subscription not found")
 )
 
-// Billing coordinates local subscription state with Stripe Checkout and Portal.
-type Billing struct {
-	WorkspaceRepository    db.WorkspaceRepository
-	SubscriptionRepository db.SubscriptionRepository
-	Usage                  Usage
-}
-
-// BillingStatusResponse is the billing state exposed to the UI.
-type BillingStatusResponse struct {
-	Id                 db.Id   `json:"id"`
-	WorkspaceId        db.Id   `json:"workspaceId"`
-	Plan               string  `json:"plan"`
-	Status             string  `json:"status"`
-	Provider           *string `json:"provider"`
-	ProviderCustomerId string  `json:"providerCustomerId"`
-	CreatedAt          string  `json:"createdAt"`
-	UpdatedAt          string  `json:"updatedAt"`
-}
-
-// BillingCheckoutRequest is the body for creating a Stripe Checkout session.
-type BillingCheckoutRequest struct {
-	Plan string `json:"plan" validate:"required" label:"Plan"`
-}
-
-// BillingSessionResponse contains a Stripe redirect URL.
-type BillingSessionResponse struct {
-	URL string `json:"url"`
-}
-
-// BillingWebhookResponse is returned after a Stripe webhook is handled.
-type BillingWebhookResponse struct {
-	Received bool `json:"received"`
-}
-
 // PlanUsageLimits are the consumption caps for a billing plan.
 type PlanUsageLimits struct {
 	Price            float64 `json:"price"`
@@ -79,14 +45,6 @@ type PlanUsageLimits struct {
 	MemoryRecords    int64   `json:"memoryRecords"`
 	AITokens         int64   `json:"aiTokens"`
 	AICost           float64 `json:"aiCost"`
-}
-
-// BillingUsageResponse is workspace usage and limits for the billing page.
-type BillingUsageResponse struct {
-	Plan        string                `json:"plan"`
-	PeriodReset string                `json:"periodReset"`
-	Used        WorkspaceUsageMetrics `json:"used"`
-	Limits      PlanUsageLimits       `json:"limits"`
 }
 
 var PlanLimits = map[string]PlanUsageLimits{
@@ -146,6 +104,48 @@ var PlanLimits = map[string]PlanUsageLimits{
 		AITokens:         23_200_000,
 		AICost:           175.2,
 	},
+}
+
+// Billing coordinates local subscription state with Stripe Checkout and Portal.
+type Billing struct {
+	WorkspaceRepository    db.WorkspaceRepository
+	SubscriptionRepository db.SubscriptionRepository
+	Usage                  Usage
+}
+
+// BillingStatusResponse is the billing state exposed to the UI.
+type BillingStatusResponse struct {
+	Id                 db.Id   `json:"id"`
+	WorkspaceId        db.Id   `json:"workspaceId"`
+	Plan               string  `json:"plan"`
+	Status             string  `json:"status"`
+	Provider           *string `json:"provider"`
+	ProviderCustomerId string  `json:"providerCustomerId"`
+	CreatedAt          string  `json:"createdAt"`
+	UpdatedAt          string  `json:"updatedAt"`
+}
+
+// BillingCheckoutRequest is the body for creating a Stripe Checkout session.
+type BillingCheckoutRequest struct {
+	Plan string `json:"plan" validate:"required" label:"Plan"`
+}
+
+// BillingSessionResponse contains a Stripe redirect URL.
+type BillingSessionResponse struct {
+	URL string `json:"url"`
+}
+
+// BillingWebhookResponse is returned after a Stripe webhook is handled.
+type BillingWebhookResponse struct {
+	Received bool `json:"received"`
+}
+
+// BillingUsageResponse is workspace usage and limits for the billing page.
+type BillingUsageResponse struct {
+	Plan        string                `json:"plan"`
+	PeriodReset string                `json:"periodReset"`
+	Used        WorkspaceUsageMetrics `json:"used"`
+	Limits      PlanUsageLimits       `json:"limits"`
 }
 
 // NewBilling creates a billing module.
