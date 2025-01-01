@@ -83,7 +83,7 @@ Mark done: `- [x] path/to/file`
 - [ ] db/wkey.go
 - [x] db/workspace.go
 - [ ] db/wstats.go
-- [ ] db/wuser.go
+- [x] db/wuser.go
 
 ## locale/
 

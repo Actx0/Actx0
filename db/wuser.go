@@ -146,7 +146,14 @@ func (r *WorkspaceUserRepositoryPostgres) List(limit, offset int) ([]*WorkspaceU
 	var list []*WorkspaceUser
 	for rows.Next() {
 		m := &WorkspaceUser{}
-		err := rows.Scan(&m.Id, &m.WorkspaceId, &m.UserId, &m.Role, &m.CreatedAt, &m.UpdatedAt)
+		err := rows.Scan(
+			&m.Id,
+			&m.WorkspaceId,
+			&m.UserId,
+			&m.Role,
+			&m.CreatedAt,
+			&m.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +191,14 @@ func (r *WorkspaceUserRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limi
 	var list []*WorkspaceUser
 	for rows.Next() {
 		m := &WorkspaceUser{}
-		err := rows.Scan(&m.Id, &m.WorkspaceId, &m.UserId, &m.Role, &m.CreatedAt, &m.UpdatedAt)
+		err := rows.Scan(
+			&m.Id,
+			&m.WorkspaceId,
+			&m.UserId,
+			&m.Role,
+			&m.CreatedAt,
+			&m.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}
