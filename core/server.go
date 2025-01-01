@@ -67,6 +67,8 @@ func SetupServer(Static embed.FS) http.Handler {
 		r.Post("/api/v1/public/action/verify-email/{token}", api.VerifyEmailAction)         // verify email with token
 		r.Get("/api/v1/public/action/oauth/github", api.GitHubOAuthStartAction)             // start GitHub OAuth
 		r.Get("/api/v1/public/action/oauth/github/callback", api.GitHubOAuthCallbackAction) // GitHub OAuth callback
+		r.Get("/api/v1/public/action/oauth/google", api.GoogleOAuthStartAction)             // start Google OAuth
+		r.Get("/api/v1/public/action/oauth/google/callback", api.GoogleOAuthCallbackAction) // Google OAuth callback
 		r.Post("/api/v1/public/action/stripe/webhook", api.StripeWebhookAction)             // Stripe billing webhook
 	})
 	r.Get("/api/v1/me", api.GetMeAction) // current authenticated user
