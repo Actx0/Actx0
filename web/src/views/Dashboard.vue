@@ -130,12 +130,7 @@
             <div class="border-b border-theme-border px-6 py-4">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.whats_new_title') }}</h2>
-                    <span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                      {{ $t('dashboard.mock_badge') }}
-                    </span>
-                  </div>
+                  <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.whats_new_title') }}</h2>
                   <p class="mt-0.5 text-sm text-theme-textLight">{{ $t('dashboard.whats_new_subtitle') }}</p>
                 </div>
                 <button
@@ -149,17 +144,24 @@
             </div>
             <div class="px-6 py-5">
               <p class="text-xs font-medium uppercase tracking-wide text-theme-textLight">
-                {{ $t('dashboard.whats_new_tip_label') }}
+                {{ $t('dashboard.whats_new_release_label') }}
               </p>
-              <p class="mt-2 text-base font-medium text-theme-text">{{ $t('dashboard.whats_new_tip_title') }}</p>
-              <p class="mt-1 text-sm leading-relaxed text-theme-textLight">
-                {{ $t('dashboard.whats_new_tip_body') }}
-              </p>
+              <p class="mt-2 text-base font-medium text-theme-text">{{ $t('dashboard.whats_new_release_title') }}</p>
+              <ul class="mt-3 space-y-2 text-sm leading-relaxed text-theme-textLight">
+                <li
+                  v-for="featureKey in whatsNewFeatures"
+                  :key="featureKey"
+                  class="flex gap-2"
+                >
+                  <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-theme-textLight" aria-hidden="true" />
+                  <span>{{ $t(featureKey) }}</span>
+                </li>
+              </ul>
               <router-link
                 to="/docs"
                 class="btn-secondary mt-4 inline-flex items-center px-3 py-1.5 text-sm"
               >
-                {{ $t('dashboard.whats_new_tip_action') }}
+                {{ $t('dashboard.whats_new_release_action') }}
               </router-link>
             </div>
           </div>
@@ -299,6 +301,16 @@ const { currentWorkspace, canManage } = useWorkspaceContext()
 const calendlyUrl = 'https://calendly.com/'
 const WHATS_NEW_KEY = 'dashboard_whats_new_v1'
 const ACTIVITY_LIMIT = 6
+
+const whatsNewFeatures = [
+  'dashboard.whats_new_feature_memory',
+  'dashboard.whats_new_feature_agents',
+  'dashboard.whats_new_feature_knowledge',
+  'dashboard.whats_new_feature_prompts',
+  'dashboard.whats_new_feature_keys',
+  'dashboard.whats_new_feature_observability',
+  'dashboard.whats_new_feature_sdks',
+]
 
 const workspace = ref({ ...currentWorkspace })
 const loading = ref(true)
