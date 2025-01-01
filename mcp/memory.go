@@ -156,7 +156,7 @@ type GetEventStatusOutput struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
-func RegisterMemoryTools(server *mcpsdk.Server) {
+func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 	now := time.Now().UTC().Format(time.RFC3339)
 
 	sampleMemory := MemoryRecord{
@@ -226,11 +226,18 @@ func RegisterMemoryTools(server *mcpsdk.Server) {
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "delete_memory",
 		Description: "Delete a single memory by memory_id",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, input DeleteMemoryInput) (*mcpsdk.CallToolResult, DeleteMemoryOutput, error) {
+	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input DeleteMemoryInput) (*mcpsdk.CallToolResult, DeleteMemoryOutput, error) {
+		scope := ScopeFrom(ctx)
+
+		err := api.DeleteMemory(ctx, scope, input.MemoryID)
+		if err != nil {
+			return nil, DeleteMemoryOutput{}, err
+		}
+
 		return nil, DeleteMemoryOutput{
 			MemoryID: input.MemoryID,
 			Status:   "completed",
-			Message:  "Stub memory deleted (not persisted)",
+			Message:  "Memory deleted",
 		}, nil
 	})
 

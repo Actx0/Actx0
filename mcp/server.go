@@ -14,13 +14,16 @@ import (
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 )
 
-// Options configures the MCP server.
+// Options configures the MCP proxy server.
 type Options struct {
 	Name    string
 	Version string
+	Mgt     string
+	Port    int
+	Path    string
+	Timeout time.Duration
 }
 
 // Run starts the actx0 MCP server over streamable HTTP.
@@ -30,35 +33,35 @@ func Run(ctx context.Context, opts Options) error {
 		Version: opts.Version,
 	}, nil)
 
-	RegisterMemoryTools(server)
+	api := NewAPIClient(opts.Mgt, opts.Timeout)
 
-	path := viper.GetString("app.mcp.path")
-	port := viper.GetInt("app.mcp.port")
-	timeout := time.Duration(viper.GetInt("app.timeout")) * time.Second
+	server.AddReceivingMiddleware(ScopeMiddleware)
+	RegisterMemoryTools(server, api)
 
 	handler := mcpsdk.NewStreamableHTTPHandler(func(*http.Request) *mcpsdk.Server {
 		return server
 	}, nil)
 
 	mux := http.NewServeMux()
-	mux.Handle(path, handler)
+	mux.Handle(opts.Path, HTTPScope(handler))
 
 	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%d", port),
+		Addr:              fmt.Sprintf(":%d", opts.Port),
 		Handler:           mux,
 		MaxHeaderBytes:    230 * 1024,
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       120 * time.Second,
-		ReadTimeout:       timeout + 5*time.Second,
-		WriteTimeout:      timeout + 5*time.Second,
+		ReadTimeout:       opts.Timeout + 5*time.Second,
+		WriteTimeout:      opts.Timeout + 5*time.Second,
 	}
 
 	serr := make(chan error, 1)
 
 	go func() {
 		log.Info().
-			Int("port", port).
-			Str("path", path).
+			Str("mgt", opts.Mgt).
+			Int("port", opts.Port).
+			Str("path", opts.Path).
 			Str("name", opts.Name).
 			Str("version", opts.Version).
 			Msg("Starting MCP HTTP server")
