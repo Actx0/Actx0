@@ -57,7 +57,7 @@ func CreateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspace.Id,
 		Action:       "workspace.create",
 		ResourceType: "workspace",
@@ -230,7 +230,7 @@ func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspace.Id,
 		Action:       "workspace.update",
 		ResourceType: "workspace",

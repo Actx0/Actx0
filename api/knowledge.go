@@ -75,7 +75,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(wid),
 		Action:       "document.upload",
 		ResourceType: "document",
@@ -200,7 +200,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(wid),
 		Action:       "document.delete",
 		ResourceType: "document",

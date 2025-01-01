@@ -84,7 +84,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "message.create",
 		ResourceType: "message",
@@ -162,7 +162,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "message.batch_create",
 		ResourceType: "session",
@@ -405,7 +405,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "message.update",
 		ResourceType: "message",
@@ -489,7 +489,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "message.delete",
 		ResourceType: "message",
@@ -571,7 +571,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "message.batch_delete",
 		ResourceType: "session",
