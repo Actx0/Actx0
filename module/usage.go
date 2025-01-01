@@ -11,7 +11,7 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 )
 
-const bytesPerGB = 1024 * 1024 * 1024
+const BytesPerGB = 1024 * 1024 * 1024
 
 var ErrWorkspaceCapacityReached = errors.New("workspace capacity reached")
 
@@ -132,8 +132,8 @@ func (u *Usage) IsStorageGBReached(documents db.WorkspaceDocumentRepository, sub
 		return false, nil
 	}
 
-	usedGB := float64(usedBytes) / bytesPerGB
-	additionalGB := float64(additionalBytes) / bytesPerGB
+	usedGB := float64(usedBytes) / BytesPerGB
+	additionalGB := float64(additionalBytes) / BytesPerGB
 
 	return usedGB+additionalGB > limit, nil
 }
@@ -370,7 +370,7 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 		DocumentsCount:   documents,
 		PromptsCount:     prompts,
 		AgentsCount:      agents,
-		StorageGB:        float64(storageBytes) / bytesPerGB,
+		StorageGB:        float64(storageBytes) / BytesPerGB,
 		SessionsCount:    sessionsCount,
 		HistoryRecords:   historyRecords,
 		MemoryRecords:    memoryRecords,
