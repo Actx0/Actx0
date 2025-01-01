@@ -27,9 +27,9 @@ func (s *StatusRecorder) WriteHeader(code int) {
 	s.ResponseWriter.WriteHeader(code)
 }
 
-// isMeteredAPICall reports whether the request is authenticated with an API or
+// IsMeteredAPICall reports whether the request is authenticated with an API or
 // access key (not a browser session from the web UI).
-func isMeteredAPICall(r *http.Request) bool {
+func IsMeteredAPICall(r *http.Request) bool {
 	return lo.IsNotEmpty(r.Header.Get("X-API-Key")) || lo.IsNotEmpty(r.Header.Get("X-Access-Key"))
 }
 
@@ -39,7 +39,7 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			workspace, hasWorkspace := GetWorkspaceFromContext(r.Context())
-			if hasWorkspace && isMeteredAPICall(r) {
+			if hasWorkspace && IsMeteredAPICall(r) {
 				if _, _, ok := GetPrincipal(r); ok {
 					usageRepo := db.NewUsageRepository(db.GetDB(false))
 					subscriptions := db.NewSubscriptionRepository(db.GetDB(false))
