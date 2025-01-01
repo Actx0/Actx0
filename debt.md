@@ -305,39 +305,39 @@ Mark done: `- [x] path/to/file`
 
 ## web/src/views/
 
-- [ ] web/src/views/Agent.vue
-- [ ] web/src/views/Agents.vue
-- [ ] web/src/views/Audits.vue
-- [ ] web/src/views/Billing.vue
-- [ ] web/src/views/Dashboard.vue
-- [ ] web/src/views/Docs.vue
-- [ ] web/src/views/ForgotPassword.vue
-- [ ] web/src/views/Integrations.vue
-- [ ] web/src/views/Invite.vue
-- [ ] web/src/views/Knowledge.vue
-- [ ] web/src/views/Landing.vue
-- [ ] web/src/views/Login.vue
-- [ ] web/src/views/Members.vue
-- [ ] web/src/views/NotFound.vue
-- [ ] web/src/views/Profile.vue
-- [ ] web/src/views/PromptDetail.vue
-- [ ] web/src/views/Prompts.vue
-- [ ] web/src/views/Register.vue
-- [ ] web/src/views/ResetPassword.vue
-- [ ] web/src/views/SelectWorkspace.vue
-- [ ] web/src/views/ServerError.vue
-- [ ] web/src/views/Session.vue
-- [ ] web/src/views/Settings.vue
-- [ ] web/src/views/Setup.vue
-- [ ] web/src/views/Status.vue
-- [ ] web/src/views/VerifyEmail.vue
-- [ ] web/src/views/Workspaces.vue
+- [x] web/src/views/Agent.vue
+- [x] web/src/views/Agents.vue
+- [x] web/src/views/Audits.vue
+- [x] web/src/views/Billing.vue
+- [x] web/src/views/Dashboard.vue
+- [x] web/src/views/Docs.vue
+- [x] web/src/views/ForgotPassword.vue
+- [x] web/src/views/Integrations.vue
+- [x] web/src/views/Invite.vue
+- [x] web/src/views/Knowledge.vue
+- [x] web/src/views/Landing.vue
+- [x] web/src/views/Login.vue
+- [x] web/src/views/Members.vue
+- [x] web/src/views/NotFound.vue
+- [x] web/src/views/Profile.vue
+- [x] web/src/views/PromptDetail.vue
+- [x] web/src/views/Prompts.vue
+- [x] web/src/views/Register.vue
+- [x] web/src/views/ResetPassword.vue
+- [x] web/src/views/SelectWorkspace.vue
+- [x] web/src/views/ServerError.vue
+- [x] web/src/views/Session.vue
+- [x] web/src/views/Settings.vue
+- [x] web/src/views/Setup.vue
+- [x] web/src/views/Status.vue
+- [x] web/src/views/VerifyEmail.vue
+- [x] web/src/views/Workspaces.vue
 
 ## web/src/views/cases/
 
-- [ ] web/src/views/cases/CustomerSupport.vue
-- [ ] web/src/views/cases/DevTools.vue
-- [ ] web/src/views/cases/ECommerce.vue
-- [ ] web/src/views/cases/Education.vue
-- [ ] web/src/views/cases/Healthcare.vue
-- [ ] web/src/views/cases/Sales.vue
+- [x] web/src/views/cases/CustomerSupport.vue
+- [x] web/src/views/cases/DevTools.vue
+- [x] web/src/views/cases/ECommerce.vue
+- [x] web/src/views/cases/Education.vue
+- [x] web/src/views/cases/Healthcare.vue
+- [x] web/src/views/cases/Sales.vue

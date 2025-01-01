@@ -98,7 +98,7 @@
                       <span class="text-theme-textLight">{{ splitLabel(label).key }}</span><span>=</span><span>{{ splitLabel(label).value }}</span>
                     </span>
                   </span>
-                  <span v-else class="text-sm text-theme-textLight">—</span>
+                  <span v-else class="text-sm text-theme-textLight">{{ $t('common.em_dash') }}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
@@ -147,7 +147,14 @@
     </main>
 
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="showUploadModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeUpload">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('knowledge_page.upload_title') }}</h2>
@@ -175,6 +182,7 @@
                     required
                     class="input-field"
                     :placeholder="$t('knowledge_page.title_placeholder')"
+                    :disabled="uploading"
                   />
                 </div>
               </div>
@@ -191,7 +199,7 @@
                     class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs font-mono text-theme-text border border-theme-border"
                   >
                     <span class="text-theme-textLight">{{ splitLabel(label).key }}</span><span>=</span><span>{{ splitLabel(label).value }}</span>
-                    <button type="button" class="text-theme-textLight hover:text-theme-text" :aria-label="$t('knowledge_page.remove_label', { label })" @click="rmLabel(label)">
+                    <button type="button" class="text-theme-textLight hover:text-theme-text" :disabled="uploading" :aria-label="$t('knowledge_page.remove_label', { label })" @click="rmLabel(label)">
                       ×
                     </button>
                   </span>
@@ -199,8 +207,9 @@
                 <input
                   v-model="uploadLabelInput"
                   type="text"
-                  class="w-full bg-transparent text-sm font-mono text-theme-text placeholder:text-theme-textLight focus:outline-none"
+                  class="w-full bg-transparent text-sm font-mono text-theme-text placeholder:text-theme-textLight focus:outline-none disabled:opacity-50"
                   :placeholder="$t('knowledge_page.labels_placeholder')"
+                  :disabled="uploading"
                   @keydown.enter.prevent="addLabel"
                   @keydown="onLabelKey"
                   @blur="addLabel"
@@ -221,7 +230,14 @@
     </Teleport>
 
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="deleteDoc" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDelete">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('knowledge_page.delete_title') }}</h2>
@@ -278,10 +294,38 @@ const route = useRoute()
 const { currentWorkspace } = useWorkspaceContext()
 const { offset, limit, goToOffset, goToPage: setPage } = useUrlPagination({ limit: 10 })
 
+const documents = ref([])
+const total = ref(0)
+const loadingDocuments = ref(false)
+const errorMessage = ref(null)
+const dragActive = ref(false)
+const fileInputRef = ref(null)
+let pollTimer = null
+
+const showUploadModal = ref(false)
+const pendingUploads = ref([])
+const uploading = ref(false)
+const uploadError = ref(null)
+const uploadLabelsList = ref([])
+const uploadLabelInput = ref('')
+const uploadLabelError = ref(null)
+
+const deleteDoc = ref(null)
+const deleting = ref(false)
+
+const pageStart = computed(() => (total.value ? offset.value + 1 : 0))
+const pageEnd = computed(() => Math.min(offset.value + limit, total.value))
+const hasProcessingDocuments = computed(() =>
+  documents.value.some((doc) => doc.status === KNOWLEDGE_STATUS.PROCESSING),
+)
+const canConfirmUpload = computed(() =>
+  pendingUploads.value.length > 0 && pendingUploads.value.every((entry) => entry.title.trim()),
+)
+
 function fmtSize(bytes) {
-  if (!bytes || bytes < 1024) return `${bytes || 0} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (!bytes || bytes < 1024) return t('knowledge_page.size_b', { size: bytes || 0 })
+  if (bytes < 1024 * 1024) return t('knowledge_page.size_kb', { size: (bytes / 1024).toFixed(1) })
+  return t('knowledge_page.size_mb', { size: (bytes / (1024 * 1024)).toFixed(1) })
 }
 
 function parseLabel(raw) {
@@ -346,10 +390,6 @@ function normDoc(doc) {
   }
 }
 
-const uploadLabelsList = ref([])
-const uploadLabelInput = ref('')
-const uploadLabelError = ref(null)
-
 function resetLabels() {
   uploadLabelsList.value = []
   uploadLabelInput.value = ''
@@ -389,31 +429,6 @@ function onLabelKey(event) {
   }
 }
 
-const documents = ref([])
-const total = ref(0)
-const loadingDocuments = ref(false)
-const errorMessage = ref(null)
-const dragActive = ref(false)
-const fileInputRef = ref(null)
-let pollTimer = null
-
-const showUploadModal = ref(false)
-const pendingUploads = ref([])
-const uploading = ref(false)
-const uploadError = ref(null)
-
-const deleteDoc = ref(null)
-const deleting = ref(false)
-
-const pageStart = computed(() => (total.value ? offset.value + 1 : 0))
-const pageEnd = computed(() => Math.min(offset.value + limit, total.value))
-const hasProcessingDocuments = computed(() =>
-  documents.value.some((doc) => doc.status === KNOWLEDGE_STATUS.PROCESSING),
-)
-const canConfirmUpload = computed(() =>
-  pendingUploads.value.length > 0 && pendingUploads.value.every((entry) => entry.title.trim()),
-)
-
 async function loadDocs({ silent = false } = {}) {
   if (!currentWorkspace?.id) return
 
@@ -436,22 +451,10 @@ async function loadDocs({ silent = false } = {}) {
   }
 }
 
-watch(hasProcessingDocuments, (processing) => {
-  if (pollTimer) {
-    clearInterval(pollTimer)
-    pollTimer = null
-  }
-  if (processing) {
-    pollTimer = setInterval(() => loadDocs({ silent: true }), POLL_INTERVAL_MS)
-  }
-})
-
 async function goToPage(newOffset) {
   if (newOffset < 0 || newOffset >= total.value) return
   goToOffset(newOffset)
 }
-
-watch(() => route.query.page, () => loadDocs())
 
 function openUpload(files) {
   const textFiles = [...files].filter(isTextFile)
@@ -549,13 +552,20 @@ async function doDelete() {
   }
 }
 
+watch(hasProcessingDocuments, (processing) => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+  if (processing) {
+    pollTimer = setInterval(() => loadDocs({ silent: true }), POLL_INTERVAL_MS)
+  }
+})
+
+watch(() => route.query.page, () => loadDocs())
+
 onMounted(loadDocs)
 onUnmounted(() => {
   if (pollTimer) clearInterval(pollTimer)
 })
 </script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>

@@ -319,7 +319,7 @@ const plans = computed(() => [
   {
     id: 'hobby',
     name: t('billing_page.plans.hobby.name'),
-    price: '$0',
+    price: t('billing_page.plans.hobby.price'),
     unit: t('billing_page.unit_per_month'),
     description: t('billing_page.plans.hobby.description'),
     cta: t('billing_page.choose_plan'),
@@ -333,7 +333,7 @@ const plans = computed(() => [
   {
     id: 'starter',
     name: t('billing_page.plans.starter.name'),
-    price: '$19',
+    price: t('billing_page.plans.starter.price'),
     unit: t('billing_page.unit_per_month'),
     description: t('billing_page.plans.starter.description'),
     cta: t('billing_page.choose_plan'),
@@ -347,7 +347,7 @@ const plans = computed(() => [
   {
     id: 'growth',
     name: t('billing_page.plans.growth.name'),
-    price: '$69',
+    price: t('billing_page.plans.growth.price'),
     unit: t('billing_page.unit_per_month'),
     description: t('billing_page.plans.growth.description'),
     cta: t('billing_page.choose_plan'),
@@ -361,7 +361,7 @@ const plans = computed(() => [
   {
     id: 'pro',
     name: t('billing_page.plans.pro.name'),
-    price: '€219',
+    price: t('billing_page.plans.pro.price'),
     unit: t('billing_page.unit_per_month'),
     description: t('billing_page.plans.pro.description'),
     cta: t('billing_page.choose_plan'),
@@ -492,8 +492,8 @@ const buildUsageMetrics = (limits, used) => {
       hint: t('billing_page.metrics.storage_used_hint'),
       used: used.storageGB,
       limit: limits.storageGB,
-      displayUsed: `${used.storageGB.toFixed(1)} GB`,
-      displayLimit: `${limits.storageGB} GB`
+      displayUsed: t('billing_page.storage_gb', { value: used.storageGB.toFixed(1) }),
+      displayLimit: t('billing_page.storage_gb', { value: limits.storageGB })
     },
     {
       id: 'historyRecords',
@@ -615,8 +615,6 @@ const openPortal = async () => {
   }
 }
 
-onMounted(loadBilling)
-
 watchEffect(() => {
   if (!planModalOpen.value) {
     document.body.style.overflow = ''
@@ -634,4 +632,6 @@ watchEffect(() => {
     document.removeEventListener('keydown', onEsc)
   }
 })
+
+onMounted(loadBilling)
 </script>

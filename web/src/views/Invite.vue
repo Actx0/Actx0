@@ -51,7 +51,7 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <p class="text-xs font-medium uppercase tracking-wide text-theme-textLight">{{ $t('invite.role') }}</p>
-                <p class="mt-1 text-sm font-semibold text-theme-text capitalize">{{ invite.role }}</p>
+                <p class="mt-1 text-sm font-semibold text-theme-text">{{ $t('members_page.role_' + invite.role) }}</p>
               </div>
               <div>
                 <p class="text-xs font-medium uppercase tracking-wide text-theme-textLight">{{ $t('invite.expires') }}</p>
@@ -113,7 +113,7 @@ import { inviteAPI } from '@/api'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const invite = ref(null)
 const loading = ref(true)
@@ -121,17 +121,11 @@ const actionLoading = ref(null)
 const error = ref(null)
 const actionError = ref(null)
 
-function isValidInvite(data) {
-  return data && typeof data === 'object' && !Array.isArray(data) && typeof data.email === 'string'
-}
-
 function formatDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
+  return new Date(iso).toLocaleDateString(
+    locale.value,
+    { month: 'short', day: 'numeric', year: 'numeric' }
+  )
 }
 
 async function loadInvite() {
@@ -147,7 +141,7 @@ async function loadInvite() {
 
   try {
     const res = await inviteAPI.getByToken(route.params.token)
-    if (!isValidInvite(res.data)) {
+    if (!res.data?.email) {
       error.value = t('invite.not_found')
       return
     }

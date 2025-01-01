@@ -164,11 +164,11 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { workspaceInviteAPI, workspaceMemberAPI } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
-import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { currentUser, currentWorkspace } = useWorkspaceContext()
@@ -182,7 +182,6 @@ const updatingMemberId = ref(null)
 const deletingMemberId = ref(null)
 const deletingInviteId = ref(null)
 const errorMessage = ref(null)
-
 const inviteForm = reactive({
   email: '',
   role: 'regular'

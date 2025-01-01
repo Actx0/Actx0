@@ -97,7 +97,14 @@
 
     <!-- Create modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeCreateModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.create_title') }}</h2>
@@ -106,11 +113,11 @@
             <form class="mt-4 space-y-4" @submit.prevent="handleCreate">
               <div>
                 <label for="agent-name" class="form-label">{{ $t('agents_page.name') }}</label>
-                <input id="agent-name" v-model="form.name" type="text" required class="input-field" :placeholder="$t('agents_page.name_placeholder')" />
+                <input id="agent-name" v-model="form.name" type="text" required class="input-field" :placeholder="$t('agents_page.name_placeholder')" :disabled="createLoading" />
               </div>
               <div>
                 <label for="agent-description" class="form-label">{{ $t('agents_page.description') }}</label>
-                <textarea id="agent-description" v-model="form.description" rows="2" required class="input-field" :placeholder="$t('agents_page.description_placeholder')" />
+                <textarea id="agent-description" v-model="form.description" rows="2" required class="input-field" :placeholder="$t('agents_page.description_placeholder')" :disabled="createLoading" />
               </div>
               <div class="flex gap-3 justify-end">
                 <button type="button" class="btn-secondary" :disabled="createLoading" @click="closeCreateModal">{{ $t('common.cancel') }}</button>
@@ -126,7 +133,14 @@
 
     <!-- Delete modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.delete_title') }}</h2>
@@ -146,7 +160,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
@@ -170,7 +184,7 @@ const errorMessage = ref(null)
 const showCreateModal = ref(false)
 const createLoading = ref(false)
 const createError = ref(null)
-const form = ref({ name: '', description: '' })
+const form = reactive({ name: '', description: '' })
 
 const deleteTarget = ref(null)
 const deleteError = ref(null)
@@ -197,10 +211,9 @@ function goToPage(newOffset) {
   goToOffset(newOffset)
 }
 
-watch(() => route.query.page, loadPage)
-
 function openCreateModal() {
-  form.value = { name: '', description: '' }
+  form.name = ''
+  form.description = ''
   createError.value = null
   showCreateModal.value = true
 }
@@ -211,8 +224,8 @@ function closeCreateModal() {
 }
 
 async function handleCreate() {
-  const name = form.value.name.trim()
-  const description = form.value.description.trim()
+  const name = form.name.trim()
+  const description = form.description.trim()
   if (!name) {
     createError.value = t('agents_page.name_required')
     return
@@ -225,7 +238,7 @@ async function handleCreate() {
   createLoading.value = true
   createError.value = null
   try {
-    const created = await agentAPI.create(currentWorkspace.id, buildCreatePayload(form.value))
+    const created = await agentAPI.create(currentWorkspace.id, buildCreatePayload(form))
     showCreateModal.value = false
     showFlash(t('common.created'))
     router.push(agentDetailPath(created.data.id))
@@ -268,10 +281,7 @@ async function confirmDelete() {
   }
 }
 
+watch(() => route.query.page, loadPage)
+
 onMounted(loadPage)
 </script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>

@@ -29,7 +29,7 @@
                 <label for="workspace-name" class="form-label">{{ $t('workspace_settings_page.name') }}</label>
                 <input
                   id="workspace-name"
-                  v-model="workspaceName"
+                  v-model="workspaceForm.name"
                   type="text"
                   required
                   minlength="3"
@@ -112,7 +112,7 @@
                   <label for="new-access-key-name" class="form-label">{{ $t('workspace_settings_page.key_name') }}</label>
                   <input
                     id="new-access-key-name"
-                    v-model="newKeyName"
+                    v-model="keyForm.name"
                     type="text"
                     class="input-field"
                     :placeholder="$t('workspace_settings_page.key_name_placeholder')"
@@ -123,7 +123,7 @@
                   <label for="new-access-key-expires" class="form-label">{{ $t('workspace_settings_page.expires_at_optional') }}</label>
                   <input
                     id="new-access-key-expires"
-                    v-model="newKeyExpiresAt"
+                    v-model="keyForm.expiresAt"
                     type="datetime-local"
                     class="input-field w-full"
                     :disabled="accessKeysLoading || creatingKey"
@@ -141,7 +141,7 @@
                     class="flex items-center gap-1.5 rounded-md border border-theme-border bg-white px-2 py-1.5 text-xs text-theme-text cursor-pointer hover:bg-theme-hover/40 transition-colors has-[:checked]:border-primary-700 has-[:checked]:bg-primary-50/40"
                   >
                     <input
-                      v-model="selectedPermissions"
+                      v-model="keyForm.permissions"
                       type="checkbox"
                       :value="perm.value"
                       class="checkbox shrink-0 !size-3.5"
@@ -156,7 +156,7 @@
                 <button
                   type="button"
                   class="btn-primary"
-                  :disabled="accessKeysLoading || creatingKey || !newKeyName.trim() || selectedPermissions.length === 0"
+                  :disabled="accessKeysLoading || creatingKey || !keyForm.name.trim() || keyForm.permissions.length === 0"
                   @click="handleCreateKey"
                 >
                   <span v-if="!creatingKey">{{ $t('workspace_settings_page.create_key') }}</span>
@@ -224,7 +224,7 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
-                      <span v-else>—</span>
+                      <span v-else>{{ $t('common.em_dash') }}</span>
                     </td>
                     <td class="px-4 py-3 text-sm text-theme-textLight">{{ formatDate(key.createdAt) }}</td>
                     <td class="px-4 py-3 text-sm text-theme-textLight">
@@ -339,7 +339,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { workspaceAPI, workspaceAccessKeyAPI } from '@/api'
@@ -348,26 +348,27 @@ import { WORKSPACE_KEY_PERMISSIONS, useWorkspaceContext } from '@/lib/permission
 import { saveWorkspaceToStorage } from '@/utils/storage'
 
 const { t } = useI18n()
-
 const { currentWorkspace } = useWorkspaceContext()
 
 const errorMessage = ref(null)
 const workspace = ref(null)
-const workspaceName = ref('')
 const workspaceLoading = ref(true)
 const savingWorkspace = ref(false)
 const copiedField = ref(null)
+const workspaceForm = reactive({ name: '' })
 
 const accessKeys = ref([])
 const accessKeysLoading = ref(false)
 const creatingKey = ref(false)
-const newKeyName = ref('')
-const newKeyExpiresAt = ref('')
-const selectedPermissions = ref(['CAN_GET_PROMPT'])
 const newlyCreatedKey = ref(null)
 const deletingId = ref(null)
 const revokeModalKey = ref(null)
 const permissionsModalKey = ref(null)
+const keyForm = reactive({
+  name: '',
+  expiresAt: '',
+  permissions: ['CAN_GET_PROMPT']
+})
 
 const minExpiresAt = computed(() => {
   const d = new Date()
@@ -376,12 +377,12 @@ const minExpiresAt = computed(() => {
 })
 
 const canSaveWorkspace = computed(() => {
-  const name = workspaceName.value.trim()
+  const name = workspaceForm.name.trim()
   return name.length >= 3 && name !== workspace.value?.name
 })
 
 function formatDate(iso) {
-  if (!iso) return '—'
+  if (!iso) return t('common.em_dash')
   try {
     return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' })
   } catch {
@@ -390,7 +391,7 @@ function formatDate(iso) {
 }
 
 function formatDateTime(iso) {
-  if (!iso) return '—'
+  if (!iso) return t('common.em_dash')
   try {
     return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
   } catch {
@@ -460,7 +461,7 @@ async function loadWorkspace() {
   try {
     const res = await workspaceAPI.get(currentWorkspace.id)
     workspace.value = res.data
-    workspaceName.value = res.data.name ?? ''
+    workspaceForm.name = res.data.name ?? ''
     saveWorkspaceToStorage({ ...currentWorkspace, ...res.data, role: res.data.role ?? currentWorkspace.role })
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_load_workspace')
@@ -476,9 +477,9 @@ async function handleSaveWorkspace() {
   errorMessage.value = null
 
   try {
-    const res = await workspaceAPI.update(currentWorkspace.id, { name: workspaceName.value.trim() })
+    const res = await workspaceAPI.update(currentWorkspace.id, { name: workspaceForm.name.trim() })
     workspace.value = res.data
-    workspaceName.value = res.data.name
+    workspaceForm.name = res.data.name
     saveWorkspaceToStorage({ ...currentWorkspace, ...res.data, role: res.data.role ?? currentWorkspace.role })
     showFlash(t('workspace_settings_page.workspace_saved'))
   } catch (err) {
@@ -503,8 +504,8 @@ async function loadAccessKeys() {
 }
 
 async function handleCreateKey() {
-  const name = newKeyName.value.trim()
-  if (!name || selectedPermissions.value.length === 0) return
+  const name = keyForm.name.trim()
+  if (!name || keyForm.permissions.length === 0) return
 
   creatingKey.value = true
   errorMessage.value = null
@@ -513,12 +514,12 @@ async function handleCreateKey() {
   try {
     const res = await workspaceAccessKeyAPI.create(currentWorkspace.id, {
       name,
-      expiresAt: newKeyExpiresAt.value ? new Date(newKeyExpiresAt.value).toISOString() : '',
-      permissions: selectedPermissions.value,
+      expiresAt: keyForm.expiresAt ? new Date(keyForm.expiresAt).toISOString() : '',
+      permissions: keyForm.permissions,
     })
     newlyCreatedKey.value = res.data.key
-    newKeyName.value = ''
-    newKeyExpiresAt.value = ''
+    keyForm.name = ''
+    keyForm.expiresAt = ''
     await loadAccessKeys()
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_create_key')

@@ -13,6 +13,7 @@
         required
         class="input-field"
         :placeholder="$t('prompts_page.name_placeholder')"
+        :disabled="disabled"
         @input="updateField('name', $event.target.value)"
       />
     </div>
@@ -23,6 +24,7 @@
         :id="`${idPrefix}-type`"
         :value="form.type"
         class="input-field"
+        :disabled="disabled"
         @change="updateField('type', $event.target.value)"
       >
         <option value="text">{{ $t('prompts_page.type_text') }}</option>
@@ -44,6 +46,7 @@
         rows="8"
         class="input-field font-mono text-sm"
         :placeholder="`${$t('prompts_page.content_placeholder')}\n${PROMPT_VARIABLE_EXAMPLE}`"
+        :disabled="disabled"
         @input="updateField('content', $event.target.value)"
       />
       <p v-if="variables.length" class="mt-2 text-xs text-theme-textLight">
@@ -61,15 +64,17 @@
         rows="4"
         class="input-field font-mono text-sm"
         placeholder="{}"
+        :disabled="disabled"
         @input="updateField('config', $event.target.value)"
       />
     </div>
 
-    <label class="flex items-center gap-2 text-sm text-theme-text cursor-pointer">
+    <label class="flex items-center gap-2 text-sm text-theme-text" :class="disabled ? 'opacity-50' : 'cursor-pointer'">
       <input
         :checked="form.production"
         type="checkbox"
         class="rounded border-theme-border text-primary-600 focus:ring-primary-800"
+        :disabled="disabled"
         @change="updateField('production', $event.target.checked)"
       />
       {{ $t('prompts_page.set_production') }}
@@ -83,6 +88,7 @@
         rows="2"
         class="input-field"
         :placeholder="$t('prompts_page.commit_message_placeholder')"
+        :disabled="disabled"
         @input="updateField('commitMessage', $event.target.value)"
       />
     </div>
@@ -111,10 +117,14 @@ defineProps({
     type: String,
     default: 'prompt',
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 function updateField(key, value) {
-  form.value = { ...form.value, [key]: value }
+  form.value[key] = value
 }
 
 const variables = computed(() => extractPromptVariables(form.value?.content))
