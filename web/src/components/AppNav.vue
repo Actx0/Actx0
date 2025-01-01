@@ -32,7 +32,7 @@
               class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-200 text-sm font-medium text-theme-text"
               aria-hidden="true"
             >
-              <img :src="user?.avatar ?? ''" :alt="user?.email ?? ''" class="h-8 w-8 rounded-full">
+              <img :src="user.avatar" :alt="user.email" class="h-8 w-8 rounded-full">
             </span>
             <svg
               class="h-4 w-4 text-theme-textLight transition-transform"
@@ -73,11 +73,11 @@
                 </router-link>
               </div>
               <div class="border-b border-theme-border px-4 py-3">
-                <p v-if="user?.name" class="text-sm font-semibold text-theme-text truncate">
+                <p v-if="user.name" class="text-sm font-semibold text-theme-text truncate">
                   {{ user.name }}
                 </p>
-                <p class="text-sm truncate" :class="user?.name ? 'text-theme-textLight' : 'text-theme-text'">
-                  {{ user?.email ?? '' }}
+                <p class="text-sm truncate" :class="user.name ? 'text-theme-textLight' : 'text-theme-text'">
+                  {{ user.email }}
                 </p>
               </div>
               <div class="py-1">
@@ -135,7 +135,7 @@ const MOBILE_BREAKPOINT = 768
 const { t } = useI18n()
 
 function initPreferences() {
-  if (user.value?.theme && user.value?.language) {
+  if (user.value.theme && user.value.language) {
     applyUserPreferences(user.value)
     return
   }

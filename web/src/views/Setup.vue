@@ -146,12 +146,6 @@ const handleSetup = async () => {
     return
   }
 
-  if (form.adminPassword.length < 8) {
-    error.value = t('setup.error_password_length')
-    loading.value = false
-    return
-  }
-
   try {
     await setup_api.install({
       platformEmail: form.platformEmail,
@@ -172,13 +166,9 @@ const handleSetup = async () => {
 }
 
 onMounted(async () => {
-  try {
-    const response = await setup_api.checkInstalled()
-    if (response.data.installed) {
-      router.push('/login')
-    }
-  } catch (err) {
-    console.error('Failed to check setup status:', err)
+  const response = await setup_api.checkInstalled()
+  if (response.data.installed) {
+    router.push('/login')
   }
 })
 </script>

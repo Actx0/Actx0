@@ -376,11 +376,11 @@ const plans = computed(() => [
 ])
 
 const currentPlan = computed(() => {
-  return plans.value.find((plan) => plan.id === billingStatus.value.plan) || plans.value[0]
+  return plans.value.find((plan) => plan.id === billingStatus.value.plan)
 })
 
 const statusLabel = computed(() => {
-  const status = billingStatus.value.status || 'active'
+  const status = billingStatus.value.status
   const key = `billing_page.status_${status}`
   const translated = t(key)
   return translated === key ? status : translated
@@ -578,8 +578,6 @@ const loadBilling = async () => {
 }
 
 const choosePlan = async (plan) => {
-  if (isCurrentPlan(plan) || plan.id === 'hobby') return
-
   checkoutPlan.value = plan.id
   errorMessage.value = ''
   try {
@@ -593,8 +591,6 @@ const choosePlan = async (plan) => {
 }
 
 const openPortal = async () => {
-  if (!canManageStripe.value) return
-
   portalLoading.value = true
   errorMessage.value = ''
   try {

@@ -10,7 +10,7 @@
         <p class="mt-1 text-sm text-theme-textLight">
           {{ $t('dashboard.subtitle') }}
         </p>
-        <p v-if="user?.email" class="mt-2 text-sm text-theme-text">
+        <p class="mt-2 text-sm text-theme-text">
           {{ $t('dashboard.welcome_back') }}
           <span class="font-medium">{{ user.name || user.email }}</span>
         </p>
@@ -257,11 +257,11 @@
             <dl class="space-y-0">
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_name') }}</dt>
-                <dd class="text-sm font-medium text-theme-text text-right">{{ workspace?.name || $t('common.em_dash') }}</dd>
+                <dd class="text-sm font-medium text-theme-text text-right">{{ workspace.name }}</dd>
               </div>
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_handle') }}</dt>
-                <dd class="text-sm font-medium text-theme-text text-right font-mono">{{ workspace?.handle || $t('common.em_dash') }}</dd>
+                <dd class="text-sm font-medium text-theme-text text-right font-mono">{{ workspace.handle }}</dd>
               </div>
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_role') }}</dt>
@@ -325,15 +325,10 @@ const stats = ref({
 
 const planLabel = computed(() => t(`billing_page.plans.${plan.value}.name`))
 
-const roleLabel = computed(() => {
-  const role = workspace.value?.role
-  return role ? t(`members_page.role_${role}`) : t('common.em_dash')
-})
+const roleLabel = computed(() => t(`members_page.role_${workspace.value.role}`))
 
 const memberCount = computed(() => {
-  const count = workspace.value?.membersCount
-  if (count == null) return loading.value ? '…' : t('common.em_dash')
-  return count.toLocaleString()
+  return loading.value ? '…' : workspace.value.membersCount.toLocaleString()
 })
 
 const attentionItems = computed(() => [
@@ -531,17 +526,17 @@ async function loadDashboard() {
     stats_api.get(currentWorkspace.id)
       .then((res) => {
         stats.value = {
-          memoriesStored: res.data.memoriesStored ?? 0,
-          apiCallsMonth: res.data.apiCallsMonth ?? 0,
-          activeAgents: res.data.activeAgents ?? 0,
-          prompts: res.data.prompts ?? 0,
+          memoriesStored: res.data.memoriesStored,
+          apiCallsMonth: res.data.apiCallsMonth,
+          activeAgents: res.data.activeAgents,
+          prompts: res.data.prompts,
         }
       })
       .catch(() => {}),
 
     workspace_api.get(currentWorkspace.id)
       .then((res) => {
-        workspace.value = { ...currentWorkspace, ...res.data, role: res.data.role ?? currentWorkspace.role }
+        workspace.value = { ...currentWorkspace, ...res.data, role: res.data.role }
         saveWorkspaceToStorage(workspace.value)
       })
       .catch(() => {}),
@@ -550,7 +545,7 @@ async function loadDashboard() {
   if (canManage.value) {
     tasks.push(
       billing_api.status(currentWorkspace.id)
-        .then((res) => { plan.value = res.data.plan || 'hobby' })
+        .then((res) => { plan.value = res.data.plan })
         .catch(() => {}),
     )
   }

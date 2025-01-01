@@ -200,7 +200,7 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="pendingDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteModal">
+        <div v-if="pendingDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!deleting && closeDeleteModal()">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">
               {{ pendingDelete.type === 'message' ? $t('agents_page.delete_message_title') : $t('agents_page.delete_memory_title') }}
@@ -274,8 +274,6 @@ const agentId = computed(() => route.params.agentId)
 const sessionId = computed(() => route.params.sessionId)
 
 async function loadSession() {
-  if (!currentWorkspace?.id || !agentId.value || !sessionId.value) return
-
   loading.value = true
   errorMessage.value = null
   agent.value = null
@@ -309,8 +307,8 @@ async function loadMessages() {
       limit: LIST_LIMIT,
       offset: 0,
     })
-    messages.value = res.data.messages ?? []
-    messagesTotal.value = res.data._meta?.total ?? messages.value.length
+    messages.value = res.data.messages
+    messagesTotal.value = res.data._meta.total
   } catch (err) {
     messages.value = []
     messagesTotal.value = 0
@@ -328,8 +326,8 @@ async function loadMemories() {
       limit: LIST_LIMIT,
       offset: 0,
     })
-    memories.value = res.data.memories ?? []
-    memoriesTotal.value = res.data._meta?.total ?? memories.value.length
+    memories.value = res.data.memories
+    memoriesTotal.value = res.data._meta.total
   } catch (err) {
     memories.value = []
     memoriesTotal.value = 0
@@ -387,7 +385,6 @@ function memoryKindLabel(kind) {
   if (kind === 'summary') return t('agents_page.memory_kind_summary')
   if (kind === 'fact') return t('agents_page.memory_kind_fact')
   if (kind === 'preference') return t('agents_page.memory_kind_preference')
-  return kind
 }
 
 function openDeleteMessage(message) {
@@ -401,14 +398,11 @@ function openDeleteMemory(memory) {
 }
 
 function closeDeleteModal() {
-  if (deleting.value) return
   pendingDelete.value = null
   deleteError.value = null
 }
 
 async function confirmDelete() {
-  if (!pendingDelete.value || deleting.value) return
-
   deleting.value = true
   deleteError.value = null
 
@@ -429,7 +423,7 @@ async function confirmDelete() {
   }
 }
 
-watch([() => currentWorkspace?.id, agentId, sessionId], loadSession)
+watch([agentId, sessionId], loadSession)
 
 onMounted(loadSession)
 </script>

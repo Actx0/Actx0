@@ -105,7 +105,7 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeCreateModal">
+        <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!createLoading && (showCreateModal = false)">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.create_title') }}</h2>
             <p class="mt-1 text-sm text-theme-textLight">{{ $t('agents_page.create_desc') }}</p>
@@ -120,7 +120,7 @@
                 <textarea id="agent-description" v-model="form.description" rows="2" required class="input-field" :placeholder="$t('agents_page.description_placeholder')" :disabled="createLoading" />
               </div>
               <div class="flex gap-3 justify-end">
-                <button type="button" class="btn-secondary" :disabled="createLoading" @click="closeCreateModal">{{ $t('common.cancel') }}</button>
+                <button type="button" class="btn-secondary" :disabled="createLoading" @click="showCreateModal = false">{{ $t('common.cancel') }}</button>
                 <button type="submit" class="btn-primary" :disabled="createLoading">
                   {{ createLoading ? $t('agents_page.creating') : $t('agents_page.create') }}
                 </button>
@@ -141,7 +141,7 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteModal">
+        <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!deleting && closeDeleteModal()">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.delete_title') }}</h2>
             <div v-if="deleteError" class="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ deleteError }}</div>
@@ -197,18 +197,16 @@ async function loadPage() {
   errorMessage.value = null
   try {
     const res = await agent_api.list(currentWorkspace.id, { limit, offset: offset.value })
-    agents.value = res.data.agents || []
-    total.value = res.data._meta?.total ?? 0
+    agents.value = res.data.agents
+    total.value = res.data._meta.total
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('agents_page.failed_load')
-    agents.value = []
   } finally {
     loading.value = false
   }
 }
 
 function goToPage(newOffset) {
-  if (newOffset < 0 || newOffset >= total.value) return
   goToOffset(newOffset)
 }
 
@@ -219,9 +217,14 @@ function openCreateModal() {
   showCreateModal.value = true
 }
 
-function closeCreateModal() {
-  if (createLoading.value) return
-  showCreateModal.value = false
+function openDeleteModal(agent) {
+  deleteTarget.value = agent
+  deleteError.value = null
+}
+
+function closeDeleteModal() {
+  deleteTarget.value = null
+  deleteError.value = null
 }
 
 async function handleCreate() {
@@ -250,21 +253,8 @@ async function handleCreate() {
   }
 }
 
-function openDeleteModal(agent) {
-  deleteTarget.value = agent
-  deleteError.value = null
-}
-
-function closeDeleteModal() {
-  if (!deleting.value) {
-    deleteTarget.value = null
-    deleteError.value = null
-  }
-}
-
 async function confirmDelete() {
   const agent = deleteTarget.value
-  if (!agent) return
 
   deleting.value = true
   deletingId.value = agent.id

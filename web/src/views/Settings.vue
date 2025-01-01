@@ -213,10 +213,9 @@
                     <td class="px-4 py-3 text-sm text-theme-text">{{ key.name }}</td>
                     <td class="px-4 py-3 text-sm text-theme-textLight">
                       <button
-                        v-if="key.permissions?.length"
                         type="button"
                         class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 -mx-2 text-primary-700 hover:text-primary-800 hover:bg-primary-50/60 font-medium transition-colors"
-                        @click="openPermissionsModal(key)"
+                        @click="permissionsModalKey = key"
                       >
                         <span>{{ $t('workspace_settings_page.view_permissions', { count: key.permissions.length }) }}</span>
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -224,7 +223,6 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
-                      <span v-else>{{ $t('common.em_dash') }}</span>
                     </td>
                     <td class="px-4 py-3 text-sm text-theme-textLight">{{ formatDate(key.createdAt) }}</td>
                     <td class="px-4 py-3 text-sm text-theme-textLight">
@@ -235,7 +233,7 @@
                         type="button"
                         class="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
                         :disabled="deletingId === key.id"
-                        @click="openRevokeModal(key)"
+                        @click="revokeModalKey = key"
                       >
                         {{ deletingId === key.id ? $t('workspace_settings_page.revoking') : $t('workspace_settings_page.revoke') }}
                       </button>
@@ -264,7 +262,7 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="revoke-access-key-title"
-          @click.self="closeRevokeModal"
+          @click.self="!deletingId && (revokeModalKey = null)"
         >
           <div class="w-full max-w-md rounded-xl bg-white border border-theme-border shadow-xl p-6">
             <h2 id="revoke-access-key-title" class="text-lg font-semibold text-theme-text">
@@ -277,12 +275,12 @@
               <button
                 type="button"
                 class="btn-primary bg-red-600 hover:bg-red-700 focus:ring-red-500"
-                :disabled="deletingId === revokeModalKey?.id"
+                :disabled="deletingId === revokeModalKey.id"
                 @click="confirmRevokeKey"
               >
-                {{ deletingId === revokeModalKey?.id ? $t('workspace_settings_page.revoking') : $t('workspace_settings_page.revoke') }}
+                {{ deletingId === revokeModalKey.id ? $t('workspace_settings_page.revoking') : $t('workspace_settings_page.revoke') }}
               </button>
-              <button type="button" class="btn-secondary" :disabled="deletingId === revokeModalKey?.id" @click="closeRevokeModal">
+              <button type="button" class="btn-secondary" :disabled="deletingId === revokeModalKey.id" @click="revokeModalKey = null">
                 {{ $t('common.cancel') }}
               </button>
             </div>
@@ -304,7 +302,7 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="access-key-permissions-title"
-          @click.self="closePermissionsModal"
+          @click.self="permissionsModalKey = null"
         >
           <div class="w-full max-w-xl max-h-[85vh] flex flex-col rounded-xl bg-white border border-theme-border shadow-xl">
             <div class="border-b border-theme-border px-4 py-3 shrink-0">
@@ -327,7 +325,7 @@
               </ul>
             </div>
             <div class="border-t border-theme-border px-4 py-3 shrink-0 flex justify-end">
-              <button type="button" class="btn-secondary" @click="closePermissionsModal">
+              <button type="button" class="btn-secondary" @click="permissionsModalKey = null">
                 {{ $t('workspace_settings_page.dismiss') }}
               </button>
             </div>
@@ -383,33 +381,13 @@ const canSaveWorkspace = computed(() => {
 })
 
 function getPermissionLabels(permissions) {
-  if (!permissions?.length) return []
-  return permissions.map((value) => {
-    const perm = WORKSPACE_KEY_PERMISSIONS.find((item) => item.value === value)
-    return perm ? t(perm.labelKey) : value
-  })
-}
-
-function openPermissionsModal(key) {
-  permissionsModalKey.value = key
-}
-
-function closePermissionsModal() {
-  permissionsModalKey.value = null
-}
-
-function openRevokeModal(key) {
-  revokeModalKey.value = key
-}
-
-function closeRevokeModal() {
-  if (!deletingId.value) revokeModalKey.value = null
+  return permissions.map((value) =>
+    t(WORKSPACE_KEY_PERMISSIONS.find((item) => item.value === value).labelKey)
+  )
 }
 
 async function confirmRevokeKey() {
   const key = revokeModalKey.value
-  if (!key) return
-
   deletingId.value = key.id
   errorMessage.value = null
 
@@ -444,8 +422,8 @@ async function loadWorkspace() {
   try {
     const res = await workspace_api.get(currentWorkspace.id)
     workspace.value = res.data
-    workspaceForm.name = res.data.name ?? ''
-    saveWorkspaceToStorage({ ...currentWorkspace, ...res.data, role: res.data.role ?? currentWorkspace.role })
+    workspaceForm.name = res.data.name
+    saveWorkspaceToStorage({ ...currentWorkspace, ...res.data })
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_load_workspace')
   } finally {
@@ -454,8 +432,6 @@ async function loadWorkspace() {
 }
 
 async function handleSaveWorkspace() {
-  if (!canSaveWorkspace.value) return
-
   savingWorkspace.value = true
   errorMessage.value = null
 
@@ -463,7 +439,7 @@ async function handleSaveWorkspace() {
     const res = await workspace_api.update(currentWorkspace.id, { name: workspaceForm.name.trim() })
     workspace.value = res.data
     workspaceForm.name = res.data.name
-    saveWorkspaceToStorage({ ...currentWorkspace, ...res.data, role: res.data.role ?? currentWorkspace.role })
+    saveWorkspaceToStorage({ ...currentWorkspace, ...res.data })
     showFlash(t('workspace_settings_page.workspace_saved'))
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_save_workspace')
@@ -478,7 +454,7 @@ async function loadAccessKeys() {
 
   try {
     const res = await workspace_access_key_api.list(currentWorkspace.id, { limit: 100, offset: 0 })
-    accessKeys.value = res.data.keys ?? []
+    accessKeys.value = res.data.keys
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_load_keys')
   } finally {
@@ -487,16 +463,13 @@ async function loadAccessKeys() {
 }
 
 async function handleCreateKey() {
-  const name = keyForm.name.trim()
-  if (!name || keyForm.permissions.length === 0) return
-
   creatingKey.value = true
   errorMessage.value = null
   newlyCreatedKey.value = null
 
   try {
     const res = await workspace_access_key_api.create(currentWorkspace.id, {
-      name,
+      name: keyForm.name.trim(),
       expiresAt: keyForm.expiresAt ? new Date(keyForm.expiresAt).toISOString() : '',
       permissions: keyForm.permissions,
     })

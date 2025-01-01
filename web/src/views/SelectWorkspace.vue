@@ -80,7 +80,7 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="create-workspace-title"
-          @click.self="closeCreateModal"
+          @click.self="!createLoading && closeCreateModal()"
         >
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 id="create-workspace-title" class="text-lg font-semibold text-theme-text">{{ $t('select_workspace.create_modal_title') }}</h2>
@@ -137,11 +137,11 @@ const createForm = reactive({ name: '' })
 
 function openCreateModal() {
   createModalError.value = null
+  createForm.name = ''
   showCreateModal.value = true
 }
 
 function closeCreateModal() {
-  if (createLoading.value) return
   showCreateModal.value = false
   createModalError.value = null
   createForm.name = ''
@@ -156,10 +156,9 @@ async function loadWorkspaces() {
   error.value = null
   try {
     const res = await workspace_api.list({})
-    workspaces.value = res.data?.workspaces ?? []
+    workspaces.value = res.data.workspaces
   } catch (err) {
     error.value = err.response?.data?.errorMessage || t('select_workspace.failed_load')
-    workspaces.value = []
   }
 }
 
@@ -169,15 +168,10 @@ async function handleCreate() {
 
   try {
     const res = await workspace_api.create({ name: createForm.name })
-    if (res.data?.id) {
-      saveWorkspaceToStorage({ ...res.data, role: 'owner', status: 'active' })
-      showCreateModal.value = false
-      createForm.name = ''
-      createModalError.value = null
-      router.push('/dashboard')
-    } else {
-      createModalError.value = t('select_workspace.invalid_response')
-    }
+    saveWorkspaceToStorage({ ...res.data, role: 'owner', status: 'active' })
+    showCreateModal.value = false
+    createForm.name = ''
+    router.push('/dashboard')
   } catch (err) {
     createModalError.value = err.response?.data?.errorMessage || t('select_workspace.failed_create')
   } finally {
@@ -187,6 +181,8 @@ async function handleCreate() {
 
 onMounted(async () => {
   await loadWorkspaces()
-  if (workspaces.value.length === 0 && !error.value) openCreateModal()
+  if (workspaces.value.length === 0 && !error.value) {
+    openCreateModal()
+  }
 })
 </script>

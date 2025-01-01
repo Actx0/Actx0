@@ -179,8 +179,8 @@ const handleLogin = async () => {
       rememberMe: form.rememberMe
     })
 
-    saveUser(response.data?.user)
-    applyUserPreferences(response.data?.user)
+    saveUser(response.data.user)
+    applyUserPreferences(response.data.user)
 
     const redirect = route.query.redirect
     const target = typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')
@@ -195,13 +195,9 @@ const handleLogin = async () => {
 }
 
 onMounted(async () => {
-  try {
-    const response = await setup_api.checkInstalled()
-    if (!response.data.installed) {
-      router.push('/setup')
-    }
-  } catch (err) {
-    console.error('Failed to check setup status:', err)
+  const response = await setup_api.checkInstalled()
+  if (!response.data.installed) {
+    router.push('/setup')
   }
 })
 </script>

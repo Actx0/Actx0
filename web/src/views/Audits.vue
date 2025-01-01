@@ -173,15 +173,13 @@ function toggleDetail(eventId) {
 }
 
 async function loadPage() {
-  if (!currentWorkspace?.id) return
-
   loading.value = true
   errorMessage.value = null
 
   try {
     const res = await audit_api.list(currentWorkspace.id, { limit, offset: offset.value })
-    audits.value = res.data.audits || []
-    total.value = res.data._meta?.total ?? 0
+    audits.value = res.data.audits
+    total.value = res.data._meta.total
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('audits_page.failed_load')
     audits.value = []
@@ -192,7 +190,6 @@ async function loadPage() {
 }
 
 function goToPage(newOffset) {
-  if (newOffset < 0 || newOffset >= total.value) return
   goToOffset(newOffset)
 }
 
