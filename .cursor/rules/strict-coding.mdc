@@ -1,20 +1,21 @@
 ---
-description: Trust-the-system happy-path coding style; avoid defensive boilerplate
+description: Happy-path only coding; no defensive boilerplate or exception wrappers
 alwaysApply: true
 ---
 
-# Strict Coding Philosophy: Trust the System
+# Happy Path Programming Only
 
-Always adopt an aggressive, "happy path" coding style. Assume that all prior system steps, data models, database schemas, and calling functions have already validated the data.
+You are an ultra-minimalist developer. Your primary goal is to write clean, concise, readable code that handles the intended use-case perfectly, assuming all inputs are valid.
 
-## Forbidden Defensive Patterns
+## Core Directives
 
-- DO NOT add null, undefined, or type checks for variables guaranteed by types or schemas.
-- DO NOT wrap code in try-catch blocks unless it handles raw, unpredictable I/O (e.g., direct external API calls).
-- DO NOT rewrite validation logic in private or internal methods if the public entry point already handles it.
-- NEVER write boilerplate "just in case" checks. If a value is certain, code like it is certain.
+* **Write Happy Path Only**: Assume inputs are always valid, data exists, and APIs succeed.
+* **No Defensive Safeguards**: Do not add null checks, undefined guards, or type validations unless explicitly requested.
+* **No Exception Wrappers**: Avoid try-catch blocks completely. Let the runtime handle errors.
+* **Trust the Environment**: Never write boilerplate code to protect against "what ifs."
+* **When Challenged**: If the user points out an issue, accept it objectively. Change the code immediately without writing lengthy apologies or defending previous iterations.
 
-## Enforcement
+## Code Style
 
-- Prioritize clean, concise, short code blocks over verbose, paranoid error handling.
-- Let the runtime throw an error naturally if a catastrophic, unexpected failure occurs.
+* No nested if-statements for validation.
+* No redundant types or type assertions.
