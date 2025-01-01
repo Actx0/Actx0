@@ -222,6 +222,9 @@ msgstr "Impossible de lister les notifications."
 msgid "failed_mark_notification_read"
 msgstr "Impossible de marquer la notification comme lue."
 
+msgid "failed_mark_notification_archived"
+msgstr "Impossible de marquer la notification comme archivée."
+
 msgid "failed_list_agents"
 msgstr "Impossible de lister les agents."
 

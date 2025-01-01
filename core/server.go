@@ -136,8 +136,9 @@ func SetupServer(Static embed.FS) http.Handler {
 		})
 
 		r.Route("/notifications", func(r chi.Router) {
-			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanListNotifications})).Get("/", api.ListWorkspaceNotificationsAction)                             // list inbox notifications
-			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanMarkNotificationRead})).Post("/{notificationId}/read", api.MarkWorkspaceNotificationReadAction) // mark notification as read
+			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanListNotifications})).Get("/", api.ListWorkspaceNotificationsAction)                                        // list inbox notifications
+			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanMarkNotificationRead})).Post("/{notificationId}/read", api.MarkWorkspaceNotificationReadAction)            // mark notification as read
+			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanMarkNotificationArchived})).Post("/{notificationId}/archive", api.MarkWorkspaceNotificationArchivedAction) // mark notification as archived
 		})
 
 		r.Route("/prompts", func(r chi.Router) {

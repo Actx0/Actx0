@@ -73,6 +73,7 @@ type Auth struct {
 	SessionRepository            db.SessionRepository
 	ConfigRepository             db.ConfigRepository
 	PasswordResetTokenRepository db.PasswordResetTokenRepository
+	NotificationRepository       db.NotificationRepository
 	Mailer                       Mailer
 }
 
@@ -82,6 +83,7 @@ func NewAuth(
 	sessions db.SessionRepository,
 	config db.ConfigRepository,
 	resetTokens db.PasswordResetTokenRepository,
+	notifications db.NotificationRepository,
 	mailer Mailer,
 ) *Auth {
 	return &Auth{
@@ -89,6 +91,7 @@ func NewAuth(
 		SessionRepository:            sessions,
 		ConfigRepository:             config,
 		PasswordResetTokenRepository: resetTokens,
+		NotificationRepository:       notifications,
 		Mailer:                       mailer,
 	}
 }
@@ -153,6 +156,21 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 		Str("userId", user.Id.String()).
 		Str("sessionId", session.Id.String()).
 		Msg("User logged in")
+
+	if !user.IsEmailVerified {
+		_, err = CreateUserNotification(a.NotificationRepository, &CreateUserNotificationRequest{
+			UserId: user.Id,
+			Type:   NotificationTypeEmailUnverified,
+			Title:  "Verify your email",
+			Body:   new(string("Please verify your email address to unlock all features.")),
+		})
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("userId", user.Id.String()).
+				Msg("Failed to create email unverified notification")
+		}
+	}
 
 	UserLoggedIn.Emit(ctx, UserLoggedInData{
 		UserID:    user.Id,

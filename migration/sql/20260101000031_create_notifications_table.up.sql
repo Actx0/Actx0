@@ -6,6 +6,7 @@ CREATE TABLE notifications (
 	title VARCHAR(200) NOT NULL,
 	body TEXT,
 	read_at TIMESTAMP NULL,
+	archived_at TIMESTAMP NULL,
 	created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
 	updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
 	CHECK (num_nonnulls(user_id, workspace_id) = 1)
