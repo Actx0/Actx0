@@ -81,7 +81,7 @@ Mark done: `- [x] path/to/file`
 - [x] db/user_session.go
 - [ ] db/wdoc.go
 - [ ] db/wkey.go
-- [ ] db/workspace.go
+- [x] db/workspace.go
 - [ ] db/wstats.go
 - [ ] db/wuser.go
 
