@@ -335,12 +335,7 @@ func (c *APIClient) MemoriesPath(scope Scope, sessionID string) string {
 }
 
 // DoJSON performs a JSON HTTP request against the management server.
-func (c *APIClient) DoJSON(
-	ctx context.Context,
-	method, path, accessKey string,
-	body []byte,
-	out any,
-) (int, error) {
+func (c *APIClient) DoJSON(ctx context.Context, method, path, accessKey string, body []byte, out any) (int, error) {
 	var reader io.Reader
 	if body != nil {
 		reader = bytes.NewReader(body)
