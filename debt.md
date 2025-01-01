@@ -122,7 +122,7 @@ Mark done: `- [x] path/to/file`
 - [ ] module/async.go
 - [ ] module/auth.go
 - [ ] module/billing.go
-- [ ] module/ctx.go
+- [x] module/ctx.go
 - [ ] module/document.go
 - [ ] module/events.go
 - [ ] module/invite.go
