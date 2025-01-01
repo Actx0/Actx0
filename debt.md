@@ -65,7 +65,7 @@ Mark done: `- [x] path/to/file`
 - [x] db/audit.go
 - [x] db/config.go
 - [x] db/database.go
-- [ ] db/helpers.go
+- [x] db/helpers.go
 - [ ] db/integration.go
 - [x] db/invite.go
 - [ ] db/memory.go
@@ -74,7 +74,7 @@ Mark done: `- [x] path/to/file`
 - [ ] db/prompt.go
 - [ ] db/session.go
 - [ ] db/subscription.go
-- [ ] db/types.go
+- [x] db/types.go
 - [x] db/usage.go
 - [x] db/user.go
 - [x] db/user_api_key.go
