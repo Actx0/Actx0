@@ -50,7 +50,6 @@ api.interceptors.response.use(
   }
 )
 
-// API endpoints
 export const healthAPI = {
   check: () => api.get('public/_health'),
   ready: () => api.get('public/_ready'),
@@ -72,13 +71,11 @@ export const setupAPI = {
   checkInstalled: () => api.get('public/action/setup/status'),
 }
 
-// API endpoints for settings
 export const settingsAPI = {
   getSettings: () => api.get('/action/settings'),
   updateSettings: (data) => api.put('/action/settings', data),
 }
 
-// API endpoints for workspaces (projects)
 export const workspaceAPI = {
   list: (params) => api.get('/workspaces', { params }),
   get: (id) => api.get(`/workspaces/${id}`),
