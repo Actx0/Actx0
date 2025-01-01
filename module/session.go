@@ -62,17 +62,24 @@ type ListAgentSessionsResponse struct {
 
 // AgentSession is the module for agent conversation session CRUD.
 type AgentSession struct {
-	SessionRepository   db.AgentSessionRepository
-	AgentRepository     db.AgentRepository
-	WorkspaceRepository db.WorkspaceRepository
+	SessionRepository      db.AgentSessionRepository
+	AgentRepository        db.AgentRepository
+	WorkspaceRepository    db.WorkspaceRepository
+	SubscriptionRepository db.SubscriptionRepository
 }
 
 // NewAgentSession creates an agent session module with the given repositories.
-func NewAgentSession(sessions db.AgentSessionRepository, agents db.AgentRepository, workspaces db.WorkspaceRepository) *AgentSession {
+func NewAgentSession(
+	sessions db.AgentSessionRepository,
+	agents db.AgentRepository,
+	workspaces db.WorkspaceRepository,
+	subscriptions db.SubscriptionRepository,
+) *AgentSession {
 	return &AgentSession{
-		SessionRepository:   sessions,
-		AgentRepository:     agents,
-		WorkspaceRepository: workspaces,
+		SessionRepository:      sessions,
+		AgentRepository:        agents,
+		WorkspaceRepository:    workspaces,
+		SubscriptionRepository: subscriptions,
 	}
 }
 
@@ -129,6 +136,19 @@ func (s *AgentSession) CreateAgentSession(workspaceId, agentId db.Id, externalId
 		if existing != nil {
 			return nil, ErrAgentSessionAlreadyExists
 		}
+	}
+
+	reached, err := NewUsage().IsSessionsCountReached(
+		s.SessionRepository,
+		s.SubscriptionRepository,
+		workspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	session := &db.AgentSession{

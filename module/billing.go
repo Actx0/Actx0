@@ -73,6 +73,7 @@ type PlanUsageLimits struct {
 	DocumentsCount   int64   `json:"documentsCount"`
 	PromptsCount     int64   `json:"promptsCount"`
 	StorageGB        float64 `json:"storageGB"`
+	SessionsCount    int64   `json:"sessionsCount"`
 	HistoryRecords   int64   `json:"historyRecords"`
 	MemoryRecords    int64   `json:"memoryRecords"`
 	AITokens         int64   `json:"aiTokens"`
@@ -95,6 +96,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		DocumentsCount:   10,
 		PromptsCount:     10,
 		StorageGB:        1,
+		SessionsCount:    25,
 		HistoryRecords:   1_000,
 		MemoryRecords:    500,
 		AITokens:         500_000,
@@ -107,6 +109,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		DocumentsCount:   500,
 		PromptsCount:     100,
 		StorageGB:        5,
+		SessionsCount:    250,
 		HistoryRecords:   20_000,
 		MemoryRecords:    10_000,
 		AITokens:         2_000_000,
@@ -119,6 +122,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		DocumentsCount:   2_000,
 		PromptsCount:     400,
 		StorageGB:        25,
+		SessionsCount:    1_000,
 		HistoryRecords:   75_000,
 		MemoryRecords:    40_000,
 		AITokens:         7_300_000,
@@ -131,6 +135,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		DocumentsCount:   6_500,
 		PromptsCount:     1_250,
 		StorageGB:        100,
+		SessionsCount:    5_000,
 		HistoryRecords:   250_000,
 		MemoryRecords:    125_000,
 		AITokens:         23_200_000,

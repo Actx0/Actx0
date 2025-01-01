@@ -79,6 +79,7 @@ func GetBillingUsageAction(w http.ResponseWriter, r *http.Request) {
 		SubscriptionRepository:      db.NewSubscriptionRepository(db.GetDB()),
 		SessionMessageRepository:    db.NewSessionMessageRepository(db.GetDB()),
 		SessionMemoryRepository:     db.NewSessionMemoryRepository(db.GetDB()),
+		AgentSessionRepository:      db.NewAgentSessionRepository(db.GetDB()),
 	})
 	if err != nil {
 		switch {

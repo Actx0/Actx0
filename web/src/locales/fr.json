@@ -880,6 +880,8 @@
       "prompts_count_hint": "Prompts stockés dans cet espace de travail",
       "storage_used_label": "Stockage utilisé",
       "storage_used_hint": "Stockage total de fichiers consommé",
+      "sessions_count_label": "Sessions",
+      "sessions_count_hint": "Sessions de conversation d'agent dans cet espace de travail",
       "history_records_label": "Historique",
       "history_records_hint": "Lignes de contexte d'agent stockées dans les sessions",
       "memory_records_label": "Mémoires",
