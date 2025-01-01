@@ -60,7 +60,7 @@ Mark done: `- [x] path/to/file`
 
 ## db/
 
-- [ ] db/agent.go
+- [x] db/agent.go
 - [ ] db/atask.go
 - [x] db/audit.go
 - [x] db/config.go
@@ -72,7 +72,7 @@ Mark done: `- [x] path/to/file`
 - [x] db/message.go
 - [x] db/preset.go
 - [ ] db/prompt.go
-- [ ] db/session.go
+- [x] db/session.go
 - [x] db/subscription.go
 - [x] db/types.go
 - [x] db/usage.go
