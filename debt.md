@@ -27,7 +27,7 @@ Mark done: `- [x] path/to/file`
 - [x] api/password.go
 - [x] api/settings.go
 - [x] api/tools.go
-- [ ] api/profile.go
+- [x] api/profile.go
 - [x] api/api_key.go
 - [ ] api/access.go
 - [ ] api/member.go
@@ -129,7 +129,7 @@ Mark done: `- [x] path/to/file`
 - [ ] module/memory.go
 - [ ] module/message.go
 - [ ] module/permission.go
-- [ ] module/profile.go
+- [x] module/profile.go
 - [ ] module/prompt.go
 - [x] module/register.go
 - [ ] module/session.go
