@@ -5,55 +5,35 @@ package mcp
 
 import (
 	"context"
-	"time"
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-type MemoryMessage struct {
-	Role    string `json:"role" jsonschema:"Message role (user or assistant)"`
-	Content string `json:"content" jsonschema:"Message content"`
-}
-
-type MemoryScopeInput struct {
-	UserID  string `json:"user_id,omitempty" jsonschema:"User identifier"`
-	AgentID string `json:"agent_id,omitempty" jsonschema:"Agent identifier"`
-	AppID   string `json:"app_id,omitempty" jsonschema:"App identifier"`
-	RunID   string `json:"run_id,omitempty" jsonschema:"Run or session identifier"`
-}
-
 type AddMemoryInput struct {
-	MemoryScopeInput
-	Content  string          `json:"content,omitempty" jsonschema:"Text content to store"`
-	Messages []MemoryMessage `json:"messages,omitempty" jsonschema:"Conversation messages to store"`
-	Metadata map[string]any  `json:"metadata,omitempty" jsonschema:"Optional metadata"`
+	Kind     string         `json:"kind,omitempty" jsonschema:"Memory kind: summary, fact, preference, short_lived, or long_lived"`
+	Content  string         `json:"content" jsonschema:"required,Text content to store"`
+	Metadata map[string]any `json:"metadata,omitempty" jsonschema:"Optional metadata"`
 }
 
 type AddMemoryOutput struct {
-	EventID  string `json:"event_id"`
 	MemoryID string `json:"memory_id"`
 	Status   string `json:"status"`
 	Message  string `json:"message"`
 }
 
 type SearchMemoriesInput struct {
-	MemoryScopeInput
-	Query   string         `json:"query" jsonschema:"required,Semantic search query"`
-	TopK    int            `json:"top_k,omitempty" jsonschema:"Maximum number of results"`
-	Filters map[string]any `json:"filters,omitempty" jsonschema:"Additional filters"`
+	Query string `json:"query" jsonschema:"required,Semantic search query"`
+	Limit int    `json:"limit,omitempty" jsonschema:"Maximum number of results"`
 }
 
 type MemoryRecord struct {
 	MemoryID  string         `json:"memory_id"`
+	Kind      string         `json:"kind,omitempty"`
 	Memory    string         `json:"memory"`
-	UserID    string         `json:"user_id,omitempty"`
-	AgentID   string         `json:"agent_id,omitempty"`
-	AppID     string         `json:"app_id,omitempty"`
-	RunID     string         `json:"run_id,omitempty"`
 	Score     float32        `json:"score,omitempty"`
 	Metadata  map[string]any `json:"metadata,omitempty"`
-	CreatedAt string         `json:"created_at"`
-	UpdatedAt string         `json:"updated_at"`
+	CreatedAt string         `json:"created_at,omitempty"`
+	UpdatedAt string         `json:"updated_at,omitempty"`
 }
 
 type SearchMemoriesOutput struct {
@@ -61,14 +41,13 @@ type SearchMemoriesOutput struct {
 }
 
 type GetMemoriesInput struct {
-	MemoryScopeInput
 	Limit  int `json:"limit,omitempty" jsonschema:"Page size"`
 	Offset int `json:"offset,omitempty" jsonschema:"Page offset"`
 }
 
 type GetMemoriesOutput struct {
 	Memories []MemoryRecord `json:"memories"`
-	Total    int            `json:"total"`
+	Total    int64          `json:"total"`
 	Limit    int            `json:"limit"`
 	Offset   int            `json:"offset"`
 }
@@ -78,8 +57,10 @@ type GetMemoryInput struct {
 }
 
 type UpdateMemoryInput struct {
-	MemoryID string `json:"memory_id" jsonschema:"required,Memory identifier"`
-	Content  string `json:"content" jsonschema:"required,Updated memory text"`
+	MemoryID string         `json:"memory_id" jsonschema:"required,Memory identifier"`
+	Kind     string         `json:"kind,omitempty" jsonschema:"Memory kind: summary, fact, preference, short_lived, or long_lived"`
+	Content  string         `json:"content" jsonschema:"required,Updated memory text"`
+	Metadata map[string]any `json:"metadata,omitempty" jsonschema:"Optional metadata"`
 }
 
 type UpdateMemoryOutput struct {
@@ -98,128 +79,122 @@ type DeleteMemoryOutput struct {
 	Message  string `json:"message"`
 }
 
-type DeleteAllMemoriesInput struct {
-	MemoryScopeInput
-}
-
-type DeleteAllMemoriesOutput struct {
-	Deleted int    `json:"deleted"`
+type DeleteSessionOutput struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
-}
-
-type DeleteEntitiesInput struct {
-	MemoryScopeInput
-	EntityType string `json:"entity_type,omitempty" jsonschema:"Entity type: user, agent, app, or run"`
-}
-
-type DeleteEntitiesOutput struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-}
-
-type ListEntitiesOutput struct {
-	Users  []string `json:"users"`
-	Agents []string `json:"agents"`
-	Apps   []string `json:"apps"`
-	Runs   []string `json:"runs"`
-}
-
-type ListEventsInput struct {
-	MemoryScopeInput
-	Limit  int `json:"limit,omitempty" jsonschema:"Page size"`
-	Offset int `json:"offset,omitempty" jsonschema:"Page offset"`
-}
-
-type MemoryEvent struct {
-	EventID   string `json:"event_id"`
-	Type      string `json:"type"`
-	Status    string `json:"status"`
-	CreatedAt string `json:"created_at"`
-}
-
-type ListEventsOutput struct {
-	Events []MemoryEvent `json:"events"`
-	Total  int           `json:"total"`
-	Limit  int           `json:"limit"`
-	Offset int           `json:"offset"`
-}
-
-type GetEventStatusInput struct {
-	EventID string `json:"event_id" jsonschema:"required,Async operation event identifier"`
-}
-
-type GetEventStatusOutput struct {
-	EventID   string `json:"event_id"`
-	Status    string `json:"status"`
-	Message   string `json:"message"`
-	UpdatedAt string `json:"updated_at"`
 }
 
 func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
-	now := time.Now().UTC().Format(time.RFC3339)
-
-	sampleMemory := MemoryRecord{
-		MemoryID:  "mem_fake_001",
-		Memory:    "User prefers concise answers and morning standups at 9am.",
-		UserID:    "user_demo",
-		AgentID:   "agent_demo",
-		AppID:     "app_demo",
-		RunID:     "run_demo",
-		Score:     0.92,
-		Metadata:  map[string]any{"source": "stub"},
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "add_memory",
-		Description: "Save text or conversation history for a user/agent",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, _ AddMemoryInput) (*mcpsdk.CallToolResult, AddMemoryOutput, error) {
+		Description: "Save a memory for the scoped session",
+	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input AddMemoryInput) (*mcpsdk.CallToolResult, AddMemoryOutput, error) {
+		scope := ScopeFrom(ctx)
+
+		kind := input.Kind
+		if kind == "" {
+			kind = "long_lived"
+		}
+
+		meta, err := encodeMeta(input.Metadata)
+		if err != nil {
+			return nil, AddMemoryOutput{}, err
+		}
+
+		memory, err := api.CreateMemory(ctx, scope, kind, input.Content, meta)
+		if err != nil {
+			return nil, AddMemoryOutput{}, err
+		}
+
 		return nil, AddMemoryOutput{
-			EventID:  "evt_fake_add_001",
-			MemoryID: "mem_fake_001",
+			MemoryID: memory.ID,
 			Status:   "completed",
-			Message:  "Stub memory saved (not persisted)",
+			Message:  "Memory saved",
 		}, nil
 	})
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "search_memories",
-		Description: "Semantic search across existing memories with filters",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, _ SearchMemoriesInput) (*mcpsdk.CallToolResult, SearchMemoriesOutput, error) {
-		return nil, SearchMemoriesOutput{Results: []MemoryRecord{sampleMemory}}, nil
+		Description: "Semantic search across memories in the scoped session",
+	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input SearchMemoriesInput) (*mcpsdk.CallToolResult, SearchMemoriesOutput, error) {
+		scope := ScopeFrom(ctx)
+
+		result, err := api.SearchMemories(ctx, scope, input.Query, input.Limit)
+		if err != nil {
+			return nil, SearchMemoriesOutput{}, err
+		}
+
+		records := make([]MemoryRecord, 0, len(result.Results))
+		for _, hit := range result.Results {
+			records = append(records, MemoryRecord{
+				MemoryID: hit.ID,
+				Kind:     hit.Kind,
+				Memory:   hit.Text,
+				Score:    hit.Score,
+			})
+		}
+
+		return nil, SearchMemoriesOutput{Results: records}, nil
 	})
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "get_memories",
-		Description: "List memories with structured filters and pagination",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, input GetMemoriesInput) (*mcpsdk.CallToolResult, GetMemoriesOutput, error) {
+		Description: "List memories in the scoped session",
+	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input GetMemoriesInput) (*mcpsdk.CallToolResult, GetMemoriesOutput, error) {
+		scope := ScopeFrom(ctx)
+
+		list, err := api.ListMemories(ctx, scope, input.Limit, input.Offset)
+		if err != nil {
+			return nil, GetMemoriesOutput{}, err
+		}
+
+		records := make([]MemoryRecord, 0, len(list.Memories))
+		for _, item := range list.Memories {
+			records = append(records, memoryRecordFromDTO(item))
+		}
+
 		return nil, GetMemoriesOutput{
-			Memories: []MemoryRecord{sampleMemory},
-			Total:    1,
-			Limit:    input.Limit,
-			Offset:   input.Offset,
+			Memories: records,
+			Total:    list.Meta.Total,
+			Limit:    list.Meta.Limit,
+			Offset:   list.Meta.Offset,
 		}, nil
 	})
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "get_memory",
 		Description: "Retrieve one memory by its memory_id",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, input GetMemoryInput) (*mcpsdk.CallToolResult, MemoryRecord, error) {
-		record := sampleMemory
-		record.MemoryID = input.MemoryID
-		return nil, record, nil
+	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input GetMemoryInput) (*mcpsdk.CallToolResult, MemoryRecord, error) {
+		scope := ScopeFrom(ctx)
+
+		memory, err := api.GetMemory(ctx, scope, input.MemoryID)
+		if err != nil {
+			return nil, MemoryRecord{}, err
+		}
+
+		return nil, memoryRecordFromDTO(*memory), nil
 	})
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "update_memory",
 		Description: "Overwrite a memory's text after confirming the ID",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, input UpdateMemoryInput) (*mcpsdk.CallToolResult, UpdateMemoryOutput, error) {
+	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input UpdateMemoryInput) (*mcpsdk.CallToolResult, UpdateMemoryOutput, error) {
+		scope := ScopeFrom(ctx)
+
+		meta, err := encodeMeta(input.Metadata)
+		if err != nil {
+			return nil, UpdateMemoryOutput{}, err
+		}
+
+		memory, err := api.UpdateMemory(ctx, scope, input.MemoryID, input.Kind, input.Content, meta)
+		if err != nil {
+			return nil, UpdateMemoryOutput{}, err
+		}
+
 		return nil, UpdateMemoryOutput{
-			MemoryID: input.MemoryID,
+			MemoryID: memory.ID,
 			Status:   "completed",
-			Message:  "Stub memory updated (not persisted)",
+			Message:  "Memory updated",
 		}, nil
 	})
 
@@ -242,64 +217,19 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 	})
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
-		Name:        "delete_all_memories",
-		Description: "Bulk delete all memories in scope",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, _ DeleteAllMemoriesInput) (*mcpsdk.CallToolResult, DeleteAllMemoriesOutput, error) {
-		return nil, DeleteAllMemoriesOutput{
-			Deleted: 1,
+		Name:        "delete_session",
+		Description: "Delete the scoped session and all of its memories",
+	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, _ struct{}) (*mcpsdk.CallToolResult, DeleteSessionOutput, error) {
+		scope := ScopeFrom(ctx)
+
+		err := api.DeleteSession(ctx, scope)
+		if err != nil {
+			return nil, DeleteSessionOutput{}, err
+		}
+
+		return nil, DeleteSessionOutput{
 			Status:  "completed",
-			Message: "Stub memories deleted (not persisted)",
-		}, nil
-	})
-
-	mcpsdk.AddTool(server, &mcpsdk.Tool{
-		Name:        "delete_entities",
-		Description: "Delete a user/agent/app/run entity and its memories",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, _ DeleteEntitiesInput) (*mcpsdk.CallToolResult, DeleteEntitiesOutput, error) {
-		return nil, DeleteEntitiesOutput{
-			Status:  "completed",
-			Message: "Stub entity deleted (not persisted)",
-		}, nil
-	})
-
-	mcpsdk.AddTool(server, &mcpsdk.Tool{
-		Name:        "list_entities",
-		Description: "Enumerate users/agents/apps/runs stored in Mem0",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, _ struct{}) (*mcpsdk.CallToolResult, ListEntitiesOutput, error) {
-		return nil, ListEntitiesOutput{
-			Users:  []string{"user_demo"},
-			Agents: []string{"agent_demo"},
-			Apps:   []string{"app_demo"},
-			Runs:   []string{"run_demo"},
-		}, nil
-	})
-
-	mcpsdk.AddTool(server, &mcpsdk.Tool{
-		Name:        "list_events",
-		Description: "List memory operation events with filters and pagination",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, input ListEventsInput) (*mcpsdk.CallToolResult, ListEventsOutput, error) {
-		return nil, ListEventsOutput{
-			Events: []MemoryEvent{{
-				EventID:   "evt_fake_add_001",
-				Type:      "add_memory",
-				Status:    "completed",
-				CreatedAt: now,
-			}},
-			Total:  1,
-			Limit:  input.Limit,
-			Offset: input.Offset,
-		}, nil
-	})
-
-	mcpsdk.AddTool(server, &mcpsdk.Tool{
-		Name:        "get_event_status",
-		Description: "Check the status of an async memory operation by event_id",
-	}, func(_ context.Context, _ *mcpsdk.CallToolRequest, input GetEventStatusInput) (*mcpsdk.CallToolResult, GetEventStatusOutput, error) {
-		return nil, GetEventStatusOutput{
-			EventID:   input.EventID,
-			Status:    "completed",
-			Message:   "Stub event completed (not persisted)",
-			UpdatedAt: now,
+			Message: "Session deleted",
 		}, nil
 	})
 }
