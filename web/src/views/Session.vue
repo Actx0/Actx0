@@ -385,6 +385,9 @@ function memoryKindLabel(kind) {
   if (kind === 'summary') return t('agents_page.memory_kind_summary')
   if (kind === 'fact') return t('agents_page.memory_kind_fact')
   if (kind === 'preference') return t('agents_page.memory_kind_preference')
+  if (kind === 'short_lived') return t('agents_page.memory_kind_short_lived')
+  if (kind === 'long_lived') return t('agents_page.memory_kind_long_lived')
+  return kind
 }
 
 function openDeleteMessage(message) {

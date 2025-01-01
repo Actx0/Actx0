@@ -13,6 +13,8 @@ const (
 	MemoryKindSummary    = "summary"
 	MemoryKindFact       = "fact"
 	MemoryKindPreference = "preference"
+	MemoryKindShortLived = "short_lived"
+	MemoryKindLongLived  = "long_lived"
 )
 
 // RunRequest executes one agent turn.

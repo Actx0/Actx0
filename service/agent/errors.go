@@ -16,4 +16,5 @@ var (
 	ErrRecallFailed    = errors.New("session memory recall failed")
 	ErrDeleteFailed    = errors.New("agent delete failed")
 	ErrIndexFailed     = errors.New("agent index failed")
+	ErrGenerateFailed  = errors.New("session memory generate failed")
 )

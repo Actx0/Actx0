@@ -5,8 +5,11 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/migration"
 	"github.com/clivern/actx0/pkg/ai"
@@ -216,7 +219,96 @@ func (s *Service) IndexSessionMemory(ctx context.Context, memoryId db.Id) error 
 
 // GenerateMemoryFromMessage extracts and stores memory from a session message.
 func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id) error {
-	return ErrNotImplemented
+	message, err := s.messages.GetById(messageId)
+	if err != nil {
+		return fmt.Errorf("%w: get message: %v", ErrGenerateFailed, err)
+	}
+	if message == nil {
+		return ErrMessageNotFound
+	}
+
+	session, err := s.sessions.GetById(message.SessionId)
+	if err != nil {
+		return fmt.Errorf("%w: get session: %v", ErrGenerateFailed, err)
+	}
+	if session == nil {
+		return ErrSessionNotFound
+	}
+
+	reply, usage, err := s.liteLLM.Complete(ctx, []ai.Message{
+		{Role: "system", Content: conf.GenerateMemorySystemPrompt},
+		{Role: "user", Content: fmt.Sprintf("role=%s\n%s", message.Role, message.Content)},
+	})
+	if err != nil {
+		return fmt.Errorf("%w: complete: %v", ErrGenerateFailed, err)
+	}
+
+	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("workspace_id", session.WorkspaceId.String()).
+			Int64("total_tokens", usage.TotalTokens).
+			Int64("total_cost", usage.Cost).
+			Msg("Failed to record AI usage")
+	}
+
+	if sub != nil && sub.CurrentPeriodStart != nil && sub.CurrentPeriodEnd != nil {
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAITokens,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.TotalTokens,
+			db.UsageUnitTokens,
+		)
+
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAICost,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.Cost,
+			db.UsageUnitNanoUSD,
+		)
+	}
+
+	var result struct {
+		Skip    bool   `json:"skip"`
+		Kind    string `json:"kind"`
+		Content string `json:"content"`
+	}
+	err = json.Unmarshal([]byte(strings.TrimSpace(reply)), &result)
+	if err != nil {
+		return fmt.Errorf("%w: parse reply: %v", ErrGenerateFailed, err)
+	}
+
+	result.Kind = strings.TrimSpace(result.Kind)
+	result.Content = strings.TrimSpace(result.Content)
+
+	if result.Skip || result.Content == "" {
+		return nil
+	}
+	if result.Kind != MemoryKindShortLived && result.Kind != MemoryKindLongLived {
+		return nil
+	}
+
+	memory := &db.SessionMemory{
+		SessionId: session.Id,
+		Kind:      result.Kind,
+		Content:   result.Content,
+	}
+	err = s.memories.Create(memory)
+	if err != nil {
+		return fmt.Errorf("%w: create memory: %v", ErrGenerateFailed, err)
+	}
+
+	err = s.IndexSessionMemory(ctx, memory.Id)
+	if err != nil {
+		return fmt.Errorf("%w: index memory: %v", ErrGenerateFailed, err)
+	}
+
+	return nil
 }
 
 // DeleteSessionMemory deletes vectors for one memory item.

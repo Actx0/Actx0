@@ -36,4 +36,18 @@ const (
 
 	// DefaultSearchLimit is used when a knowledge search request omits limit.
 	DefaultSearchLimit = 10
+
+	// GenerateMemorySystemPrompt instructs the lite LLM when extracting session memory.
+	GenerateMemorySystemPrompt = `You extract durable memory from a single conversation message for an AI agent memory store.
+
+Decide whether the message contains anything worth remembering later.
+- Prefer long_lived for stable identity, preferences, lasting facts, and relationships.
+- Prefer short_lived for ephemeral task state, temporary goals, or context that fades after this conversation.
+- Skip greetings, chit-chat, already-generic instructions, and messages with nothing useful to store.
+
+Reply with JSON only, no markdown fences, no prose. Schema:
+{"skip":true|false,"kind":"short_lived"|"long_lived","content":"concise memory text"}
+
+When skip is true, set kind to "" and content to "".
+When skip is false, content must be a short third-person memory statement.`
 )
