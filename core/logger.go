@@ -35,7 +35,11 @@ func SetupLogging() error {
 		if !util.FileExists(viper.GetString("app.log.output")) {
 			f, err := os.Create(viper.GetString("app.log.output"))
 			if err != nil {
-				return fmt.Errorf("error while creating log file [%s]: %w", viper.GetString("app.log.output"), err)
+				return fmt.Errorf(
+					"error while creating log file [%s]: %w",
+					viper.GetString("app.log.output"),
+					err,
+				)
 			}
 			f.Close()
 		}
@@ -57,7 +61,9 @@ func SetupLogging() error {
 	if viper.GetString("app.log.format") == "json" {
 		log.Logger = zerolog.New(writer).With().Timestamp().Str("hostname", hostname).Logger()
 	} else {
-		log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: writer}).With().Timestamp().Str("hostname", hostname).Logger()
+		log.Logger = zerolog.New(
+			zerolog.ConsoleWriter{Out: writer},
+		).With().Timestamp().Str("hostname", hostname).Logger()
 	}
 
 	level := strings.ToLower(viper.GetString("app.log.level"))

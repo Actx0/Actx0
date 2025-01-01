@@ -41,7 +41,7 @@ var migrateUpCmd = &cobra.Command{
 				Msg("Failed to setup logging")
 		}
 
-		conn, err := db.NewConnection(core.DatabaseConfig())
+		conn, err := db.NewConnection(core.ReadWriteDatabase())
 		if err != nil {
 			log.Fatal().
 				Err(err).
@@ -105,7 +105,7 @@ var migrateDownCmd = &cobra.Command{
 				Msg("Failed to setup logging")
 		}
 
-		conn, err := db.NewConnection(core.DatabaseConfig())
+		conn, err := db.NewConnection(core.ReadWriteDatabase())
 		if err != nil {
 			log.Fatal().
 				Err(err).
@@ -150,7 +150,7 @@ var migrateStatusCmd = &cobra.Command{
 				Msg("Failed to setup logging")
 		}
 
-		conn, err := db.NewConnection(core.DatabaseConfig())
+		conn, err := db.NewConnection(core.ReadWriteDatabase())
 		if err != nil {
 			log.Fatal().
 				Err(err).

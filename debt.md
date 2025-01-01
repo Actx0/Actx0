@@ -4,7 +4,7 @@ Manually validate each file for AI slop, unnecessary defensive code, and style d
 
 Mark done: `- [x] path/to/file.go`
 
-**Progress:** 10 / 171
+**Progress:** 13 / 171
 
 ---
 
@@ -55,9 +55,9 @@ Mark done: `- [x] path/to/file.go`
 
 ## core/
 
-- [ ] core/database.go
-- [ ] core/loader.go
-- [ ] core/logger.go
+- [x] core/database.go
+- [x] core/loader.go
+- [x] core/logger.go
 - [ ] core/server.go
 
 ## db/

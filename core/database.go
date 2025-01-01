@@ -22,23 +22,23 @@ type Database struct {
 	ConnMaxLifetime int    `mapstructure:"conn_max_lifetime"`
 }
 
-// DatabaseConfig returns the primary read-write database configuration.
-func DatabaseConfig() db.DatabaseConfig {
+// ReadWriteDatabase returns the primary read-write database configuration.
+func ReadWriteDatabase() db.DatabaseConfig {
 	return databaseConfig("app.database.rw")
 }
 
-// DatabaseConfigs returns read-write and read-only database configurations.
-func DatabaseConfigs() (db.DatabaseConfig, []db.DatabaseConfig) {
+// ReadOnlyDatabase returns read-only database configurations.
+func ReadOnlyDatabase() []db.DatabaseConfig {
 	var databases []Database
-	roConfigs := []db.DatabaseConfig{}
+	ro := []db.DatabaseConfig{}
 
 	_ = viper.UnmarshalKey("app.database.ro", &databases)
 
 	for _, database := range databases {
-		roConfigs = append(roConfigs, database.DBConfig())
+		ro = append(ro, database.DBConfig())
 	}
 
-	return DatabaseConfig(), roConfigs
+	return ro
 }
 
 // DBConfig converts a core database config to a db package config.
