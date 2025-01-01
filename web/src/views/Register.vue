@@ -142,6 +142,7 @@ const handleRegister = async () => {
       name: form.name.trim(),
       password: form.password
     })
+
     router.push({
       path: '/login',
       query: {
