@@ -19,6 +19,7 @@ type Notification struct {
 	Title       string
 	Body        *string
 	ReadAt      *time.Time
+	ArchivedAt  *time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -43,7 +44,10 @@ type NotificationRepository interface {
 	CountByUserId(userId Id) (int64, error)
 	CountByWorkspaceId(workspaceId Id) (int64, error)
 	CountByUserIdAndWorkspaceId(userId, workspaceId Id) (int64, error)
+	ExistsByUserIdAndType(userId Id, notificationType string) (bool, error)
+	ExistsByWorkspaceIdAndType(workspaceId Id, notificationType string) (bool, error)
 	MarkRead(id Id) error
+	MarkArchived(id Id) error
 	Delete(id Id) error
 }
 
@@ -105,7 +109,7 @@ func (r *NotificationRepositoryPostgres) GetById(id Id) (*Notification, error) {
 	notification := &Notification{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, user_id, workspace_id, type, title, body, read_at, created_at, updated_at
+			id, user_id, workspace_id, type, title, body, read_at, archived_at, created_at, updated_at
 		FROM notifications
 		WHERE id = $1`,
 		id.String(),
@@ -117,6 +121,7 @@ func (r *NotificationRepositoryPostgres) GetById(id Id) (*Notification, error) {
 		&notification.Title,
 		&notification.Body,
 		&notification.ReadAt,
+		&notification.ArchivedAt,
 		&notification.CreatedAt,
 		&notification.UpdatedAt,
 	)
@@ -131,9 +136,9 @@ func (r *NotificationRepositoryPostgres) GetById(id Id) (*Notification, error) {
 func (r *NotificationRepositoryPostgres) ListByUserId(userId Id, limit, offset int) ([]*Notification, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, user_id, workspace_id, type, title, body, read_at, created_at, updated_at
+			id, user_id, workspace_id, type, title, body, read_at, archived_at, created_at, updated_at
 		FROM notifications
-		WHERE user_id = $1
+		WHERE user_id = $1 AND archived_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
 		userId.String(),
@@ -156,6 +161,7 @@ func (r *NotificationRepositoryPostgres) ListByUserId(userId Id, limit, offset i
 			&notification.Title,
 			&notification.Body,
 			&notification.ReadAt,
+			&notification.ArchivedAt,
 			&notification.CreatedAt,
 			&notification.UpdatedAt,
 		); err != nil {
@@ -171,9 +177,9 @@ func (r *NotificationRepositoryPostgres) ListByUserId(userId Id, limit, offset i
 func (r *NotificationRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, offset int) ([]*Notification, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, user_id, workspace_id, type, title, body, read_at, created_at, updated_at
+			id, user_id, workspace_id, type, title, body, read_at, archived_at, created_at, updated_at
 		FROM notifications
-		WHERE workspace_id = $1
+		WHERE workspace_id = $1 AND archived_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
 		workspaceId.String(),
@@ -196,6 +202,7 @@ func (r *NotificationRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit
 			&notification.Title,
 			&notification.Body,
 			&notification.ReadAt,
+			&notification.ArchivedAt,
 			&notification.CreatedAt,
 			&notification.UpdatedAt,
 		); err != nil {
@@ -211,9 +218,9 @@ func (r *NotificationRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit
 func (r *NotificationRepositoryPostgres) ListByUserIdAndWorkspaceId(userId, workspaceId Id, limit, offset int) ([]*Notification, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, user_id, workspace_id, type, title, body, read_at, created_at, updated_at
+			id, user_id, workspace_id, type, title, body, read_at, archived_at, created_at, updated_at
 		FROM notifications
-		WHERE user_id = $1 OR workspace_id = $2
+		WHERE (user_id = $1 OR workspace_id = $2) AND archived_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $3 OFFSET $4`,
 		userId.String(),
@@ -237,6 +244,7 @@ func (r *NotificationRepositoryPostgres) ListByUserIdAndWorkspaceId(userId, work
 			&notification.Title,
 			&notification.Body,
 			&notification.ReadAt,
+			&notification.ArchivedAt,
 			&notification.CreatedAt,
 			&notification.UpdatedAt,
 		); err != nil {
@@ -254,7 +262,7 @@ func (r *NotificationRepositoryPostgres) CountByUserId(userId Id) (int64, error)
 	err := r.db.QueryRow(
 		`SELECT COUNT(*)
 		FROM notifications
-		WHERE user_id = $1`,
+		WHERE user_id = $1 AND archived_at IS NULL`,
 		userId.String(),
 	).Scan(&count)
 	return count, err
@@ -266,7 +274,7 @@ func (r *NotificationRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int
 	err := r.db.QueryRow(
 		`SELECT COUNT(*)
 		FROM notifications
-		WHERE workspace_id = $1`,
+		WHERE workspace_id = $1 AND archived_at IS NULL`,
 		workspaceId.String(),
 	).Scan(&count)
 	return count, err
@@ -278,11 +286,41 @@ func (r *NotificationRepositoryPostgres) CountByUserIdAndWorkspaceId(userId, wor
 	err := r.db.QueryRow(
 		`SELECT COUNT(*)
 		FROM notifications
-		WHERE user_id = $1 OR workspace_id = $2`,
+		WHERE (user_id = $1 OR workspace_id = $2) AND archived_at IS NULL`,
 		userId.String(),
 		workspaceId.String(),
 	).Scan(&count)
 	return count, err
+}
+
+// ExistsByUserIdAndType reports whether a user already has a non-archived notification of the given type.
+func (r *NotificationRepositoryPostgres) ExistsByUserIdAndType(userId Id, notificationType string) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(
+		`SELECT EXISTS(
+			SELECT 1
+			FROM notifications
+			WHERE user_id = $1 AND type = $2 AND archived_at IS NULL
+		)`,
+		userId.String(),
+		notificationType,
+	).Scan(&exists)
+	return exists, err
+}
+
+// ExistsByWorkspaceIdAndType reports whether a workspace already has a non-archived notification of the given type.
+func (r *NotificationRepositoryPostgres) ExistsByWorkspaceIdAndType(workspaceId Id, notificationType string) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(
+		`SELECT EXISTS(
+			SELECT 1
+			FROM notifications
+			WHERE workspace_id = $1 AND type = $2 AND archived_at IS NULL
+		)`,
+		workspaceId.String(),
+		notificationType,
+	).Scan(&exists)
+	return exists, err
 }
 
 // MarkRead sets the read timestamp on a notification.
@@ -292,6 +330,22 @@ func (r *NotificationRepositoryPostgres) MarkRead(id Id) error {
 		`UPDATE notifications
 		SET
 			read_at = $1,
+			updated_at = $2
+		WHERE id = $3`,
+		now,
+		now,
+		id.String(),
+	)
+	return err
+}
+
+// MarkArchived sets the archived timestamp on a notification.
+func (r *NotificationRepositoryPostgres) MarkArchived(id Id) error {
+	now := time.Now().UTC()
+	_, err := r.db.Exec(
+		`UPDATE notifications
+		SET
+			archived_at = $1,
 			updated_at = $2
 		WHERE id = $3`,
 		now,

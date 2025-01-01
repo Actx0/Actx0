@@ -121,3 +121,56 @@ func MarkWorkspaceNotificationReadAction(w http.ResponseWriter, r *http.Request)
 
 	util.WriteJSON(w, http.StatusOK, notification)
 }
+
+// MarkWorkspaceNotificationArchivedAction marks a notification as archived for the current user.
+func MarkWorkspaceNotificationArchivedAction(w http.ResponseWriter, r *http.Request) {
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok || user == nil {
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
+			"errorMessage": locale.TR(r, "not_authenticated"),
+		})
+		return
+	}
+
+	wid := chi.URLParam(r, "workspaceId")
+	if lo.IsEmpty(wid) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_workspace_id"),
+		})
+		return
+	}
+
+	notificationId := chi.URLParam(r, "notificationId")
+	if lo.IsEmpty(notificationId) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_notification_id"),
+		})
+		return
+	}
+
+	nm := module.NewNotification(
+		db.NewNotificationRepository(db.GetDB()),
+		db.NewWorkspaceRepository(db.GetDB()),
+	)
+	notification, err := nm.MarkNotificationArchived(user.Id, db.Id(wid), db.Id(notificationId))
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrWorkspaceNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrNotificationNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "notification_not_found"),
+			})
+		default:
+			log.Error().Err(err).Str("notificationId", notificationId).Msg("Failed to mark notification as archived")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+				"errorMessage": locale.TR(r, "failed_mark_notification_archived"),
+			})
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, notification)
+}

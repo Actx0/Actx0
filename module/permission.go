@@ -76,8 +76,9 @@ const (
 	CanListWorkspaceAudits = "CAN_LIST_WORKSPACE_AUDITS"
 	CanGetWorkspaceAudit   = "CAN_GET_WORKSPACE_AUDIT"
 
-	CanListNotifications    = "CAN_LIST_NOTIFICATIONS"
-	CanMarkNotificationRead = "CAN_MARK_NOTIFICATION_READ"
+	CanListNotifications        = "CAN_LIST_NOTIFICATIONS"
+	CanMarkNotificationRead     = "CAN_MARK_NOTIFICATION_READ"
+	CanMarkNotificationArchived = "CAN_MARK_NOTIFICATION_ARCHIVED"
 )
 
 var (
@@ -201,7 +202,8 @@ func (p *Perm) CanAsUser(permission string) (bool, error) {
 		CanGetSessionMemory,
 		CanQuerySessionMemories,
 		CanListNotifications,
-		CanMarkNotificationRead:
+		CanMarkNotificationRead,
+		CanMarkNotificationArchived:
 		return true, nil
 	case CanUpdateWorkspace,
 		CanDeleteWorkspace,

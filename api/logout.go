@@ -38,6 +38,7 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 		db.NewSessionRepository(db.GetDB()),
 		db.NewConfigRepository(db.GetDB()),
 		db.NewPasswordResetTokenRepository(db.GetDB()),
+		db.NewNotificationRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 

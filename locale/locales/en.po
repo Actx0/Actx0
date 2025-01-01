@@ -228,6 +228,9 @@ msgstr "Failed to list notifications."
 msgid "failed_mark_notification_read"
 msgstr "Failed to mark notification as read."
 
+msgid "failed_mark_notification_archived"
+msgstr "Failed to mark notification as archived."
+
 msgid "failed_list_access_keys"
 msgstr "Failed to list access keys."
 
