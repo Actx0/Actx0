@@ -76,10 +76,65 @@ func NewAPIClient(mgt string, timeout time.Duration) *APIClient {
 	}
 }
 
+// GetSessionByExternalID gets a session by external id.
+func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*sessionDTO, int, error) {
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/by-labels?id=%s",
+		scope.WorkspaceID,
+		scope.AgentID,
+		url.QueryEscape(scope.SessionID),
+	)
+
+	var session sessionDTO
+	status, err := c.DoJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &session)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return &session, status, nil
+}
+
+// CreateSession creates a session with the scoped external id.
+func (c *APIClient) CreateSession(ctx context.Context, scope Scope) (*sessionDTO, int, error) {
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions?id=%s",
+		scope.WorkspaceID,
+		scope.AgentID,
+		url.QueryEscape(scope.SessionID),
+	)
+
+	var session sessionDTO
+	status, err := c.DoJSON(ctx, http.MethodPost, path, scope.AccessKey, nil, &session)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return &session, status, nil
+}
+
+// DeleteSession deletes the scoped session (and its memories).
+func (c *APIClient) DeleteSession(ctx context.Context, scope Scope) error {
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/by-labels?id=%s",
+		scope.WorkspaceID,
+		scope.AgentID,
+		url.QueryEscape(scope.SessionID),
+	)
+
+	status, err := c.DoJSON(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
+	if err != nil {
+		return err
+	}
+	if status != http.StatusNoContent {
+		return fmt.Errorf("delete session: unexpected status %d", status)
+	}
+
+	return nil
+}
+
 // EnsureSession returns the internal session id, creating the session when missing.
-// Scope.SessionID is treated as the caller external session id.
 func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, error) {
-	session, status, err := c.getSessionByExternalID(ctx, scope)
+	session, status, err := c.GetSessionByExternalID(ctx, scope)
 	if err != nil {
 		return "", err
 	}
@@ -87,7 +142,7 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 		return session.ID, nil
 	}
 
-	session, status, err = c.createSession(ctx, scope)
+	session, status, err = c.CreateSession(ctx, scope)
 	if err != nil {
 		return "", err
 	}
@@ -95,7 +150,7 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 		return session.ID, nil
 	}
 	if status == http.StatusConflict {
-		session, status, err = c.getSessionByExternalID(ctx, scope)
+		session, status, err = c.GetSessionByExternalID(ctx, scope)
 		if err != nil {
 			return "", err
 		}
@@ -109,7 +164,7 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 
 // ResolveSession returns the internal session id for Scope.SessionID.
 func (c *APIClient) ResolveSession(ctx context.Context, scope Scope) (string, error) {
-	session, status, err := c.getSessionByExternalID(ctx, scope)
+	session, status, err := c.GetSessionByExternalID(ctx, scope)
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +175,7 @@ func (c *APIClient) ResolveSession(ctx context.Context, scope Scope) (string, er
 	return session.ID, nil
 }
 
-// CreateMemory stores a session memory via the actx0 API.
+// CreateMemory stores a session memory.
 func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content string, meta *string) (*memoryDTO, error) {
 	sessionID, err := c.EnsureSession(ctx, scope)
 	if err != nil {
@@ -137,7 +192,7 @@ func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content
 	}
 
 	var memory memoryDTO
-	status, err := c.doJSON(ctx, http.MethodPost, c.memoriesPath(scope, sessionID), scope.AccessKey, body, &memory)
+	status, err := c.DoJSON(ctx, http.MethodPost, c.MemoriesPath(scope, sessionID), scope.AccessKey, body, &memory)
 	if err != nil {
 		return nil, err
 	}
@@ -148,17 +203,17 @@ func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content
 	return &memory, nil
 }
 
-// ListMemories lists session memories via the actx0 API.
+// ListMemories lists session memories.
 func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset int) (*listMemoriesDTO, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s?limit=%d&offset=%d", c.memoriesPath(scope, sessionID), limit, offset)
+	path := fmt.Sprintf("%s?limit=%d&offset=%d", c.MemoriesPath(scope, sessionID), limit, offset)
 
 	var list listMemoriesDTO
-	status, err := c.doJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &list)
+	status, err := c.DoJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &list)
 	if err != nil {
 		return nil, err
 	}
@@ -169,17 +224,17 @@ func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset
 	return &list, nil
 }
 
-// GetMemory retrieves one session memory via the actx0 API.
+// GetMemory retrieves one session memory.
 func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string) (*memoryDTO, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s", c.memoriesPath(scope, sessionID), memoryID)
+	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
 	var memory memoryDTO
-	status, err := c.doJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &memory)
+	status, err := c.DoJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &memory)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +245,7 @@ func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string)
 	return &memory, nil
 }
 
-// UpdateMemory updates a session memory via the actx0 API.
+// UpdateMemory updates a session memory.
 func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kind, content string, meta *string) (*memoryDTO, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
@@ -206,10 +261,10 @@ func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kin
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s", c.memoriesPath(scope, sessionID), memoryID)
+	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
 	var memory memoryDTO
-	status, err := c.doJSON(ctx, http.MethodPut, path, scope.AccessKey, body, &memory)
+	status, err := c.DoJSON(ctx, http.MethodPut, path, scope.AccessKey, body, &memory)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +275,7 @@ func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kin
 	return &memory, nil
 }
 
-// SearchMemories searches session memories via the actx0 API.
+// SearchMemories searches session memories.
 func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query string, limit int) (*searchMemoriesDTO, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
@@ -235,10 +290,10 @@ func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query strin
 		return nil, err
 	}
 
-	path := c.memoriesPath(scope, sessionID) + "/search"
+	path := c.MemoriesPath(scope, sessionID) + "/search"
 
 	var result searchMemoriesDTO
-	status, err := c.doJSON(ctx, http.MethodPost, path, scope.AccessKey, body, &result)
+	status, err := c.DoJSON(ctx, http.MethodPost, path, scope.AccessKey, body, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -249,16 +304,16 @@ func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query strin
 	return &result, nil
 }
 
-// DeleteMemory deletes a session memory via the actx0 API.
+// DeleteMemory deletes a session memory.
 func (c *APIClient) DeleteMemory(ctx context.Context, scope Scope, memoryID string) error {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return err
 	}
 
-	path := fmt.Sprintf("%s/%s", c.memoriesPath(scope, sessionID), memoryID)
+	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
-	status, err := c.doJSON(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
+	status, err := c.DoJSON(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -269,27 +324,8 @@ func (c *APIClient) DeleteMemory(ctx context.Context, scope Scope, memoryID stri
 	return nil
 }
 
-// DeleteSession deletes the scoped session (and its memories) via the actx0 API.
-func (c *APIClient) DeleteSession(ctx context.Context, scope Scope) error {
-	path := fmt.Sprintf(
-		"/api/v1/workspaces/%s/agents/%s/sessions/by-labels?id=%s",
-		scope.WorkspaceID,
-		scope.AgentID,
-		url.QueryEscape(scope.SessionID),
-	)
-
-	status, err := c.doJSON(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
-	if err != nil {
-		return err
-	}
-	if status != http.StatusNoContent {
-		return fmt.Errorf("delete session: unexpected status %d", status)
-	}
-
-	return nil
-}
-
-func (c *APIClient) memoriesPath(scope Scope, sessionID string) string {
+// MemoriesPath builds the memories collection path for a session.
+func (c *APIClient) MemoriesPath(scope Scope, sessionID string) string {
 	return fmt.Sprintf(
 		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories",
 		scope.WorkspaceID,
@@ -298,41 +334,8 @@ func (c *APIClient) memoriesPath(scope Scope, sessionID string) string {
 	)
 }
 
-func (c *APIClient) getSessionByExternalID(ctx context.Context, scope Scope) (*sessionDTO, int, error) {
-	path := fmt.Sprintf(
-		"/api/v1/workspaces/%s/agents/%s/sessions/by-labels?id=%s",
-		scope.WorkspaceID,
-		scope.AgentID,
-		url.QueryEscape(scope.SessionID),
-	)
-
-	var session sessionDTO
-	status, err := c.doJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &session)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return &session, status, nil
-}
-
-func (c *APIClient) createSession(ctx context.Context, scope Scope) (*sessionDTO, int, error) {
-	path := fmt.Sprintf(
-		"/api/v1/workspaces/%s/agents/%s/sessions?id=%s",
-		scope.WorkspaceID,
-		scope.AgentID,
-		url.QueryEscape(scope.SessionID),
-	)
-
-	var session sessionDTO
-	status, err := c.doJSON(ctx, http.MethodPost, path, scope.AccessKey, nil, &session)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return &session, status, nil
-}
-
-func (c *APIClient) doJSON(
+// DoJSON performs a JSON HTTP request against the management server.
+func (c *APIClient) DoJSON(
 	ctx context.Context,
 	method, path, accessKey string,
 	body []byte,
@@ -373,7 +376,8 @@ func (c *APIClient) doJSON(
 	return resp.StatusCode, nil
 }
 
-func encodeMeta(metadata map[string]any) (*string, error) {
+// EncodeMeta marshals optional metadata for memory create/update bodies.
+func EncodeMeta(metadata map[string]any) (*string, error) {
 	if len(metadata) == 0 {
 		return nil, nil
 	}
@@ -385,22 +389,4 @@ func encodeMeta(metadata map[string]any) (*string, error) {
 
 	s := string(raw)
 	return &s, nil
-}
-
-func memoryRecordFromDTO(item memoryDTO) MemoryRecord {
-	record := MemoryRecord{
-		MemoryID:  item.ID,
-		Kind:      item.Kind,
-		Memory:    item.Content,
-		CreatedAt: item.CreatedAt,
-		UpdatedAt: item.UpdatedAt,
-	}
-
-	if len(item.Meta) > 0 {
-		var metadata map[string]any
-		_ = json.Unmarshal(item.Meta, &metadata)
-		record.Metadata = metadata
-	}
-
-	return record
 }
