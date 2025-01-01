@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "actx0": {
+      "url": "http://127.0.0.1:8001/mcp",
+      "headers": {
+        "X-Workspace-Id": "adae803a-5b20-41c7-bd9b-304792bccabe",
+        "X-Agent-Id": "1ec7cab6-852b-4151-91e2-92a9961421f5",
+        "X-Session-Id": "cursor",
+        "X-Access-Key": "03b7e753-78ca-427c-b44a-fedfb56596ca"
+      }
+    }
+  }
+}

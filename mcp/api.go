@@ -21,51 +21,6 @@ type APIClient struct {
 	httpClient *http.Client
 }
 
-type sessionDTO struct {
-	ID string `json:"id"`
-}
-
-type memoryDTO struct {
-	ID        string          `json:"id"`
-	SessionID string          `json:"sessionId"`
-	Kind      string          `json:"kind"`
-	Content   string          `json:"content"`
-	Meta      json.RawMessage `json:"meta,omitempty"`
-	CreatedAt string          `json:"createdAt"`
-	UpdatedAt string          `json:"updatedAt"`
-}
-
-type listMemoriesDTO struct {
-	Memories []memoryDTO `json:"memories"`
-	Meta     struct {
-		Limit  int   `json:"limit"`
-		Offset int   `json:"offset"`
-		Total  int64 `json:"total"`
-	} `json:"_meta"`
-}
-
-type searchHitDTO struct {
-	ID    string  `json:"id"`
-	Kind  string  `json:"kind"`
-	Score float32 `json:"score"`
-	Text  string  `json:"text"`
-}
-
-type searchMemoriesDTO struct {
-	Results []searchHitDTO `json:"results"`
-}
-
-type memoryBody struct {
-	Kind    string  `json:"kind,omitempty"`
-	Content string  `json:"content"`
-	Meta    *string `json:"meta,omitempty"`
-}
-
-type searchBody struct {
-	Query string `json:"query"`
-	Limit int    `json:"limit,omitempty"`
-}
-
 // NewAPIClient builds a client pointed at the management server.
 func NewAPIClient(mgt string, timeout time.Duration) *APIClient {
 	return &APIClient{
@@ -77,7 +32,7 @@ func NewAPIClient(mgt string, timeout time.Duration) *APIClient {
 }
 
 // GetSessionByExternalID gets a session by external id.
-func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*sessionDTO, int, error) {
+func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*Session, int, error) {
 	path := fmt.Sprintf(
 		"/api/v1/workspaces/%s/agents/%s/sessions/by-labels?id=%s",
 		scope.WorkspaceID,
@@ -85,7 +40,7 @@ func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*s
 		url.QueryEscape(scope.SessionID),
 	)
 
-	var session sessionDTO
+	var session Session
 	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &session)
 	if err != nil {
 		return nil, 0, err
@@ -95,7 +50,7 @@ func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*s
 }
 
 // CreateSession creates a session with the scoped external id.
-func (c *APIClient) CreateSession(ctx context.Context, scope Scope) (*sessionDTO, int, error) {
+func (c *APIClient) CreateSession(ctx context.Context, scope Scope) (*Session, int, error) {
 	path := fmt.Sprintf(
 		"/api/v1/workspaces/%s/agents/%s/sessions?id=%s",
 		scope.WorkspaceID,
@@ -103,7 +58,7 @@ func (c *APIClient) CreateSession(ctx context.Context, scope Scope) (*sessionDTO
 		url.QueryEscape(scope.SessionID),
 	)
 
-	var session sessionDTO
+	var session Session
 	status, err := c.Request(ctx, http.MethodPost, path, scope.AccessKey, nil, &session)
 	if err != nil {
 		return nil, 0, err
@@ -139,7 +94,7 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 		return "", err
 	}
 	if status == http.StatusOK {
-		return session.ID, nil
+		return session.Id, nil
 	}
 
 	session, status, err = c.CreateSession(ctx, scope)
@@ -147,7 +102,7 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 		return "", err
 	}
 	if status == http.StatusCreated {
-		return session.ID, nil
+		return session.Id, nil
 	}
 	if status == http.StatusConflict {
 		session, status, err = c.GetSessionByExternalID(ctx, scope)
@@ -155,7 +110,7 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 			return "", err
 		}
 		if status == http.StatusOK {
-			return session.ID, nil
+			return session.Id, nil
 		}
 	}
 
@@ -172,17 +127,17 @@ func (c *APIClient) ResolveSession(ctx context.Context, scope Scope) (string, er
 		return "", fmt.Errorf("resolve session: unexpected status %d", status)
 	}
 
-	return session.ID, nil
+	return session.Id, nil
 }
 
 // CreateMemory stores a session memory.
-func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content string, meta *string) (*memoryDTO, error) {
+func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content string, meta *string) (*Memory, error) {
 	sessionID, err := c.EnsureSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := json.Marshal(memoryBody{
+	body, err := json.Marshal(MemoryBody{
 		Kind:    kind,
 		Content: content,
 		Meta:    meta,
@@ -191,7 +146,7 @@ func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content
 		return nil, err
 	}
 
-	var memory memoryDTO
+	var memory Memory
 	status, err := c.Request(ctx, http.MethodPost, c.MemoriesPath(scope, sessionID), scope.AccessKey, body, &memory)
 	if err != nil {
 		return nil, err
@@ -204,7 +159,7 @@ func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content
 }
 
 // ListMemories lists session memories.
-func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset int) (*listMemoriesDTO, error) {
+func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset int) (*ListMemories, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
@@ -212,7 +167,7 @@ func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset
 
 	path := fmt.Sprintf("%s?limit=%d&offset=%d", c.MemoriesPath(scope, sessionID), limit, offset)
 
-	var list listMemoriesDTO
+	var list ListMemories
 	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &list)
 	if err != nil {
 		return nil, err
@@ -225,7 +180,7 @@ func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset
 }
 
 // GetMemory retrieves one session memory.
-func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string) (*memoryDTO, error) {
+func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string) (*Memory, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
@@ -233,7 +188,7 @@ func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string)
 
 	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
-	var memory memoryDTO
+	var memory Memory
 	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &memory)
 	if err != nil {
 		return nil, err
@@ -246,13 +201,13 @@ func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string)
 }
 
 // UpdateMemory updates a session memory.
-func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kind, content string, meta *string) (*memoryDTO, error) {
+func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kind, content string, meta *string) (*Memory, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := json.Marshal(memoryBody{
+	body, err := json.Marshal(MemoryBody{
 		Kind:    kind,
 		Content: content,
 		Meta:    meta,
@@ -263,7 +218,7 @@ func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kin
 
 	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
-	var memory memoryDTO
+	var memory Memory
 	status, err := c.Request(ctx, http.MethodPut, path, scope.AccessKey, body, &memory)
 	if err != nil {
 		return nil, err
@@ -276,13 +231,13 @@ func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kin
 }
 
 // SearchMemories searches session memories.
-func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query string, limit int) (*searchMemoriesDTO, error) {
+func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query string, limit int) (*SearchMemories, error) {
 	sessionID, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := json.Marshal(searchBody{
+	body, err := json.Marshal(SearchBody{
 		Query: query,
 		Limit: limit,
 	})
@@ -292,7 +247,7 @@ func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query strin
 
 	path := c.MemoriesPath(scope, sessionID) + "/search"
 
-	var result searchMemoriesDTO
+	var result SearchMemories
 	status, err := c.Request(ctx, http.MethodPost, path, scope.AccessKey, body, &result)
 	if err != nil {
 		return nil, err
