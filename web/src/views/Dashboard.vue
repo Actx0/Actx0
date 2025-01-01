@@ -193,7 +193,6 @@
                   >
                     {{ agent.name }}
                   </router-link>
-                  <p class="mt-0.5 font-mono text-xs text-theme-textLight">{{ agent.handle }}</p>
                 </div>
                 <div class="hidden sm:block text-right shrink-0">
                   <p class="text-sm font-medium text-theme-text tabular-nums">
@@ -256,10 +255,6 @@
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_name') }}</dt>
                 <dd class="text-sm font-medium text-theme-text text-right">{{ workspace.name }}</dd>
-              </div>
-              <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
-                <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_handle') }}</dt>
-                <dd class="text-sm font-medium text-theme-text text-right font-mono">{{ workspace.handle }}</dd>
               </div>
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_role') }}</dt>

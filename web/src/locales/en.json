@@ -743,7 +743,7 @@
     "general": "General",
     "general_desc": "Update the workspace name.",
     "identifiers": "Identifiers",
-    "identifiers_desc": "Read-only handle and ID for this workspace.",
+    "identifiers_desc": "Read-only ID for this workspace.",
     "name": "Name",
     "handle": "Handle",
     "id": "ID",

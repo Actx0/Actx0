@@ -743,7 +743,7 @@
     "general": "Général",
     "general_desc": "Modifiez le nom de l'espace.",
     "identifiers": "Identifiants",
-    "identifiers_desc": "Identifiant et ID en lecture seule pour cet espace.",
+    "identifiers_desc": "ID en lecture seule pour cet espace.",
     "name": "Nom",
     "handle": "Identifiant",
     "id": "ID",
