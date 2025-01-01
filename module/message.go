@@ -368,7 +368,7 @@ func (m *Message) EnqueueGenerateMemoryTask(workspaceId, messageId db.Id) error 
 	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
 		WorkspaceId: workspaceId,
 		Type:        "task.agent.session.memory.generate",
-		Priority:    AsyncPriorityLow,
+		Priority:    AsyncPriorityHigh,
 		Payload: map[string]string{
 			"messageId": messageId.String(),
 		},
