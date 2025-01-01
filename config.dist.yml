@@ -18,14 +18,17 @@ app:
   mailer:
     provider: ${ACTX0_MAILER_PROVIDER:-resend}
     from: ${ACTX0_MAILER_FROM:-no_reply@clivern.com}
+    # Create Resend API key at https://resend.com/api-keys
     resend:
       api_key: ${ACTX0_RESEND_API_KEY:-}
 
   oauth:
+    # Create GitHub OAuth App at https://github.com/settings/developers
     github:
       client_id: ${ACTX0_GITHUB_OAUTH_CLIENT_ID:-}
       client_secret: ${ACTX0_GITHUB_OAUTH_CLIENT_SECRET:-}
       redirect_url: ${ACTX0_GITHUB_OAUTH_REDIRECT_URL:-http://127.0.0.1:8000/api/v1/public/action/oauth/github/callback}
+    # Create Google OAuth client at https://console.developers.google.com/auth/clients
     google:
       client_id: ${ACTX0_GOOGLE_OAUTH_CLIENT_ID:-}
       client_secret: ${ACTX0_GOOGLE_OAUTH_CLIENT_SECRET:-}
@@ -53,6 +56,7 @@ app:
       max_idle_conns: ${ACTX0_DATABASE_MAX_IDLE_CONNS:-10}
       conn_max_lifetime: ${ACTX0_DATABASE_CONN_MAX_LIFETIME:-300}
 
+  # Create Stripe API keys at https://dashboard.stripe.com/apikeys
   billing:
     provider: ${ACTX0_BILLING_PROVIDER:-stripe}
     secret_key: ${ACTX0_STRIPE_SECRET_KEY:-}
@@ -82,6 +86,7 @@ app:
     local:
       path: ${ACTX0_LOCAL_PATH:-/opt/actx0/data}
 
+  # Create OpenRouter API key at https://openrouter.ai/keys
   ai:
     api_key: ${ACTX0_AI_OROUTE_API_KEY:-}
     embed:
