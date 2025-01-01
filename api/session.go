@@ -58,13 +58,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	session, err := sm.CreateAgentSession(
-		workspaceId,
-		db.Id(agentIdStr),
-		externalId,
-		labels,
-		&req,
-	)
+	session, err := sm.CreateAgentSession(workspaceId, db.Id(agentIdStr), externalId, labels, &req)
 
 	if err != nil {
 		switch {
@@ -128,14 +122,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	result, err := sm.ListAgentSessions(
-		workspaceId,
-		db.Id(agentIdStr),
-		externalId,
-		labels,
-		limit,
-		offset,
-	)
+	result, err := sm.ListAgentSessions(workspaceId, db.Id(agentIdStr), externalId, labels, limit, offset)
 
 	if err != nil {
 		switch {
@@ -202,11 +189,7 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	session, err := sm.GetAgentSession(
-		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
-	)
+	session, err := sm.GetAgentSession(workspaceId, db.Id(agentIdStr), db.Id(sessionIdStr))
 
 	if err != nil {
 		switch {
@@ -267,12 +250,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	session, err := sm.GetAgentSessionByLabels(
-		workspaceId,
-		db.Id(agentIdStr),
-		externalId,
-		labels,
-	)
+	session, err := sm.GetAgentSessionByLabels(workspaceId, db.Id(agentIdStr), externalId, labels)
 
 	if err != nil {
 		switch {
@@ -347,13 +325,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	session, err := sm.UpdateAgentSessionByLabels(
-		workspaceId,
-		db.Id(agentIdStr),
-		externalId,
-		labels,
-		&req,
-	)
+	session, err := sm.UpdateAgentSessionByLabels(workspaceId, db.Id(agentIdStr), externalId, labels, &req)
 
 	if err != nil {
 		switch {
@@ -426,12 +398,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	err := sm.DeleteAgentSessionByLabels(
-		workspaceId,
-		db.Id(agentIdStr),
-		externalId,
-		labels,
-	)
+	err := sm.DeleteAgentSessionByLabels(workspaceId, db.Id(agentIdStr), externalId, labels)
 
 	if err != nil {
 		switch {
