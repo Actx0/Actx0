@@ -33,12 +33,6 @@ func New() (*Client, error) {
 	return &Client{api: api}, nil
 }
 
-// Close closes the underlying Qdrant connection pool.
-func (c *Client) Close() error {
-	c.api.Close()
-	return nil
-}
-
 // EnsureCollection creates the collection when it does not exist.
 func (c *Client) EnsureCollection(ctx context.Context, collection string, indexes ...Index) error {
 	exists, err := c.api.CollectionExists(ctx, collection)
@@ -74,13 +68,12 @@ func (c *Client) CreateCollection(ctx context.Context, collection string, indexe
 		return fmt.Errorf("qdrant create collection: %w", err)
 	}
 
-	wait := true
 	for _, index := range indexes {
 		_, err := c.api.CreateFieldIndex(ctx, &qdrantsdk.CreateFieldIndexCollection{
 			CollectionName: collection,
 			FieldName:      index.Field,
 			FieldType:      ParseFieldType(index.Type),
-			Wait:           &wait,
+			Wait:           new(true),
 		})
 
 		if err != nil && !IsIndexExists(err) {
@@ -112,10 +105,9 @@ func (c *Client) Upsert(ctx context.Context, collection string, points []Point) 
 		})
 	}
 
-	wait := true
 	_, err := c.api.Upsert(ctx, &qdrantsdk.UpsertPoints{
 		CollectionName: collection,
-		Wait:           &wait,
+		Wait:           new(true),
 		Points:         qpoints,
 	})
 
@@ -175,10 +167,9 @@ func (c *Client) Delete(ctx context.Context, collection string, ids []string) er
 		pointIds = append(pointIds, qdrantsdk.NewID(id))
 	}
 
-	wait := true
 	_, err := c.api.Delete(ctx, &qdrantsdk.DeletePoints{
 		CollectionName: collection,
-		Wait:           &wait,
+		Wait:           new(true),
 		Points:         qdrantsdk.NewPointsSelector(pointIds...),
 	})
 
@@ -200,10 +191,9 @@ func (c *Client) DeleteByFilter(ctx context.Context, collection string, filters 
 		conditions = append(conditions, qdrantsdk.NewMatchKeyword(field, value))
 	}
 
-	wait := true
 	_, err := c.api.Delete(ctx, &qdrantsdk.DeletePoints{
 		CollectionName: collection,
-		Wait:           &wait,
+		Wait:           new(true),
 		Points: qdrantsdk.NewPointsSelectorFilter(&qdrantsdk.Filter{
 			Must: conditions,
 		}),
@@ -213,5 +203,11 @@ func (c *Client) DeleteByFilter(ctx context.Context, collection string, filters 
 		return fmt.Errorf("qdrant delete by filter: %w", err)
 	}
 
+	return nil
+}
+
+// Close closes the underlying Qdrant connection pool.
+func (c *Client) Close() error {
+	c.api.Close()
 	return nil
 }
