@@ -38,7 +38,7 @@ Keep entries short. Remove obsolete notes. Never store secrets.
 | vue-i18n literal `@` as `{'@'}` (e.g. `maya{'@'}example.com`) | raw `@` in locale strings (linked-message syntax; can blank the UI) |
 | `PromptRepository` + `PromptVersionRepository` composed in module (no prompt/version SQL joins) | one mega-repo / joined `PromptVersion` DTO |
 | Prompt resolve/write: `latest` (auto label) + `production` bool (+ version number); no custom labels on create/update | accepting arbitrary `labels` JSON on write / resolve-by-custom-label |
-| `configs` package for app tunables (e.g. `SlowRequestThreshold`) | scattering magic numbers / thresholds in middleware |
+| `conf` package for app tunables (e.g. `SlowRequestThreshold`) | scattering magic numbers / thresholds in middleware |
 
 ## Locale
 
