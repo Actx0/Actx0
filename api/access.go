@@ -14,13 +14,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
-	"github.com/samber/lo"
 )
 
 // CreateWorkspaceAccessKeyAction creates a workspace access key; raw key is returned only once.
 func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if lo.IsEmpty(wid) {
+	if wid == "" {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -32,7 +31,8 @@ func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 		Msg("New access key request")
 
 	var req module.CreateAccessKeyRequest
-	if err := util.DecodeAndValidate(r, &req); err != nil {
+	err := util.DecodeAndValidate(r, &req)
+	if err != nil {
 		util.WriteValidationError(w, err)
 		return
 	}
@@ -42,10 +42,7 @@ func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 
-	key, err := am.CreateAccessKey(
-		db.Id(wid),
-		&req,
-	)
+	key, err := am.CreateAccessKey(db.Id(wid), &req)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -75,7 +72,7 @@ func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 // ListWorkspaceAccessKeysAction lists workspace access keys (metadata only, never the secret).
 func ListWorkspaceAccessKeysAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if lo.IsEmpty(wid) {
+	if wid == "" {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -93,11 +90,7 @@ func ListWorkspaceAccessKeysAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 
-	result, err := am.ListAccessKeys(
-		db.Id(wid),
-		limit,
-		offset,
-	)
+	result, err := am.ListAccessKeys(db.Id(wid), limit, offset)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -126,15 +119,15 @@ func ListWorkspaceAccessKeysAction(w http.ResponseWriter, r *http.Request) {
 // GetWorkspaceAccessKeyAction returns one workspace access key (never the secret).
 func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if lo.IsEmpty(wid) {
+	if wid == "" {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
 	}
 
-	keyIdStr := chi.URLParam(r, "keyId")
-	if lo.IsEmpty(keyIdStr) {
+	keyId := chi.URLParam(r, "keyId")
+	if keyId == "" {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_access_key_id"),
 		})
@@ -146,10 +139,7 @@ func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 
-	key, err := am.GetAccessKey(
-		db.Id(wid),
-		db.Id(keyIdStr),
-	)
+	key, err := am.GetAccessKey(db.Id(wid), db.Id(keyId))
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -161,7 +151,7 @@ func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "access_key_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("accessKeyId", keyIdStr).Msg("Failed to get workspace access key")
+			log.Error().Err(err).Str("accessKeyId", keyId).Msg("Failed to get workspace access key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_get_access_key"),
 			})
@@ -175,15 +165,15 @@ func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 // DeleteWorkspaceAccessKeyAction deletes a workspace access key.
 func DeleteWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if lo.IsEmpty(wid) {
+	if wid == "" {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
 	}
 
-	keyIdStr := chi.URLParam(r, "keyId")
-	if lo.IsEmpty(keyIdStr) {
+	keyId := chi.URLParam(r, "keyId")
+	if keyId == "" {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_access_key_id"),
 		})
@@ -195,10 +185,7 @@ func DeleteWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 
-	err := am.DeleteAccessKey(
-		db.Id(wid),
-		db.Id(keyIdStr),
-	)
+	err := am.DeleteAccessKey(db.Id(wid), db.Id(keyId))
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -210,7 +197,7 @@ func DeleteWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "access_key_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("accessKeyId", keyIdStr).Msg("Failed to delete workspace access key")
+			log.Error().Err(err).Str("accessKeyId", keyId).Msg("Failed to delete workspace access key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_delete_access_key"),
 			})
