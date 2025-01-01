@@ -14,7 +14,9 @@ import (
 type AuditEvent struct {
 	Id           Id
 	WorkspaceId  Id
-	UserId       *Id
+	ActorId      *Id
+	ActorName    *string
+	ActorType    *string
 	Action       string
 	ResourceType *string
 	ResourceId   *Id
@@ -51,14 +53,16 @@ func (r *AuditEventRepositoryPostgres) Create(event *AuditEvent) error {
 
 	err = r.db.QueryRow(
 		`INSERT INTO audit (
-			id, workspace_id, user_id, action, resource_type, resource_id,
-			ip_address, user_agent, meta
+			id, workspace_id, actor_id, actor_name, actor_type, action,
+			resource_type, resource_id, ip_address, user_agent, meta
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING created_at`,
 		event.Id.String(),
 		event.WorkspaceId.String(),
-		lo.FromPtr(event.UserId),
+		lo.FromPtr(event.ActorId),
+		event.ActorName,
+		event.ActorType,
 		event.Action,
 		event.ResourceType,
 		lo.FromPtr(event.ResourceId),
@@ -74,15 +78,17 @@ func (r *AuditEventRepositoryPostgres) GetById(id Id) (*AuditEvent, error) {
 	event := &AuditEvent{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, workspace_id, user_id, action, resource_type, resource_id,
-			ip_address, user_agent, meta, created_at
+			id, workspace_id, actor_id, actor_name, actor_type, action,
+			resource_type, resource_id, ip_address, user_agent, meta, created_at
 		FROM audit
 		WHERE id = $1`,
 		id.String(),
 	).Scan(
 		&event.Id,
 		&event.WorkspaceId,
-		&event.UserId,
+		&event.ActorId,
+		&event.ActorName,
+		&event.ActorType,
 		&event.Action,
 		&event.ResourceType,
 		&event.ResourceId,
@@ -102,8 +108,8 @@ func (r *AuditEventRepositoryPostgres) GetById(id Id) (*AuditEvent, error) {
 func (r *AuditEventRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, offset int) ([]*AuditEvent, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, workspace_id, user_id, action, resource_type, resource_id,
-			ip_address, user_agent, meta, created_at
+			id, workspace_id, actor_id, actor_name, actor_type, action,
+			resource_type, resource_id, ip_address, user_agent, meta, created_at
 		FROM audit
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
@@ -123,7 +129,9 @@ func (r *AuditEventRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, 
 		if err := rows.Scan(
 			&event.Id,
 			&event.WorkspaceId,
-			&event.UserId,
+			&event.ActorId,
+			&event.ActorName,
+			&event.ActorType,
 			&event.Action,
 			&event.ResourceType,
 			&event.ResourceId,

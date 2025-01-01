@@ -508,7 +508,9 @@ func createAuditTable(db *sql.DB) error {
 		CREATE TABLE audit (
 			id UUID PRIMARY KEY,
 			workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-			user_id UUID NULL REFERENCES users(id),
+			actor_id UUID NULL,
+			actor_name VARCHAR(100) NULL,
+			actor_type VARCHAR(20) NULL,
 			action VARCHAR(100) NOT NULL,
 			resource_type VARCHAR(100),
 			resource_id UUID,
