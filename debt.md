@@ -91,8 +91,8 @@ Mark done: `- [x] path/to/file.go`
 
 ## mcp/
 
-- [ ] mcp/memory.go
-- [ ] mcp/server.go
+- [x] mcp/memory.go
+- [x] mcp/server.go
 
 ## middleware/
 
