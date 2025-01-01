@@ -331,6 +331,18 @@
     @apply h-4 w-4 rounded text-theme-text focus:ring-theme-text border-theme-border;
   }
 
+  /* Toggle switch track (plain ::after avoids Vite+Tailwind after: PostCSS warning) */
+  .toggle-track {
+    @apply relative inline-block h-6 w-11 rounded-full bg-theme-border transition peer-checked:bg-primary-800;
+  }
+  .toggle-track::after {
+    content: "";
+    @apply absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition;
+  }
+  .peer:checked ~ .toggle-track::after {
+    transform: translateX(1.25rem);
+  }
+
   /* Loading Spinner */
   .spinner {
     @apply animate-spin h-4 w-4;

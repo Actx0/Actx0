@@ -93,10 +93,7 @@
                 </div>
                 <label class="relative inline-flex shrink-0 cursor-pointer items-center">
                   <input v-model="draft.preferences" type="checkbox" class="peer sr-only">
-                  <span
-                    class="relative inline-block h-6 w-11 rounded-full bg-theme-border transition peer-checked:bg-primary-800 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition after:content-[''] peer-checked:after:translate-x-5"
-                    aria-hidden="true"
-                  />
+                  <span class="toggle-track" aria-hidden="true" />
                 </label>
               </div>
             </li>
@@ -109,10 +106,7 @@
                 </div>
                 <label class="relative inline-flex shrink-0 cursor-pointer items-center">
                   <input v-model="draft.analytics" type="checkbox" class="peer sr-only">
-                  <span
-                    class="relative inline-block h-6 w-11 rounded-full bg-theme-border transition peer-checked:bg-primary-800 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition after:content-[''] peer-checked:after:translate-x-5"
-                    aria-hidden="true"
-                  />
+                  <span class="toggle-track" aria-hidden="true" />
                 </label>
               </div>
             </li>
