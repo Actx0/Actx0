@@ -52,7 +52,7 @@
             <tbody class="divide-y divide-theme-border bg-white">
               <tr v-for="agent in agents" :key="agent.id" class="hover:bg-theme-hover/60">
                 <td class="px-6 py-4">
-                  <router-link :to="agentDetailPath(agent.id)" class="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
+                  <router-link :to="agentPath(agent.id)" class="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
                     {{ agent.name }}
                   </router-link>
                   <p v-if="agent.description" class="mt-0.5 text-xs text-theme-textLight line-clamp-1">{{ agent.description }}</p>
@@ -60,7 +60,7 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatDate(agent.createdAt) }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                   <span class="inline-flex items-center gap-3">
-                    <router-link :to="agentDetailPath(agent.id)" class="text-primary-600 hover:text-primary-700 hover:underline">
+                    <router-link :to="agentPath(agent.id)" class="text-primary-600 hover:text-primary-700 hover:underline">
                       {{ $t('agents_page.view') }}
                     </router-link>
                     <button
@@ -168,7 +168,7 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { agent_api } from '@/api'
-import { agentDetailPath, buildCreatePayload } from '@/lib/agent'
+import { agentPath, buildCreatePayload } from '@/lib/agent'
 import { formatDate } from '@/utils/dt'
 
 const { t } = useI18n()
@@ -245,7 +245,7 @@ async function handleCreate() {
     const created = await agent_api.create(currentWorkspace.id, buildCreatePayload(form))
     showCreateModal.value = false
     showFlash(t('common.created'))
-    router.push(agentDetailPath(created.data.id))
+    router.push(agentPath(created.data.id))
   } catch (err) {
     createError.value = err.response?.data?.errorMessage || t('agents_page.failed_create')
   } finally {

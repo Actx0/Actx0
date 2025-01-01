@@ -190,7 +190,7 @@
                 </span>
                 <div class="min-w-0 flex-1">
                   <router-link
-                    :to="agentDetailPath(agent.id)"
+                    :to="agentPath(agent.id)"
                     class="text-sm font-medium text-theme-text hover:text-primary-800 hover:underline"
                   >
                     {{ agent.name }}
@@ -293,7 +293,7 @@ import {
 } from '@/api'
 import AppNav from '@/components/AppNav.vue'
 import { user } from '@/lib/auth'
-import { agentDetailPath } from '@/lib/agent'
+import { agentPath } from '@/lib/agent'
 import { saveWorkspaceToStorage } from '@/utils/storage'
 import { useWorkspaceContext } from '@/lib/permission'
 

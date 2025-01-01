@@ -141,7 +141,7 @@
               <tbody class="divide-y divide-theme-border bg-white">
                 <tr v-for="session in sessions" :key="session.id" class="hover:bg-theme-hover/60">
                   <td class="px-6 py-4">
-                    <router-link :to="sessionDetailPath(agentId, session.id)" class="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
+                    <router-link :to="sessionPath(agentId, session.id)" class="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
                       {{ session.title || $t('agents_page.untitled_session') }}
                     </router-link>
                     <p class="mt-0.5 text-xs font-mono text-theme-textLight break-all">{{ session.externalId }}</p>
@@ -166,7 +166,7 @@
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatDateTime(session.createdAt) }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                     <span class="inline-flex items-center gap-3">
-                      <router-link :to="sessionDetailPath(agentId, session.id)" class="text-primary-600 hover:text-primary-700 hover:underline">
+                      <router-link :to="sessionPath(agentId, session.id)" class="text-primary-600 hover:text-primary-700 hover:underline">
                         {{ $t('agents_page.view') }}
                       </router-link>
                       <button
@@ -278,7 +278,7 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { agent_api, session_api } from '@/api'
-import { buildUpdatePayload, sessionDetailPath, formatLabels } from '@/lib/agent'
+import { buildUpdatePayload, sessionPath, formatLabels } from '@/lib/agent'
 import { formatDate, formatDateTime } from '@/utils/dt'
 
 const { t } = useI18n()

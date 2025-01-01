@@ -4,7 +4,7 @@
 
     <main class="w-full py-8 px-4 sm:px-6 lg:px-8">
       <div class="mb-6">
-        <router-link :to="agentDetailPath(agentId)" class="text-sm text-primary-600 hover:text-primary-700 hover:underline">
+        <router-link :to="agentPath(agentId)" class="text-sm text-primary-600 hover:text-primary-700 hover:underline">
           ← {{ $t('agents_page.back_to_agent') }}
         </router-link>
       </div>
@@ -234,7 +234,7 @@ import { agent_api, session_api, message_api, memory_api } from '@/api'
 import { showFlash } from '@/lib/flash'
 import { useWorkspaceContext } from '@/lib/permission'
 import {
-  agentDetailPath,
+  agentPath,
   formatLabels,
   hasMetadata,
   formatMetadata,
