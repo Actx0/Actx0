@@ -4,8 +4,8 @@
 
     <main class="w-full px-4 py-8 sm:px-6 lg:px-8">
       <div class="mb-8">
-        <h1 class="text-3xl font-semibold text-theme-text">Billing</h1>
-        <p class="mt-2 text-theme-textLight">Manage your workspace plan and subscription.</p>
+        <h1 class="text-3xl font-semibold text-theme-text">{{ $t('billing_page.title') }}</h1>
+        <p class="mt-2 text-theme-textLight">{{ $t('billing_page.subtitle') }}</p>
       </div>
 
       <div v-if="errorMessage" class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -23,14 +23,14 @@
             <div class="border-b border-theme-border bg-primary-50/40 px-6 py-4">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p class="text-xs font-medium uppercase tracking-wider text-theme-textLight">Your plan</p>
+                  <p class="text-xs font-medium uppercase tracking-wider text-theme-textLight">{{ $t('billing_page.your_plan') }}</p>
                   <h2 class="mt-1 text-2xl font-semibold text-theme-text">{{ currentPlan.name }}</h2>
                 </div>
                 <span
                   class="rounded-full px-3 py-1 text-xs font-medium"
                   :class="isPaidPlan ? 'bg-primary-100 text-theme-text' : 'bg-theme-hover text-theme-textLight'"
                 >
-                  {{ isPaidPlan ? 'Paid plan' : 'Free plan' }}
+                  {{ isPaidPlan ? $t('billing_page.paid_plan') : $t('billing_page.free_plan') }}
                 </span>
               </div>
             </div>
@@ -42,7 +42,7 @@
               </p>
               <p class="mt-3 text-sm leading-6 text-theme-textLight">{{ currentPlan.description }}</p>
 
-              <h3 class="mt-6 text-sm font-semibold text-theme-text">Included in this plan</h3>
+              <h3 class="mt-6 text-sm font-semibold text-theme-text">{{ $t('billing_page.included_in_plan') }}</h3>
               <ul class="mt-3 space-y-2.5">
                 <li
                   v-for="feature in currentPlan.features"
@@ -58,7 +58,7 @@
 
               <div class="mt-8 flex flex-wrap gap-3">
                 <button type="button" class="btn-primary" @click="planModalOpen = true">
-                  {{ isPaidPlan ? 'Change plan' : 'Upgrade plan' }}
+                  {{ isPaidPlan ? $t('billing_page.change_plan') : $t('billing_page.upgrade_plan') }}
                 </button>
                 <button
                   v-if="canManageStripe"
@@ -67,7 +67,7 @@
                   :disabled="portalLoading"
                   @click="openPortal"
                 >
-                  {{ portalLoading ? 'Opening...' : 'Manage billing' }}
+                  {{ portalLoading ? $t('billing_page.opening') : $t('billing_page.manage_billing') }}
                 </button>
               </div>
             </div>
@@ -75,34 +75,34 @@
 
           <aside class="space-y-6">
             <section class="rounded-xl border border-theme-border bg-white p-6 shadow-sm">
-              <h2 class="text-lg font-semibold text-theme-text mb-4">Subscription</h2>
+              <h2 class="text-lg font-semibold text-theme-text mb-4">{{ $t('billing_page.subscription') }}</h2>
               <dl class="space-y-0">
                 <div class="flex justify-between gap-4 border-b border-theme-border py-3">
-                  <dt class="text-sm text-theme-textLight">Plan</dt>
+                  <dt class="text-sm text-theme-textLight">{{ $t('billing_page.plan_label') }}</dt>
                   <dd class="text-sm font-medium text-theme-text">{{ currentPlan.name }}</dd>
                 </div>
                 <div class="flex justify-between gap-4 border-b border-theme-border py-3">
-                  <dt class="text-sm text-theme-textLight">Status</dt>
-                  <dd class="text-sm font-medium capitalize text-theme-text">{{ billingStatus.status || 'active' }}</dd>
+                  <dt class="text-sm text-theme-textLight">{{ $t('billing_page.status_label') }}</dt>
+                  <dd class="text-sm font-medium text-theme-text">{{ statusLabel }}</dd>
                 </div>
                 <div v-if="billingStatus.updatedAt" class="flex justify-between gap-4 py-3">
-                  <dt class="text-sm text-theme-textLight">Last updated</dt>
+                  <dt class="text-sm text-theme-textLight">{{ $t('billing_page.last_updated') }}</dt>
                   <dd class="text-sm font-medium text-theme-text">{{ formatDate(billingStatus.updatedAt) }}</dd>
                 </div>
               </dl>
             </section>
 
             <section class="rounded-xl border border-theme-border bg-white p-6 shadow-sm">
-              <h2 class="text-lg font-semibold text-theme-text mb-4">Payment & cancellation</h2>
+              <h2 class="text-lg font-semibold text-theme-text mb-4">{{ $t('billing_page.payment_cancellation') }}</h2>
               <p class="text-sm leading-6 text-theme-textLight">
                 <template v-if="canManageStripe">
-                  Update your payment method, review charges, download receipts, or cancel your subscription.
+                  {{ $t('billing_page.payment_manage_desc') }}
                 </template>
                 <template v-else-if="isPaidPlan">
-                  Billing details are still syncing. Refresh in a moment or contact support if this persists.
+                  {{ $t('billing_page.payment_syncing_desc') }}
                 </template>
                 <template v-else>
-                  Upgrade to a paid plan to manage payment and cancellation.
+                  {{ $t('billing_page.payment_upgrade_desc') }}
                 </template>
               </p>
               <button
@@ -112,17 +112,17 @@
                 :disabled="!canManageStripe || portalLoading"
                 @click="openPortal"
               >
-                {{ canManageStripe ? (portalLoading ? 'Opening...' : 'Open billing portal') : 'Available after upgrade' }}
+                {{ canManageStripe ? (portalLoading ? $t('billing_page.opening') : $t('billing_page.open_billing_portal')) : $t('billing_page.available_after_upgrade') }}
               </button>
             </section>
 
             <section v-if="!isPaidPlan" class="rounded-lg border border-theme-border bg-primary-50/50 p-5">
-              <h2 class="text-sm font-semibold text-theme-text">Ready for more?</h2>
+              <h2 class="text-sm font-semibold text-theme-text">{{ $t('billing_page.ready_for_more') }}</h2>
               <p class="mt-2 text-sm leading-6 text-theme-textLight">
-                Starter begins at $19/mo with higher limits and email support.
+                {{ $t('billing_page.starter_pitch') }}
               </p>
               <button type="button" class="btn-primary mt-4 w-full" @click="planModalOpen = true">
-                View plans
+                {{ $t('billing_page.view_plans') }}
               </button>
             </section>
           </aside>
@@ -132,13 +132,13 @@
           <div class="border-b border-theme-border bg-primary-50/40 px-6 py-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 class="text-lg font-semibold text-theme-text">Usage</h2>
+                <h2 class="text-lg font-semibold text-theme-text">{{ $t('billing_page.usage') }}</h2>
                 <p class="mt-1 text-sm text-theme-textLight">
-                  Track usage against your {{ currentPlan.name }} plan limits.
+                  {{ $t('billing_page.usage_subtitle', { plan: currentPlan.name }) }}
                 </p>
               </div>
               <span class="rounded-full bg-theme-hover px-3 py-1 text-xs font-medium text-theme-textLight">
-                {{ currentPlan.name }} limits
+                {{ $t('billing_page.plan_limits', { plan: currentPlan.name }) }}
               </span>
             </div>
           </div>
@@ -182,8 +182,10 @@
 
           <div class="border-t border-theme-border bg-theme-hover/30 px-6 py-4">
             <p class="text-xs leading-5 text-theme-textLight">
-              <span class="font-medium text-theme-text">Monthly</span> metrics reset on {{ usagePeriodReset }}.
-              <span class="font-medium text-theme-text">Ongoing</span> metrics reflect total workspace storage and do not reset — delete data or upgrade to free capacity.
+              <span class="font-medium text-theme-text">{{ $t('billing_page.usage_footer_monthly') }}</span>
+              {{ $t('billing_page.usage_reset_on', { date: usagePeriodReset }) }}
+              <span class="font-medium text-theme-text">{{ $t('billing_page.usage_footer_ongoing') }}</span>
+              {{ $t('billing_page.usage_ongoing_note') }}
             </p>
           </div>
         </section>
@@ -199,7 +201,7 @@
               <button
                 type="button"
                 class="absolute right-5 top-5 text-theme-textLight hover:text-theme-text"
-                aria-label="Close plan dialog"
+                :aria-label="$t('billing_page.close_plan_dialog')"
                 @click="planModalOpen = false"
               >
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -209,21 +211,21 @@
 
               <div class="px-6 pb-6 pt-8 sm:px-10">
                 <div class="text-center">
-                  <h2 class="text-3xl font-semibold text-theme-text">Adjust your plan</h2>
-                  <p class="mt-3 text-sm text-theme-textLight">Plans are billed monthly.</p>
+                  <h2 class="text-3xl font-semibold text-theme-text">{{ $t('billing_page.adjust_plan') }}</h2>
+                  <p class="mt-3 text-sm text-theme-textLight">{{ $t('billing_page.billed_monthly') }}</p>
                 </div>
 
                 <div class="mt-8 grid gap-4 lg:grid-cols-4">
                   <article
                     v-for="plan in plans"
-                    :key="plan.name"
+                    :key="plan.id"
                     class="flex min-h-[28rem] flex-col rounded-xl border border-theme-border bg-white p-5 shadow-sm"
                     :class="{ 'bg-theme-hover ring-1 ring-theme-border': isCurrentPlan(plan) }"
                   >
                     <div class="flex items-center justify-between gap-3">
                       <h3 class="text-lg font-semibold text-theme-text">{{ plan.name }}</h3>
                       <span v-if="isCurrentPlan(plan)" class="rounded-md bg-primary-100 px-2 py-1 text-xs font-medium text-theme-textLight">
-                        Current plan
+                        {{ $t('billing_page.current_plan') }}
                       </span>
                     </div>
                     <p class="mt-4">
@@ -245,15 +247,15 @@
                       :disabled="isCurrentPlan(plan) || checkoutPlan === plan.id"
                       @click="choosePlan(plan)"
                     >
-                      {{ isCurrentPlan(plan) ? 'Your current plan' : (checkoutPlan === plan.id ? 'Opening...' : plan.cta) }}
+                      {{ isCurrentPlan(plan) ? $t('billing_page.your_current_plan') : (checkoutPlan === plan.id ? $t('billing_page.opening') : plan.cta) }}
                     </button>
                   </article>
                 </div>
               </div>
 
               <div class="border-t border-theme-border px-6 py-5 text-center text-sm text-theme-textLight">
-                Need more capabilities for your business?
-                <button type="button" class="text-theme-text underline underline-offset-2">Learn more about our Enterprise plans.</button>
+                {{ $t('billing_page.enterprise_cta') }}
+                <button type="button" class="text-theme-text underline underline-offset-2">{{ $t('billing_page.enterprise_link') }}</button>
               </div>
             </section>
           </div>
@@ -265,10 +267,12 @@
 
 <script setup>
 import { computed, onMounted, ref, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { billingAPI } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
 
+const { t, locale } = useI18n()
 const { currentWorkspace } = useWorkspaceContext()
 
 const planModalOpen = ref(false)
@@ -307,67 +311,74 @@ const usageData = ref({
   periodReset: ''
 })
 
-const plans = [
+const plans = computed(() => [
   {
     id: 'hobby',
-    name: 'Hobby',
+    name: t('billing_page.plans.hobby.name'),
     price: '$0',
-    unit: '/mo.',
-    description: 'Free workspace plan to get started with core capabilities.',
-    cta: 'Choose plan',
+    unit: t('billing_page.unit_per_month'),
+    description: t('billing_page.plans.hobby.description'),
+    cta: t('billing_page.choose_plan'),
     features: [
-      'Core workspace access',
-      'Basic usage limits',
-      'Community support',
-      'Upgrade anytime'
+      t('billing_page.plans.hobby.feature_core_access'),
+      t('billing_page.plans.hobby.feature_basic_limits'),
+      t('billing_page.plans.hobby.feature_community_support'),
+      t('billing_page.plans.hobby.feature_upgrade_anytime')
     ]
   },
   {
     id: 'starter',
-    name: 'Starter',
+    name: t('billing_page.plans.starter.name'),
     price: '$19',
-    unit: '/mo.',
-    description: 'A low-cost plan for individuals and small projects that need more room.',
-    cta: 'Choose plan',
+    unit: t('billing_page.unit_per_month'),
+    description: t('billing_page.plans.starter.description'),
+    cta: t('billing_page.choose_plan'),
     features: [
-      'Everything in Hobby',
-      'Higher usage limits',
-      'Monthly billing',
-      'Email support'
+      t('billing_page.plans.starter.feature_everything_hobby'),
+      t('billing_page.plans.starter.feature_higher_limits'),
+      t('billing_page.plans.starter.feature_monthly_billing'),
+      t('billing_page.plans.starter.feature_email_support')
     ]
   },
   {
     id: 'growth',
-    name: 'Growth',
+    name: t('billing_page.plans.growth.name'),
     price: '$69',
-    unit: '/mo.',
-    description: 'More capacity for growing teams and heavier workloads.',
-    cta: 'Choose plan',
+    unit: t('billing_page.unit_per_month'),
+    description: t('billing_page.plans.growth.description'),
+    cta: t('billing_page.choose_plan'),
     features: [
-      'Everything in Starter',
-      'Expanded usage limits',
-      'Priority capacity',
-      'Faster support'
+      t('billing_page.plans.growth.feature_everything_starter'),
+      t('billing_page.plans.growth.feature_expanded_limits'),
+      t('billing_page.plans.growth.feature_priority_capacity'),
+      t('billing_page.plans.growth.feature_faster_support')
     ]
   },
   {
     id: 'pro',
-    name: 'Pro',
+    name: t('billing_page.plans.pro.name'),
     price: '€219',
-    unit: '/mo.',
-    description: 'Advanced plan for teams that need the highest monthly capacity.',
-    cta: 'Choose plan',
+    unit: t('billing_page.unit_per_month'),
+    description: t('billing_page.plans.pro.description'),
+    cta: t('billing_page.choose_plan'),
     features: [
-      'Everything in Growth',
-      'Highest usage limits',
-      'Premium capacity',
-      'Priority support'
+      t('billing_page.plans.pro.feature_everything_growth'),
+      t('billing_page.plans.pro.feature_highest_limits'),
+      t('billing_page.plans.pro.feature_premium_capacity'),
+      t('billing_page.plans.pro.feature_priority_support')
     ]
   }
-]
+])
 
 const currentPlan = computed(() => {
-  return plans.find((plan) => plan.id === billingStatus.value.plan) || plans[0]
+  return plans.value.find((plan) => plan.id === billingStatus.value.plan) || plans.value[0]
+})
+
+const statusLabel = computed(() => {
+  const status = billingStatus.value.status || 'active'
+  const key = `billing_page.status_${status}`
+  const translated = t(key)
+  return translated === key ? status : translated
 })
 
 const isPaidPlan = computed(() => billingStatus.value.plan !== 'hobby')
@@ -385,10 +396,10 @@ const usagePeriodReset = computed(() => {
 
   const now = new Date()
   const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-  return next.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  return next.toLocaleDateString(locale.value, { month: 'short', day: 'numeric', year: 'numeric' })
 })
 
-const formatNumber = (value) => value.toLocaleString(undefined, { maximumFractionDigits: 0 })
+const formatNumber = (value) => value.toLocaleString(locale.value, { maximumFractionDigits: 0 })
 
 const formatCompact = (value) => {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
@@ -408,26 +419,13 @@ const usageBarStyle = (percent) => ({
   backgroundColor: usageBarColor(percent)
 })
 
-const usageMetricDisplay = {
-  monthly: {
-    badgeShort: 'Monthly',
-    metricBadgeClass: 'bg-primary-50 text-theme-textLight',
-    percentSuffix: 'of monthly limit used'
-  },
-  capacity: {
-    badgeShort: 'Ongoing',
-    metricBadgeClass: 'bg-theme-hover text-theme-textLight',
-    percentSuffix: 'of plan capacity used'
-  }
-}
-
 const buildUsageMetrics = (limits, used) => {
   const definitions = [
     {
       id: 'apiCalls',
       resetPolicy: 'monthly',
-      label: 'API Calls',
-      hint: 'Total API requests this billing period',
+      label: t('billing_page.metrics.api_calls_label'),
+      hint: t('billing_page.metrics.api_calls_hint'),
       used: used.apiCalls,
       limit: limits.apiCalls,
       displayUsed: formatNumber(used.apiCalls),
@@ -436,8 +434,8 @@ const buildUsageMetrics = (limits, used) => {
     {
       id: 'aiTokens',
       resetPolicy: 'monthly',
-      label: 'AI Tokens',
-      hint: 'Tokens consumed by AI features this period',
+      label: t('billing_page.metrics.ai_tokens_label'),
+      hint: t('billing_page.metrics.ai_tokens_hint'),
       used: used.aiTokens,
       limit: limits.aiTokens,
       displayUsed: formatCompact(used.aiTokens),
@@ -446,8 +444,8 @@ const buildUsageMetrics = (limits, used) => {
     {
       id: 'workspaceMembers',
       resetPolicy: 'capacity',
-      label: 'Workspace Members',
-      hint: 'Active members in this workspace',
+      label: t('billing_page.metrics.workspace_members_label'),
+      hint: t('billing_page.metrics.workspace_members_hint'),
       used: used.workspaceMembers,
       limit: limits.workspaceMembers,
       displayUsed: formatNumber(used.workspaceMembers),
@@ -456,8 +454,8 @@ const buildUsageMetrics = (limits, used) => {
     {
       id: 'documentsCount',
       resetPolicy: 'capacity',
-      label: 'Documents Count',
-      hint: 'Documents stored in this workspace',
+      label: t('billing_page.metrics.documents_count_label'),
+      hint: t('billing_page.metrics.documents_count_hint'),
       used: used.documentsCount,
       limit: limits.documentsCount,
       displayUsed: formatNumber(used.documentsCount),
@@ -466,8 +464,8 @@ const buildUsageMetrics = (limits, used) => {
     {
       id: 'promptsCount',
       resetPolicy: 'capacity',
-      label: 'Prompts Count',
-      hint: 'Prompts stored in this workspace',
+      label: t('billing_page.metrics.prompts_count_label'),
+      hint: t('billing_page.metrics.prompts_count_hint'),
       used: used.promptsCount,
       limit: limits.promptsCount,
       displayUsed: formatNumber(used.promptsCount),
@@ -476,8 +474,8 @@ const buildUsageMetrics = (limits, used) => {
     {
       id: 'storageGB',
       resetPolicy: 'capacity',
-      label: 'Storage Used',
-      hint: 'Total file storage consumed',
+      label: t('billing_page.metrics.storage_used_label'),
+      hint: t('billing_page.metrics.storage_used_hint'),
       used: used.storageGB,
       limit: limits.storageGB,
       displayUsed: `${used.storageGB.toFixed(1)} GB`,
@@ -486,8 +484,8 @@ const buildUsageMetrics = (limits, used) => {
     {
       id: 'historyRecords',
       resetPolicy: 'capacity',
-      label: 'History Records',
-      hint: 'Agent context rows stored across sessions',
+      label: t('billing_page.metrics.history_records_label'),
+      hint: t('billing_page.metrics.history_records_hint'),
       used: used.historyRecords,
       limit: limits.historyRecords,
       displayUsed: formatNumber(used.historyRecords),
@@ -496,8 +494,8 @@ const buildUsageMetrics = (limits, used) => {
     {
       id: 'memoryRecords',
       resetPolicy: 'capacity',
-      label: 'Memory Records',
-      hint: 'Agent memory rows stored across sessions',
+      label: t('billing_page.metrics.memory_records_label'),
+      hint: t('billing_page.metrics.memory_records_hint'),
       used: used.memoryRecords,
       limit: limits.memoryRecords,
       displayUsed: formatNumber(used.memoryRecords),
@@ -505,9 +503,22 @@ const buildUsageMetrics = (limits, used) => {
     }
   ]
 
+  const displayByPolicy = {
+    monthly: {
+      badgeShort: t('billing_page.metric_badge_monthly'),
+      metricBadgeClass: 'bg-primary-50 text-theme-textLight',
+      percentSuffix: t('billing_page.metric_suffix_monthly')
+    },
+    capacity: {
+      badgeShort: t('billing_page.metric_badge_ongoing'),
+      metricBadgeClass: 'bg-theme-hover text-theme-textLight',
+      percentSuffix: t('billing_page.metric_suffix_capacity')
+    }
+  }
+
   return definitions.map((metric) => {
     const percent = usagePercent(metric.used, metric.limit)
-    const display = usageMetricDisplay[metric.resetPolicy]
+    const display = displayByPolicy[metric.resetPolicy]
     return {
       ...metric,
       ...display,
@@ -524,7 +535,7 @@ const usageMetrics = computed(() => {
 
 const formatDate = (value) => {
   if (!value) return ''
-  return new Date(value).toLocaleDateString(undefined, {
+  return new Date(value).toLocaleDateString(locale.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -542,7 +553,7 @@ const loadBilling = async () => {
     billingStatus.value = statusRes.data
     usageData.value = usageRes.data
   } catch (err) {
-    errorMessage.value = err.response?.data?.errorMessage || 'Failed to load billing.'
+    errorMessage.value = err.response?.data?.errorMessage || t('billing_page.failed_load')
   } finally {
     billingLoading.value = false
   }
@@ -557,7 +568,7 @@ const choosePlan = async (plan) => {
     const res = await billingAPI.checkout(currentWorkspace.id, { plan: plan.id })
     window.location.href = res.data.url
   } catch (err) {
-    errorMessage.value = err.response?.data?.errorMessage || 'Failed to start checkout.'
+    errorMessage.value = err.response?.data?.errorMessage || t('billing_page.failed_checkout')
   } finally {
     checkoutPlan.value = ''
   }
@@ -572,7 +583,7 @@ const openPortal = async () => {
     const res = await billingAPI.portal(currentWorkspace.id)
     window.location.href = res.data.url
   } catch (err) {
-    errorMessage.value = err.response?.data?.errorMessage || 'Failed to open billing portal.'
+    errorMessage.value = err.response?.data?.errorMessage || t('billing_page.failed_portal')
   } finally {
     portalLoading.value = false
   }

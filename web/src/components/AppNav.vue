@@ -156,7 +156,7 @@ const navItems = computed(() => {
     { to: '/prompts', label: t('nav.prompts') },
     { to: '/integrations', label: 'Integrations', requiresManage: true },
     { to: '/audits', label: t('nav.audits'), requiresManage: true },
-    { to: '/billing', label: 'Billing', requiresManage: true },
+    { to: '/billing', label: t('nav.billing'), requiresManage: true },
     { to: '/members', label: 'Members', requiresManage: true },
     { to: '/settings', label: t('nav.settings'), requiresManage: true },
     { to: '/workspaces', label: 'Workspaces' }
