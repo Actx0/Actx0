@@ -46,6 +46,22 @@ type ListNotificationsResponse struct {
 	Total         int64
 }
 
+// CreateUserNotificationRequest is the input for creating a user notification.
+type CreateUserNotificationRequest struct {
+	UserId db.Id
+	Type   string
+	Title  string
+	Body   *string
+}
+
+// CreateWorkspaceNotificationRequest is the input for creating a workspace notification.
+type CreateWorkspaceNotificationRequest struct {
+	WorkspaceId db.Id
+	Type        string
+	Title       string
+	Body        *string
+}
+
 // Notification is the module for user/workspace notifications.
 type Notification struct {
 	NotificationRepository db.NotificationRepository
@@ -211,22 +227,6 @@ func (n *Notification) MarkNotificationArchived(userId, workspaceId, notificatio
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
-}
-
-// CreateUserNotificationRequest is the input for creating a user notification.
-type CreateUserNotificationRequest struct {
-	UserId db.Id
-	Type   string
-	Title  string
-	Body   *string
-}
-
-// CreateWorkspaceNotificationRequest is the input for creating a workspace notification.
-type CreateWorkspaceNotificationRequest struct {
-	WorkspaceId db.Id
-	Type        string
-	Title       string
-	Body        *string
 }
 
 // CreateUserNotification creates a user notification unless a non-archived one of the same type already exists.
