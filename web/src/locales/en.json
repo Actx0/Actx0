@@ -878,6 +878,8 @@
       "documents_count_hint": "Documents stored in this workspace",
       "prompts_count_label": "Prompts Count",
       "prompts_count_hint": "Prompts stored in this workspace",
+      "agents_count_label": "Agents",
+      "agents_count_hint": "Agents in this workspace",
       "storage_used_label": "Storage Used",
       "storage_used_hint": "Total file storage consumed",
       "sessions_count_label": "Sessions",

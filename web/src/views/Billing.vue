@@ -297,6 +297,7 @@ const usageData = ref({
     workspaceMembers: 0,
     documentsCount: 0,
     promptsCount: 0,
+    agentsCount: 0,
     storageGB: 0,
     sessionsCount: 0,
     historyRecords: 0,
@@ -309,6 +310,7 @@ const usageData = ref({
     workspaceMembers: 3,
     documentsCount: 100,
     promptsCount: 50,
+    agentsCount: 2,
     storageGB: 5,
     sessionsCount: 25,
     historyRecords: 1_000,
@@ -487,6 +489,16 @@ const buildUsageMetrics = (limits, used) => {
       limit: limits.promptsCount,
       displayUsed: formatNumber(used.promptsCount),
       displayLimit: formatNumber(limits.promptsCount)
+    },
+    {
+      id: 'agentsCount',
+      resetPolicy: 'capacity',
+      label: t('billing_page.metrics.agents_count_label'),
+      hint: t('billing_page.metrics.agents_count_hint'),
+      used: used.agentsCount,
+      limit: limits.agentsCount,
+      displayUsed: formatNumber(used.agentsCount),
+      displayLimit: formatNumber(limits.agentsCount)
     },
     {
       id: 'storageGB',

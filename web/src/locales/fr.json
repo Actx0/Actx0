@@ -878,6 +878,8 @@
       "documents_count_hint": "Documents stockés dans cet espace de travail",
       "prompts_count_label": "Nombre de prompts",
       "prompts_count_hint": "Prompts stockés dans cet espace de travail",
+      "agents_count_label": "Agents",
+      "agents_count_hint": "Agents dans cet espace de travail",
       "storage_used_label": "Stockage utilisé",
       "storage_used_hint": "Stockage total de fichiers consommé",
       "sessions_count_label": "Sessions",

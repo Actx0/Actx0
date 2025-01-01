@@ -26,15 +26,17 @@ var (
 
 // Agent is the module for workspace agent CRUD.
 type Agent struct {
-	AgentRepository     db.AgentRepository
-	WorkspaceRepository db.WorkspaceRepository
+	AgentRepository        db.AgentRepository
+	WorkspaceRepository    db.WorkspaceRepository
+	SubscriptionRepository db.SubscriptionRepository
 }
 
 // NewAgent creates an agent module with the given repositories.
-func NewAgent(agents db.AgentRepository, workspaces db.WorkspaceRepository) *Agent {
+func NewAgent(agents db.AgentRepository, workspaces db.WorkspaceRepository, subscriptions db.SubscriptionRepository) *Agent {
 	return &Agent{
-		AgentRepository:     agents,
-		WorkspaceRepository: workspaces,
+		AgentRepository:        agents,
+		WorkspaceRepository:    workspaces,
+		SubscriptionRepository: subscriptions,
 	}
 }
 
@@ -79,6 +81,19 @@ func (a *Agent) CreateAgent(workspaceId db.Id, req *CreateAgentRequest) (*AgentR
 	}
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
+	}
+
+	reached, err := NewUsage().IsAgentsCountReached(
+		a.AgentRepository,
+		a.SubscriptionRepository,
+		workspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	handle, err := a.CreateAgentHandle(4, 8)

@@ -75,6 +75,7 @@ func GetBillingUsageAction(w http.ResponseWriter, r *http.Request) {
 		WorkspaceUserRepository:     db.NewWorkspaceUserRepository(db.GetDB()),
 		WorkspaceDocumentRepository: db.NewWorkspaceDocumentRepository(db.GetDB()),
 		PromptRepository:            db.NewPromptRepository(db.GetDB()),
+		AgentRepository:             db.NewAgentRepository(db.GetDB()),
 		UsageRepository:             db.NewUsageRepository(db.GetDB()),
 		SubscriptionRepository:      db.NewSubscriptionRepository(db.GetDB()),
 		SessionMessageRepository:    db.NewSessionMessageRepository(db.GetDB()),

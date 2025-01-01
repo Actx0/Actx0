@@ -72,6 +72,7 @@ type PlanUsageLimits struct {
 	WorkspaceMembers int64   `json:"workspaceMembers"`
 	DocumentsCount   int64   `json:"documentsCount"`
 	PromptsCount     int64   `json:"promptsCount"`
+	AgentsCount      int64   `json:"agentsCount"`
 	StorageGB        float64 `json:"storageGB"`
 	SessionsCount    int64   `json:"sessionsCount"`
 	HistoryRecords   int64   `json:"historyRecords"`
@@ -95,6 +96,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		WorkspaceMembers: 1,
 		DocumentsCount:   10,
 		PromptsCount:     10,
+		AgentsCount:      2,
 		StorageGB:        1,
 		SessionsCount:    25,
 		HistoryRecords:   1_000,
@@ -108,6 +110,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		WorkspaceMembers: 10,
 		DocumentsCount:   500,
 		PromptsCount:     100,
+		AgentsCount:      10,
 		StorageGB:        5,
 		SessionsCount:    250,
 		HistoryRecords:   20_000,
@@ -121,6 +124,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		WorkspaceMembers: 25,
 		DocumentsCount:   2_000,
 		PromptsCount:     400,
+		AgentsCount:      50,
 		StorageGB:        25,
 		SessionsCount:    1_000,
 		HistoryRecords:   75_000,
@@ -134,6 +138,7 @@ var PlanLimits = map[string]PlanUsageLimits{
 		WorkspaceMembers: 100,
 		DocumentsCount:   6_500,
 		PromptsCount:     1_250,
+		AgentsCount:      200,
 		StorageGB:        100,
 		SessionsCount:    5_000,
 		HistoryRecords:   250_000,
