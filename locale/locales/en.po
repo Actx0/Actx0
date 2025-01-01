@@ -462,6 +462,15 @@ msgstr "Registration successful."
 msgid "reset_link_invalid_or_expired"
 msgstr "Reset link is invalid or expired."
 
+msgid "verify_link_invalid"
+msgstr "Verification link is invalid or already used."
+
+msgid "failed_verify_email"
+msgstr "Failed to verify email. Please try again later."
+
+msgid "email_verified_successfully"
+msgstr "Email verified successfully."
+
 msgid "settings_updated_successfully"
 msgstr "Settings updated successfully."
 

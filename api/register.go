@@ -12,6 +12,7 @@ import (
 	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/util"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
 )
 
@@ -65,5 +66,40 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 
 	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"successMessage": locale.TR(r, "registration_successful"),
+	})
+}
+
+// VerifyEmailAction verifies an account email using the token from the email link.
+func VerifyEmailAction(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	if token == "" {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "verify_link_invalid"),
+		})
+		return
+	}
+
+	log.Info().Msg("New email verification request")
+
+	rm := module.NewRegister(db.NewUserRepository(db.GetDB()))
+
+	err := rm.VerifyEmail(token)
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrVerifyTokenInvalid):
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+				"errorMessage": locale.TR(r, "verify_link_invalid"),
+			})
+		default:
+			log.Error().Err(err).Msg("Failed to verify email")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+				"errorMessage": locale.TR(r, "failed_verify_email"),
+			})
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, map[string]any{
+		"successMessage": locale.TR(r, "email_verified_successfully"),
 	})
 }

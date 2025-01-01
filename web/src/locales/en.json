@@ -60,6 +60,13 @@
     "error_passwords_match": "Passwords do not match.",
     "error_password_length": "Password must be at least 8 characters."
   },
+  "verify_email": {
+    "title": "Verify email",
+    "verifying": "Verifying your email...",
+    "success": "Your email has been verified. Redirecting to login...",
+    "back_to_login": "Back to login",
+    "error_default": "Verification failed. The link may be invalid or already used."
+  },
   "setup": {
     "title": "Actx0",
     "subtitle": "Create your admin account.",

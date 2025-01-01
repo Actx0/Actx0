@@ -74,6 +74,12 @@ const routes = [
     meta: { requiresGuest: true, title: 'Reset password', description: 'Set new password' }
   },
   {
+    path: '/verify-email/:token',
+    name: 'VerifyEmail',
+    component: () => import('@/views/VerifyEmail.vue'),
+    meta: { title: 'Verify email', description: 'Verify your email address' }
+  },
+  {
     path: '/register',
     name: 'Register',
     component: () => import('@/views/Register.vue'),

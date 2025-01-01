@@ -450,6 +450,15 @@ msgstr "Inscription réussie."
 msgid "reset_link_invalid_or_expired"
 msgstr "Le lien de réinitialisation est invalide ou expiré."
 
+msgid "verify_link_invalid"
+msgstr "Le lien de vérification est invalide ou déjà utilisé."
+
+msgid "failed_verify_email"
+msgstr "Échec de la vérification de l'e-mail. Veuillez réessayer plus tard."
+
+msgid "email_verified_successfully"
+msgstr "E-mail vérifié avec succès."
+
 msgid "settings_updated_successfully"
 msgstr "Paramètres mis à jour avec succès."
 

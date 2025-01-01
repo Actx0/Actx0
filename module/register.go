@@ -20,6 +20,7 @@ import (
 
 var (
 	ErrFailedCompleteRegistration = errors.New("failed complete registration")
+	ErrVerifyTokenInvalid         = errors.New("email verification token is invalid")
 )
 
 // RegisterRequest is the body for signing up.
@@ -117,4 +118,20 @@ func (r *Register) Register(req *RegisterRequest) (*RegisterResult, error) {
 	}
 
 	return &RegisterResult{User: user}, nil
+}
+
+// VerifyEmail marks the account matching the token as verified.
+func (r *Register) VerifyEmail(token string) error {
+	user, err := r.UserRepository.GetByEmailVerifyToken(token)
+	if err != nil {
+		return fmt.Errorf("get user by verify token: %w", err)
+	}
+	if user == nil {
+		return ErrVerifyTokenInvalid
+	}
+
+	user.IsEmailVerified = true
+	user.EmailVerifyToken = nil
+
+	return r.UserRepository.Update(user)
 }
