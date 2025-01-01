@@ -101,7 +101,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authAPI } from '@/api'
+import { auth_api } from '@/api'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -137,7 +137,7 @@ const handleRegister = async () => {
   }
 
   try {
-    await authAPI.register({
+    await auth_api.register({
       email: form.email.trim(),
       name: form.name.trim(),
       password: form.password

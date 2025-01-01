@@ -240,7 +240,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
-import { promptAPI } from '@/api'
+import { prompt_api } from '@/api'
 import {
   emptyPromptForm,
   buildCreatePayload,
@@ -284,7 +284,7 @@ async function loadPage() {
   loading.value = true
   errorMessage.value = null
   try {
-    const res = await promptAPI.list(currentWorkspace.id, { limit, offset: offset.value })
+    const res = await prompt_api.list(currentWorkspace.id, { limit, offset: offset.value })
     prompts.value = res.data.prompts || []
     total.value = res.data._meta?.total ?? 0
   } catch (err) {
@@ -326,7 +326,7 @@ async function handleCreate() {
   createLoading.value = true
   createModalError.value = null
   try {
-    const created = await promptAPI.create(currentWorkspace.id, buildCreatePayload(form))
+    const created = await prompt_api.create(currentWorkspace.id, buildCreatePayload(form))
     showCreateModal.value = false
     await loadPage()
     showFlash(t('common.saved'))
@@ -359,7 +359,7 @@ async function confirmDelete() {
   deletingName.value = prompt.name
   deleteModalError.value = null
   try {
-    await promptAPI.deletePrompt(currentWorkspace.id, prompt.promptId)
+    await prompt_api.deletePrompt(currentWorkspace.id, prompt.promptId)
     deleteModalPrompt.value = null
     deleteConfirmName.value = ''
     await loadPage()

@@ -120,7 +120,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { workspaceAPI } from '@/api'
+import { workspace_api } from '@/api'
 import { loadWorkspaceFromStorage, saveWorkspaceToStorage } from '@/utils/storage'
 
 const { t } = useI18n()
@@ -163,7 +163,7 @@ function selectWorkspace(workspace) {
 async function loadWorkspaces() {
   error.value = null
   try {
-    const res = await workspaceAPI.list({})
+    const res = await workspace_api.list({})
     workspaces.value = res.data?.workspaces ?? []
   } catch (err) {
     error.value = err.response?.data?.errorMessage || t('select_workspace.failed_load')
@@ -176,7 +176,7 @@ async function handleCreate() {
   createModalError.value = null
 
   try {
-    const res = await workspaceAPI.create({ name: createForm.name })
+    const res = await workspace_api.create({ name: createForm.name })
     if (res.data?.id) {
       saveWorkspaceToStorage({ ...res.data, role: 'owner', status: 'active' })
       showCreateModal.value = false

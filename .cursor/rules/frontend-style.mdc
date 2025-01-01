@@ -15,8 +15,8 @@ alwaysApply: false
 - Add every new key to both `web/src/locales/en.json` and `web/src/locales/fr.json`.
 
 ## API calls
-- All HTTP calls go through the named exports of `@/api` (e.g. `setupAPI`, `authAPI`). Never import axios or use `fetch` directly in components.
-- If an endpoint is missing, add it to the matching `*API` object in `web/src/api/index.js`.
+- All HTTP calls go through the named exports of `@/api` (e.g. `setup_api`, `auth_api`). Never import axios or use `fetch` directly in components.
+- If an endpoint is missing, add it to the matching `*_api` export in `web/src/api/index.js`.
 
 ## Self-contained actions
 - A handler owns its whole flow. Inline single-use logic (validation, mapping) inside the handler instead of extracting top-level helpers used only once.
