@@ -157,10 +157,10 @@ func SetupServer(Static embed.FS) http.Handler {
 
 		r.Route("/agents", func(r chi.Router) {
 			r.With(middleware.RequireWorkspacePermission(module.CanListAgents)).Get("/", api.ListAgentsAction)
-			r.With(middleware.UserWorkspacePerm(module.CanCreateAgent)...).Post("/", api.CreateAgentAction)
+			r.With(middleware.RequireWorkspacePermission(module.CanCreateAgent)).Post("/", api.CreateAgentAction)
 			r.With(middleware.RequireWorkspacePermission(module.CanGetAgent)).Get("/{agentId}", api.GetAgentAction)
 			r.With(middleware.UserWorkspacePerm(module.CanUpdateAgent)...).Put("/{agentId}", api.UpdateAgentAction)
-			r.With(middleware.UserWorkspacePerm(module.CanDeleteAgent)...).Delete("/{agentId}", api.DeleteAgentAction)
+			r.With(middleware.RequireWorkspacePermission(module.CanDeleteAgent)).Delete("/{agentId}", api.DeleteAgentAction)
 
 			r.Route("/{agentId}/sessions", func(r chi.Router) {
 				r.With(middleware.RequireWorkspacePermission(module.CanListAgentSessions)).Get("/", api.ListAgentSessionsAction)
@@ -172,18 +172,18 @@ func SetupServer(Static embed.FS) http.Handler {
 
 				r.Route("/{sessionId}/messages", func(r chi.Router) {
 					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMessages)).Get("/", api.ListSessionMessagesAction)
-					r.With(middleware.UserWorkspacePerm(module.CanCreateSessionMessage)...).Post("/", api.CreateSessionMessageAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMessage)).Post("/", api.CreateSessionMessageAction)
 					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMessage)).Get("/{messageId}", api.GetSessionMessageAction)
-					r.With(middleware.UserWorkspacePerm(module.CanUpdateSessionMessage)...).Put("/{messageId}", api.UpdateSessionMessageAction)
-					r.With(middleware.UserWorkspacePerm(module.CanDeleteSessionMessage)...).Delete("/{messageId}", api.DeleteSessionMessageAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMessage)).Put("/{messageId}", api.UpdateSessionMessageAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMessage)).Delete("/{messageId}", api.DeleteSessionMessageAction)
 				})
 
 				r.Route("/{sessionId}/memories", func(r chi.Router) {
 					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMemories)).Get("/", api.ListSessionMemoriesAction)
-					r.With(middleware.UserWorkspacePerm(module.CanCreateSessionMemory)...).Post("/", api.CreateSessionMemoryAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMemory)).Post("/", api.CreateSessionMemoryAction)
 					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMemory)).Get("/{memoryId}", api.GetSessionMemoryAction)
-					r.With(middleware.UserWorkspacePerm(module.CanUpdateSessionMemory)...).Put("/{memoryId}", api.UpdateSessionMemoryAction)
-					r.With(middleware.UserWorkspacePerm(module.CanDeleteSessionMemory)...).Delete("/{memoryId}", api.DeleteSessionMemoryAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMemory)).Put("/{memoryId}", api.UpdateSessionMemoryAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMemory)).Delete("/{memoryId}", api.DeleteSessionMemoryAction)
 				})
 			})
 		})

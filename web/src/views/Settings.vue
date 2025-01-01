@@ -211,7 +211,21 @@
                 <tbody class="bg-white divide-y divide-theme-border">
                   <tr v-for="key in accessKeys" :key="key.id" class="hover:bg-theme-hover/50">
                     <td class="px-4 py-3 text-sm text-theme-text">{{ key.name }}</td>
-                    <td class="px-4 py-3 text-sm text-theme-textLight">{{ formatPermissions(key.permissions) }}</td>
+                    <td class="px-4 py-3 text-sm text-theme-textLight">
+                      <button
+                        v-if="key.permissions?.length"
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 -mx-2 text-primary-700 hover:text-primary-800 hover:bg-primary-50/60 font-medium transition-colors"
+                        @click="openPermissionsModal(key)"
+                      >
+                        <span>{{ $t('workspace_settings_page.view_permissions', { count: key.permissions.length }) }}</span>
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                      <span v-else>—</span>
+                    </td>
                     <td class="px-4 py-3 text-sm text-theme-textLight">{{ formatDate(key.createdAt) }}</td>
                     <td class="px-4 py-3 text-sm text-theme-textLight">
                       {{ key.expiresAt ? formatDateTime(key.expiresAt) : $t('workspace_settings_page.never') }}
@@ -275,6 +289,51 @@
           </div>
         </div>
       </Transition>
+
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="permissionsModalKey"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="access-key-permissions-title"
+          @click.self="closePermissionsModal"
+        >
+          <div class="w-full max-w-lg max-h-[85vh] flex flex-col rounded-xl bg-white border border-theme-border shadow-xl">
+            <div class="border-b border-theme-border px-6 py-4 shrink-0">
+              <h2 id="access-key-permissions-title" class="text-lg font-semibold text-theme-text">
+                {{ $t('workspace_settings_page.permissions_title') }}
+              </h2>
+              <p class="mt-1 text-sm text-theme-textLight">
+                {{ $t('workspace_settings_page.permissions_for', { name: permissionsModalKey.name }) }}
+              </p>
+            </div>
+            <div class="overflow-y-auto px-6 py-4">
+              <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <li
+                  v-for="label in getPermissionLabels(permissionsModalKey.permissions)"
+                  :key="label"
+                  class="rounded-lg border border-theme-border bg-theme-bg/40 px-3 py-2 text-sm text-theme-text"
+                >
+                  {{ label }}
+                </li>
+              </ul>
+            </div>
+            <div class="border-t border-theme-border px-6 py-4 shrink-0 flex justify-end">
+              <button type="button" class="btn-secondary" @click="closePermissionsModal">
+                {{ $t('workspace_settings_page.dismiss') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </Teleport>
   </div>
 </template>
@@ -308,6 +367,7 @@ const selectedPermissions = ref(['CAN_GET_PROMPT'])
 const newlyCreatedKey = ref(null)
 const deletingId = ref(null)
 const revokeModalKey = ref(null)
+const permissionsModalKey = ref(null)
 
 const minExpiresAt = computed(() => {
   const d = new Date()
@@ -338,13 +398,47 @@ function formatDateTime(iso) {
   }
 }
 
-function formatPermissions(permissions) {
-  if (!permissions?.length) return '—'
-  const labels = permissions.map((value) => {
+function getPermissionLabels(permissions) {
+  if (!permissions?.length) return []
+  return permissions.map((value) => {
     const perm = WORKSPACE_KEY_PERMISSIONS.find((item) => item.value === value)
     return perm ? t(perm.labelKey) : value
   })
-  return labels.join(', ')
+}
+
+function openPermissionsModal(key) {
+  permissionsModalKey.value = key
+}
+
+function closePermissionsModal() {
+  permissionsModalKey.value = null
+}
+
+function openRevokeModal(key) {
+  revokeModalKey.value = key
+}
+
+function closeRevokeModal() {
+  if (!deletingId.value) revokeModalKey.value = null
+}
+
+async function confirmRevokeKey() {
+  const key = revokeModalKey.value
+  if (!key) return
+
+  deletingId.value = key.id
+  errorMessage.value = null
+
+  try {
+    await workspaceAccessKeyAPI.delete(currentWorkspace.id, key.id)
+    await loadAccessKeys()
+    newlyCreatedKey.value = null
+    revokeModalKey.value = null
+  } catch (err) {
+    errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_revoke_key')
+  } finally {
+    deletingId.value = null
+  }
 }
 
 async function copyText(text, field) {
@@ -430,33 +524,6 @@ async function handleCreateKey() {
     errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_create_key')
   } finally {
     creatingKey.value = false
-  }
-}
-
-function openRevokeModal(key) {
-  revokeModalKey.value = key
-}
-
-function closeRevokeModal() {
-  if (!deletingId.value) revokeModalKey.value = null
-}
-
-async function confirmRevokeKey() {
-  const key = revokeModalKey.value
-  if (!key) return
-
-  deletingId.value = key.id
-  errorMessage.value = null
-
-  try {
-    await workspaceAccessKeyAPI.delete(currentWorkspace.id, key.id)
-    await loadAccessKeys()
-    newlyCreatedKey.value = null
-    revokeModalKey.value = null
-  } catch (err) {
-    errorMessage.value = err.response?.data?.errorMessage || t('workspace_settings_page.failed_revoke_key')
-  } finally {
-    deletingId.value = null
   }
 }
 

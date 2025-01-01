@@ -83,6 +83,8 @@ var AccessKeyPermissions = map[string]bool{
 	CanQueryWorkspaceDocuments: true,
 	CanListAgents:              true,
 	CanGetAgent:                true,
+	CanCreateAgent:             true,
+	CanDeleteAgent:             true,
 	CanListAgentSessions:       true,
 	CanGetAgentSession:         true,
 	CanCreateAgentSession:      true,
