@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/clivern/actx0/configs"
 	"github.com/clivern/actx0/db"
 
 	"github.com/google/uuid"
@@ -17,7 +18,6 @@ import (
 )
 
 const (
-	InviteExpiryDays     = 7
 	InviteStatusPending  = "pending"
 	InviteStatusAccepted = "accepted"
 	InviteStatusRejected = "rejected"
@@ -133,7 +133,7 @@ func (i *Invite) CreateInvite(workspaceId db.Id, req *CreateInviteRequest, invit
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateInvite, err)
 	}
 
-	expiresAt := time.Now().UTC().Add(InviteExpiryDays * 24 * time.Hour)
+	expiresAt := time.Now().UTC().Add(configs.InviteExpiry)
 	invite := &db.UserInvite{
 		Email:         req.Email,
 		Role:          req.Role,
