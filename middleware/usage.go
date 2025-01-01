@@ -12,18 +12,19 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// StatusRecorder wraps the response writer to capture the HTTP status code.
 type StatusRecorder struct {
 	http.ResponseWriter
 	status int
 }
 
+// WriteHeader captures the HTTP status code for logging.
 func (s *StatusRecorder) WriteHeader(code int) {
 	s.status = code
 	s.ResponseWriter.WriteHeader(code)
 }
 
 // TrackWorkspaceAPICall increments workspace API usage after authenticated, authorized
-// requests complete successfully. Place on workspace routes after Protect with Workspace: true.
 func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
