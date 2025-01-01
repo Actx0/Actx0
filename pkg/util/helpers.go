@@ -23,9 +23,11 @@ func WriteJSON(w http.ResponseWriter, statusCode int, data interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(data)
+
 	if err != nil {
 		return fmt.Errorf("failed to write JSON response: %w", err)
 	}
+
 	return nil
 }
 
@@ -42,9 +44,11 @@ func GenerateUUID() (string, error) {
 func GenerateSecureToken(length int) (string, error) {
 	bytes := make([]byte, length)
 	_, err := rand.Read(bytes)
+
 	if err != nil {
 		return "", fmt.Errorf("generate secure token: %w", err)
 	}
+
 	return base64.URLEncoding.EncodeToString(bytes), nil
 }
 
@@ -62,6 +66,7 @@ func RandInt(min, max int) (int, error) {
 // Reserved keys such as id, limit, and offset are skipped.
 func ParseQueryLabels(r *http.Request) map[string]string {
 	labels := map[string]string{}
+
 	for key, values := range r.URL.Query() {
 		if key == "id" || key == "limit" || key == "offset" {
 			continue
@@ -71,6 +76,7 @@ func ParseQueryLabels(r *http.Request) map[string]string {
 		}
 		labels[key] = values[0]
 	}
+
 	return labels
 }
 

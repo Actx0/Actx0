@@ -20,11 +20,14 @@ func GravatarURL(email string, size int) string {
 	if lo.IsEmpty(email) {
 		return ""
 	}
+
 	sum := md5.Sum([]byte(email))
 	hash := hex.EncodeToString(sum[:])
 	url := fmt.Sprintf("%s/%s?d=identicon", gravatarBaseURL, hash)
+
 	if size > 0 && size <= 2048 {
 		url += fmt.Sprintf("&s=%d", size)
 	}
+
 	return url
 }

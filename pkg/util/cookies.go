@@ -79,9 +79,11 @@ func SetCookie(w http.ResponseWriter, name, value string, options *CookieOptions
 // GetCookie retrieves a cookie value by name.
 func GetCookie(r *http.Request, name string) string {
 	cookie, err := r.Cookie(name)
+
 	if err != nil {
 		return ""
 	}
+
 	return cookie.Value
 }
 
@@ -99,5 +101,6 @@ func DeleteCookie(w http.ResponseWriter, name string) {
 		Path:   "/",
 		MaxAge: -1,
 	}
+
 	http.SetCookie(w, cookie)
 }
