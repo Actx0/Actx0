@@ -107,16 +107,6 @@ var AccessKeyPermissions = map[string]bool{
 	CanDeleteSessionMemory:     true,
 }
 
-// ValidAccessKeyPermissions reports whether every permission may be assigned to an access key.
-func ValidAccessKeyPermissions(permissions []string) bool {
-	if len(permissions) == 0 {
-		return false
-	}
-	return lo.EveryBy(permissions, func(permission string) bool {
-		return AccessKeyPermissions[permission]
-	})
-}
-
 // Perm checks workspace permissions for users and workspace access keys.
 type Perm struct {
 	WorkspaceRepository db.WorkspaceRepository
@@ -255,4 +245,14 @@ func (p *Perm) CanAsAccessKey(permission string) (bool, error) {
 	}
 
 	return lo.Contains(meta.Permissions, permission), nil
+}
+
+// ValidAccessKeyPermissions reports whether every permission may be assigned to an access key.
+func ValidAccessKeyPermissions(permissions []string) bool {
+	if len(permissions) == 0 {
+		return false
+	}
+	return lo.EveryBy(permissions, func(permission string) bool {
+		return AccessKeyPermissions[permission]
+	})
 }

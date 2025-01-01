@@ -12,6 +12,7 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/stripe"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
@@ -202,7 +203,7 @@ func (b *Billing) GetBillingUsage(workspaceId db.Id, deps UsageSnapshotDeps) (*B
 		limits = planUsageLimits[stripe.PlanHobby]
 	}
 
-	_, periodEnd := currentMonthPeriod()
+	_, periodEnd := util.CurrentMonthPeriod()
 
 	return &BillingUsageResponse{
 		Plan:        subscription.Plan,
