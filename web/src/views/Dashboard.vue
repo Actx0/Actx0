@@ -79,18 +79,17 @@
 
         <div class="section overflow-hidden !p-0">
           <div class="border-b border-theme-border px-6 py-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.activity_title') }}</h2>
-                <p class="mt-0.5 text-sm text-theme-textLight">{{ $t('dashboard.activity_subtitle') }}</p>
-              </div>
-              <span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                {{ $t('dashboard.mock_badge') }}
-              </span>
+            <div>
+              <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.activity_title') }}</h2>
+              <p class="mt-0.5 text-sm text-theme-textLight">{{ $t('dashboard.activity_subtitle') }}</p>
             </div>
           </div>
 
-          <ul class="divide-y divide-theme-border">
+          <p v-if="loading" class="px-6 py-8 text-sm text-theme-textLight">{{ $t('common.loading') }}</p>
+          <p v-else-if="recentActivity.length === 0" class="px-6 py-8 text-sm text-theme-textLight">
+            {{ $t('dashboard.activity_empty') }}
+          </p>
+          <ul v-else class="divide-y divide-theme-border">
             <li
               v-for="event in recentActivity"
               :key="event.id"
@@ -108,14 +107,14 @@
                 <p class="text-sm text-theme-text">
                   <span class="font-medium">{{ event.actor }}</span>
                   {{ event.action }}
-                  <span class="font-medium">{{ event.target }}</span>
+                  <span v-if="event.target" class="font-medium">{{ event.target }}</span>
                 </p>
                 <p class="mt-0.5 text-xs text-theme-textLight">{{ event.time }}</p>
               </div>
             </li>
           </ul>
 
-          <div class="border-t border-theme-border px-6 py-3">
+          <div v-if="canManage" class="border-t border-theme-border px-6 py-3">
             <router-link to="/audits" class="text-sm font-medium text-primary-800 hover:underline">
               {{ $t('dashboard.activity_view_all') }}
             </router-link>
@@ -290,23 +289,27 @@ import {
   stats_api,
   billing_api,
   workspace_api,
+  audit_api,
 } from '@/api'
 import AppNav from '@/components/AppNav.vue'
 import { user } from '@/lib/auth'
 import { agentPath } from '@/lib/agent'
 import { saveWorkspaceToStorage } from '@/utils/storage'
 import { useWorkspaceContext } from '@/lib/permission'
+import { formatRelative } from '@/utils/dt'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { currentWorkspace, canManage } = useWorkspaceContext()
 
 const calendlyUrl = 'https://calendly.com/'
 const WHATS_NEW_KEY = 'dashboard_whats_new_v1'
+const ACTIVITY_LIMIT = 6
 
 const workspace = ref({ ...currentWorkspace })
 const loading = ref(true)
 const plan = ref('hobby')
 const showWhatsNew = ref(localStorage.getItem(WHATS_NEW_KEY) !== '1')
+const audits = ref([])
 
 const topAgents = [
   { id: 'agt_support', name: 'Support bot', handle: 'support-bot', sessions: 1842, memories: 9210 },
@@ -453,58 +456,42 @@ const activityIcons = {
   member: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z',
   key: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z',
   memory: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4',
+  workspace: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+  billing: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+  session: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
 }
 
-const recentActivity = computed(() => [
-  {
-    id: 1,
-    icon: 'prompt',
-    actor: 'Ahmed',
-    action: t('dashboard.activity_published'),
-    target: 'customer-support v3',
-    time: t('dashboard.activity_time_2m'),
-  },
-  {
-    id: 2,
-    icon: 'doc',
-    actor: 'System',
-    action: t('dashboard.activity_indexed'),
-    target: 'onboarding-guide.pdf',
-    time: t('dashboard.activity_time_18m'),
-  },
-  {
-    id: 3,
-    icon: 'agent',
-    actor: 'Sara',
-    action: t('dashboard.activity_created_agent'),
-    target: 'support-bot',
-    time: t('dashboard.activity_time_1h'),
-  },
-  {
-    id: 4,
-    icon: 'member',
-    actor: 'Ahmed',
-    action: t('dashboard.activity_invited'),
-    target: 'maya@example.com',
-    time: t('dashboard.activity_time_3h'),
-  },
-  {
-    id: 5,
-    icon: 'key',
-    actor: 'Ahmed',
-    action: t('dashboard.activity_created_key'),
-    target: 'production-ci',
-    time: t('dashboard.activity_time_1d'),
-  },
-  {
-    id: 6,
-    icon: 'memory',
-    actor: 'support-bot',
-    action: t('dashboard.activity_stored'),
-    target: '128 memories',
-    time: t('dashboard.activity_time_1d'),
-  },
-])
+const activityIconByResource = {
+  prompt: 'prompt',
+  prompt_version: 'prompt',
+  agent: 'agent',
+  document: 'doc',
+  member: 'member',
+  invite: 'member',
+  access_key: 'key',
+  memory: 'memory',
+  message: 'memory',
+  session: 'session',
+  workspace: 'workspace',
+  billing: 'billing',
+  subscription: 'billing',
+}
+
+const recentActivity = computed(() =>
+  audits.value.map((event) => ({
+    id: event.id,
+    icon: activityIconByResource[event.resourceType] || activityIconByResource[event.action?.split('.')[0]] || 'workspace',
+    actor: event.actorName || t('common.em_dash'),
+    action: activityActionLabel(event.action),
+    target: event.meta?.name || event.meta?.handle || event.meta?.email || '',
+    time: formatRelative(event.createdAt),
+  })),
+)
+
+function activityActionLabel(action) {
+  const key = `dashboard.action_${action.replaceAll('.', '_')}`
+  return te(key) ? t(key) : action
+}
 
 function dismissWhatsNew() {
   showWhatsNew.value = false
@@ -547,6 +534,9 @@ async function loadDashboard() {
       billing_api.status(currentWorkspace.id)
         .then((res) => { plan.value = res.data.plan })
         .catch(() => {}),
+      audit_api.list(currentWorkspace.id, { limit: ACTIVITY_LIMIT, offset: 0 })
+        .then((res) => { audits.value = res.data.audits })
+        .catch(() => { audits.value = [] }),
     )
   }
 
