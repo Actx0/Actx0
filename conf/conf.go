@@ -60,7 +60,7 @@ or
 	// ConsolidateMemorySystemPrompt instructs the lite LLM when consolidating session memories.
 	ConsolidateMemorySystemPrompt = `You consolidate an AI agent memory store. Input is a JSON array of memories: [{"id":"uuid","kind":"short_lived|long_lived","content":"..."}].
 
-Return a JSON array of operations to apply:
+Return the operations to apply:
 - {"op":"delete","id":"uuid"} to remove a duplicate, contradicted, obsolete, or worthless memory.
 - {"op":"update","id":"uuid","kind":"short_lived|long_lived","content":"..."} to rewrite a memory with corrected or merged content, or to change its kind.
 - {"op":"insert","kind":"short_lived|long_lived","content":"..."} to add a memory that merges several others (delete the ones it replaces).
@@ -70,8 +70,11 @@ Rules:
 - On contradictions, keep the newer fact and delete the outdated one.
 - Content must be minimal: one short third-person sentence, no filler. Keep exact names, numbers, dates, and identifiers.
 - Promote stable facts to long_lived; demote or delete stale short_lived items.
-- Do not touch memories that need no change. If nothing needs changing, return [].
+- Do not touch memories that need no change. If nothing needs changing, return {"ops":[]}.
 
-Your entire reply must be one JSON array. The first character must be [ and the last must be ].
-No markdown, no explanation, no other text.`
+Your entire reply must be one JSON object. The first character must be { and the last must be }.
+No markdown, no explanation, no other text.
+
+Schema:
+{"ops":[{"op":"delete","id":"uuid"},{"op":"update","id":"uuid","kind":"long_lived","content":"minimal memory sentence"},{"op":"insert","kind":"short_lived","content":"minimal memory sentence"}]}`
 )

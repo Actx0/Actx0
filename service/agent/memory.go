@@ -21,7 +21,175 @@ import (
 
 // ConsolidateMemory summarizes and compacts session memory.
 func (s *Service) ConsolidateMemory(ctx context.Context, sessionId db.Id) error {
-	return ErrNotImplemented
+	session, err := s.sessions.GetById(sessionId)
+	if err != nil {
+		return fmt.Errorf("%w: get session: %v", ErrConsolidateFailed, err)
+	}
+	if session == nil {
+		return ErrSessionNotFound
+	}
+
+	count, err := s.memories.CountBySessionId(sessionId)
+	if err != nil {
+		return fmt.Errorf("%w: count memories: %v", ErrConsolidateFailed, err)
+	}
+	if count < 2 {
+		return nil
+	}
+
+	memories, err := s.memories.ListBySessionId(sessionId, int(count), 0)
+	if err != nil {
+		return fmt.Errorf("%w: list memories: %v", ErrConsolidateFailed, err)
+	}
+
+	type item struct {
+		Id      string `json:"id"`
+		Kind    string `json:"kind"`
+		Content string `json:"content"`
+	}
+	items := make([]item, 0, len(memories))
+	for _, memory := range memories {
+		items = append(items, item{
+			Id:      memory.Id.String(),
+			Kind:    memory.Kind,
+			Content: memory.Content,
+		})
+	}
+	input, _ := json.Marshal(items)
+
+	reply, usage, err := s.liteLLM.Complete(ctx, []ai.Message{
+		{Role: "system", Content: conf.ConsolidateMemorySystemPrompt},
+		{Role: "user", Content: string(input)},
+	}, ai.CompleteOptions{JSONObject: true})
+	if err != nil {
+		return fmt.Errorf("%w: complete: %v", ErrConsolidateFailed, err)
+	}
+
+	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("workspace_id", session.WorkspaceId.String()).
+			Int64("total_tokens", usage.TotalTokens).
+			Int64("total_cost", usage.Cost).
+			Msg("Failed to record AI usage")
+	}
+
+	if sub != nil && sub.CurrentPeriodStart != nil && sub.CurrentPeriodEnd != nil {
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAITokens,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.TotalTokens,
+			db.UsageUnitTokens,
+		)
+
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAICost,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.Cost,
+			db.UsageUnitNanoUSD,
+		)
+	}
+
+	log.Info().
+		Str("session_id", sessionId.String()).
+		Str("reply", reply).
+		Int64("prompt_tokens", usage.PromptTokens).
+		Int64("total_tokens", usage.TotalTokens).
+		Int64("total_cost", usage.Cost).
+		Msg("Memory consolidate model reply")
+
+	var result struct {
+		Ops []struct {
+			Op      string `json:"op"`
+			Id      string `json:"id"`
+			Kind    string `json:"kind"`
+			Content string `json:"content"`
+		} `json:"ops"`
+	}
+	err = json.Unmarshal([]byte(strings.TrimSpace(reply)), &result)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("session_id", sessionId.String()).
+			Str("reply", reply).
+			Msg("Memory consolidate reply was not JSON, skipping")
+		return nil
+	}
+
+	for _, op := range result.Ops {
+		op.Kind = strings.TrimSpace(op.Kind)
+		op.Content = strings.TrimSpace(op.Content)
+
+		switch op.Op {
+		case "delete":
+			err = s.DeleteSessionMemory(ctx, db.Id(op.Id))
+			if err != nil {
+				return err
+			}
+
+			err = s.memories.Delete(db.Id(op.Id))
+			if err != nil {
+				return fmt.Errorf("%w: delete memory: %v", ErrConsolidateFailed, err)
+			}
+
+		case "update":
+			if op.Content == "" || (op.Kind != MemoryKindShortLived && op.Kind != MemoryKindLongLived) {
+				continue
+			}
+
+			memory, err := s.memories.GetById(db.Id(op.Id))
+			if err != nil {
+				return fmt.Errorf("%w: get memory: %v", ErrConsolidateFailed, err)
+			}
+			if memory == nil {
+				continue
+			}
+
+			memory.Kind = op.Kind
+			memory.Content = op.Content
+			err = s.memories.Update(memory)
+			if err != nil {
+				return fmt.Errorf("%w: update memory: %v", ErrConsolidateFailed, err)
+			}
+
+			err = s.IndexSessionMemory(ctx, memory.Id)
+			if err != nil {
+				return fmt.Errorf("%w: index memory: %v", ErrConsolidateFailed, err)
+			}
+
+		case "insert":
+			if op.Content == "" || (op.Kind != MemoryKindShortLived && op.Kind != MemoryKindLongLived) {
+				continue
+			}
+
+			memory := &db.SessionMemory{
+				SessionId: sessionId,
+				Kind:      op.Kind,
+				Content:   op.Content,
+			}
+			err = s.memories.Create(memory)
+			if err != nil {
+				return fmt.Errorf("%w: create memory: %v", ErrConsolidateFailed, err)
+			}
+
+			err = s.IndexSessionMemory(ctx, memory.Id)
+			if err != nil {
+				return fmt.Errorf("%w: index memory: %v", ErrConsolidateFailed, err)
+			}
+		}
+	}
+
+	log.Info().
+		Str("session_id", sessionId.String()).
+		Int("operations", len(result.Ops)).
+		Msg("Memory consolidate applied")
+
+	return nil
 }
 
 // StoreMemory saves a memory item for a session.
@@ -338,6 +506,14 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 		Str("kind", memory.Kind).
 		Str("content", memory.Content).
 		Msg("Memory generate stored")
+
+	err = s.ConsolidateMemory(ctx, session.Id)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("session_id", session.Id.String()).
+			Msg("Memory consolidate after generate failed")
+	}
 
 	return nil
 }
