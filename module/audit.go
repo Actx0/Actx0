@@ -112,7 +112,7 @@ func (a *Audit) Record(ctx context.Context, event *RecordAuditEvent) {
 
 	if len(event.Meta) > 0 {
 		encoded, _ := json.Marshal(event.Meta)
-		row.Meta = lo.ToPtr(string(encoded))
+		row.Meta = new(string(encoded))
 	}
 
 	err := a.AuditRepository.Create(row)
