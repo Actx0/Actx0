@@ -111,12 +111,11 @@ func (d *Document) UploadDocument(ctx context.Context, form *util.UploadForm, wo
 
 	var labels *string
 	if len(form.Labels) > 0 {
-		labelsRaw, err := json.Marshal(form.Labels)
+		raw, err := json.Marshal(form.Labels)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreateDocument, err)
 		}
-		value := string(labelsRaw)
-		labels = &value
+		labels = new(string(raw))
 	}
 
 	raw, err := json.Marshal(util.DefaultChunkingOptions(form.CharCount, form.Filename))

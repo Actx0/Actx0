@@ -150,8 +150,7 @@ func (s *Service) Index(ctx context.Context, documentId db.Id) error {
 	}
 
 	document.Status = db.WorkspaceDocumentStatusIndexed
-	now := time.Now().UTC()
-	document.ProcessedAt = &now
+	document.ProcessedAt = new(time.Now().UTC())
 
 	return s.documents.Update(document)
 }
