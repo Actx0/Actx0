@@ -23,7 +23,6 @@ var (
 	ErrPromptVersionNotFound            = errors.New("prompt version not found")
 	ErrFailedCreatePromptVersion        = errors.New("failed create prompt version")
 	ErrFailedListPrompts                = errors.New("failed list prompts")
-	ErrFailedListPromptSummary          = errors.New("failed list prompt summaries")
 	ErrFailedListPromptVersions         = errors.New("failed list prompt versions")
 	ErrFailedGetPrompt                  = errors.New("failed get prompt")
 	ErrFailedGetPromptVersion           = errors.New("failed get prompt version")
@@ -41,15 +40,17 @@ var (
 
 // Prompt is the module for workspace prompt CRUD.
 type Prompt struct {
-	PromptRepository    db.PromptRepository
-	WorkspaceRepository db.WorkspaceRepository
+	PromptRepository        db.PromptRepository
+	PromptVersionRepository db.PromptVersionRepository
+	WorkspaceRepository     db.WorkspaceRepository
 }
 
 // NewPrompt creates a prompt module with the given repositories.
-func NewPrompt(pr db.PromptRepository, wr db.WorkspaceRepository) *Prompt {
+func NewPrompt(pr db.PromptRepository, pvr db.PromptVersionRepository, wr db.WorkspaceRepository) *Prompt {
 	return &Prompt{
-		PromptRepository:    pr,
-		WorkspaceRepository: wr,
+		PromptRepository:        pr,
+		PromptVersionRepository: pvr,
+		WorkspaceRepository:     wr,
 	}
 }
 
@@ -113,22 +114,17 @@ type PromptVersionResponse struct {
 
 // ListPromptsResponse is returned when listing prompts.
 type ListPromptsResponse struct {
-	Prompts []*PromptSummaryResponse
+	Prompts []*PromptResultResponse
 	Total   int64
 }
 
-// PromptSummaryResponse is a prompt aggregate for list views.
-type PromptSummaryResponse struct {
-	PromptId        string   `json:"promptId"`
-	Name            string   `json:"name"`
-	Handle          string   `json:"handle"`
-	Description     string   `json:"description"`
-	VersionCount    int64    `json:"versionCount"`
-	Type            string   `json:"type"`
-	LatestVersion   int      `json:"latestVersion"`
-	LatestCreatedAt string   `json:"latestCreatedAt"`
-	Labels          []string `json:"labels,omitempty"`
-	HasProduction   bool     `json:"hasProduction"`
+// PromptResultResponse is a prompt for list/get views.
+type PromptResultResponse struct {
+	PromptId     string `json:"promptId"`
+	Name         string `json:"name"`
+	Handle       string `json:"handle"`
+	Description  string `json:"description"`
+	VersionCount int64  `json:"versionCount"`
 }
 
 // ListPromptVersionsResponse is returned when listing prompt versions.
@@ -159,7 +155,7 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 		return nil, ErrPromptHandleTaken
 	}
 
-	promptId, err := p.PromptRepository.CreatePrompt(workspaceId, req.Name, handle, req.Description)
+	promptId, err := p.PromptRepository.Create(workspaceId, req.Name, handle, req.Description)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 	}
@@ -174,7 +170,7 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 		Production:    req.Production,
 	})
 	if err != nil {
-		_ = p.PromptRepository.DeletePrompt(workspaceId, promptId)
+		_ = p.PromptRepository.Delete(workspaceId, promptId)
 		return nil, err
 	}
 
@@ -191,11 +187,11 @@ func (p *Prompt) CreatePromptVersion(workspaceId, promptId db.Id, req *CreatePro
 		return nil, ErrWorkspaceNotFound
 	}
 
-	row, err := p.PromptRepository.GetPrompt(workspaceId, promptId)
+	prompt, err := p.PromptRepository.GetById(workspaceId, promptId)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 	}
-	if row == nil {
+	if prompt == nil {
 		return nil, ErrPromptNotFound
 	}
 
@@ -212,17 +208,13 @@ func (p *Prompt) CreatePromptVersion(workspaceId, promptId db.Id, req *CreatePro
 	}
 	labels := string(labelsRaw)
 
-	err = p.PromptRepository.ClearLabelFromPromptId(promptId, PromptLabelLatest, nil)
+	err = p.PromptVersionRepository.ClearLabelFromPromptId(promptId, PromptLabelLatest, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 	}
 
 	version := &db.PromptVersion{
 		PromptId:      promptId,
-		WorkspaceId:   workspaceId,
-		Name:          row.Name,
-		Handle:        row.Handle,
-		Description:   row.Description,
 		Type:          req.Type,
 		Content:       req.Content,
 		Config:        req.Config,
@@ -233,18 +225,18 @@ func (p *Prompt) CreatePromptVersion(workspaceId, promptId db.Id, req *CreatePro
 		Production:    req.Production,
 	}
 
-	err = p.PromptRepository.Create(version)
+	err = p.PromptVersionRepository.Create(version)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      version.PromptId,
+		PromptId:      prompt.Id,
 		Id:            version.Id,
-		WorkspaceId:   version.WorkspaceId,
-		Name:          version.Name,
-		Handle:        version.Handle,
-		Description:   version.Description,
+		WorkspaceId:   workspaceId,
+		Name:          prompt.Name,
+		Handle:        prompt.Handle,
+		Description:   prompt.Description,
 		Version:       version.Version,
 		Type:          version.Type,
 		Content:       version.Content,
@@ -273,20 +265,28 @@ func (p *Prompt) GetPromptVersionByHandle(workspaceId db.Id, handle, versionSpec
 		return nil, ErrInvalidPromptHandle
 	}
 
+	prompt, err := p.PromptRepository.GetByHandle(workspaceId, handle)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedGetPromptVersion, err)
+	}
+	if prompt == nil {
+		return nil, ErrPromptVersionNotFound
+	}
+
 	versionSpec = strings.TrimSpace(strings.ToLower(versionSpec))
 
 	var version *db.PromptVersion
 	switch versionSpec {
 	case "", PromptLabelLatest:
-		version, err = p.PromptRepository.GetLatestByHandle(workspaceId, handle)
+		version, err = p.PromptVersionRepository.GetLatestByPromptId(prompt.Id)
 	case "production":
-		version, err = p.PromptRepository.GetByHandleAndLabel(workspaceId, handle, "production")
+		version, err = p.PromptVersionRepository.GetByPromptIdAndLabel(prompt.Id, "production")
 	default:
-		vn, err := strconv.Atoi(strings.TrimPrefix(versionSpec, "v"))
-		if err != nil || vn < 1 {
+		vn, parseErr := strconv.Atoi(strings.TrimPrefix(versionSpec, "v"))
+		if parseErr != nil || vn < 1 {
 			return nil, ErrInvalidPromptVersion
 		}
-		version, err = p.PromptRepository.GetByHandleAndVersion(workspaceId, handle, vn)
+		version, err = p.PromptVersionRepository.GetByPromptIdAndVersion(prompt.Id, vn)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedGetPromptVersion, err)
@@ -296,12 +296,12 @@ func (p *Prompt) GetPromptVersionByHandle(workspaceId db.Id, handle, versionSpec
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      version.PromptId,
+		PromptId:      prompt.Id,
 		Id:            version.Id,
-		WorkspaceId:   version.WorkspaceId,
-		Name:          version.Name,
-		Handle:        version.Handle,
-		Description:   version.Description,
+		WorkspaceId:   workspaceId,
+		Name:          prompt.Name,
+		Handle:        prompt.Handle,
+		Description:   prompt.Description,
 		Version:       version.Version,
 		Type:          version.Type,
 		Content:       version.Content,
@@ -327,33 +327,41 @@ func (p *Prompt) GetPromptVersion(workspaceId, promptId, versionId db.Id) (*Prom
 		return nil, ErrWorkspaceNotFound
 	}
 
-	prompt, err := p.PromptRepository.GetById(versionId)
+	prompt, err := p.PromptRepository.GetById(workspaceId, promptId)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedGetPromptVersion, err)
 	}
-	if prompt == nil || prompt.WorkspaceId != workspaceId || prompt.PromptId != promptId {
+	if prompt == nil {
+		return nil, ErrPromptVersionNotFound
+	}
+
+	version, err := p.PromptVersionRepository.GetById(versionId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedGetPromptVersion, err)
+	}
+	if version == nil || version.PromptId != promptId {
 		return nil, ErrPromptVersionNotFound
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      prompt.PromptId,
-		Id:            prompt.Id,
-		WorkspaceId:   prompt.WorkspaceId,
+		PromptId:      prompt.Id,
+		Id:            version.Id,
+		WorkspaceId:   workspaceId,
 		Name:          prompt.Name,
 		Handle:        prompt.Handle,
 		Description:   prompt.Description,
-		Version:       prompt.Version,
-		Type:          prompt.Type,
-		Content:       prompt.Content,
-		Config:        util.JSONRawFromString(prompt.Config),
-		Labels:        util.JSONSliceFromString[string](prompt.Labels),
-		CommitMessage: prompt.CommitMessage,
-		CommitHash:    prompt.CommitHash,
-		Meta:          prompt.Meta,
-		Status:        prompt.Status,
-		Production:    prompt.Production,
-		CreatedAt:     prompt.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:     prompt.UpdatedAt.UTC().Format(time.RFC3339),
+		Version:       version.Version,
+		Type:          version.Type,
+		Content:       version.Content,
+		Config:        util.JSONRawFromString(version.Config),
+		Labels:        util.JSONSliceFromString[string](version.Labels),
+		CommitMessage: version.CommitMessage,
+		CommitHash:    version.CommitHash,
+		Meta:          version.Meta,
+		Status:        version.Status,
+		Production:    version.Production,
+		CreatedAt:     version.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:     version.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
 }
 
@@ -366,57 +374,66 @@ func (p *Prompt) UpdatePromptVersion(workspaceId, promptId, versionId db.Id, req
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
 	}
-	prompt, err := p.PromptRepository.GetById(versionId)
+
+	prompt, err := p.PromptRepository.GetById(workspaceId, promptId)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedUpdatePromptVersion, err)
 	}
-	if prompt == nil || prompt.WorkspaceId != workspaceId || prompt.PromptId != promptId {
+	if prompt == nil {
+		return nil, ErrPromptVersionNotFound
+	}
+
+	version, err := p.PromptVersionRepository.GetById(versionId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedUpdatePromptVersion, err)
+	}
+	if version == nil || version.PromptId != promptId {
 		return nil, ErrPromptVersionNotFound
 	}
 
 	if lo.IsNotEmpty(req.Type) {
-		prompt.Type = req.Type
+		version.Type = req.Type
 	}
-	prompt.Content = req.Content
-	prompt.Config = req.Config
-	prompt.Labels = req.Labels
-	prompt.CommitMessage = req.CommitMessage
-	prompt.Meta = req.Meta
+	version.Content = req.Content
+	version.Config = req.Config
+	version.Labels = req.Labels
+	version.CommitMessage = req.CommitMessage
+	version.Meta = req.Meta
 	if lo.IsNotEmpty(req.Status) {
-		prompt.Status = req.Status
+		version.Status = req.Status
 	}
 	if req.Production {
-		err = p.PromptRepository.ClearProductionFromPromptId(prompt.PromptId, &versionId)
+		err = p.PromptVersionRepository.ClearProductionFromPromptId(version.PromptId, &versionId)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedSetPromptVersionProduction, err)
 		}
-		prompt.Production = true
+		version.Production = true
 	}
 
-	err = p.PromptRepository.Update(prompt)
+	err = p.PromptVersionRepository.Update(version)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedUpdatePromptVersion, err)
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      prompt.PromptId,
-		Id:            prompt.Id,
-		WorkspaceId:   prompt.WorkspaceId,
+		PromptId:      prompt.Id,
+		Id:            version.Id,
+		WorkspaceId:   workspaceId,
 		Name:          prompt.Name,
 		Handle:        prompt.Handle,
 		Description:   prompt.Description,
-		Version:       prompt.Version,
-		Type:          prompt.Type,
-		Content:       prompt.Content,
-		Config:        util.JSONRawFromString(prompt.Config),
-		Labels:        util.JSONSliceFromString[string](prompt.Labels),
-		CommitMessage: prompt.CommitMessage,
-		CommitHash:    prompt.CommitHash,
-		Meta:          prompt.Meta,
-		Status:        prompt.Status,
-		Production:    prompt.Production,
-		CreatedAt:     prompt.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:     prompt.UpdatedAt.UTC().Format(time.RFC3339),
+		Version:       version.Version,
+		Type:          version.Type,
+		Content:       version.Content,
+		Config:        util.JSONRawFromString(version.Config),
+		Labels:        util.JSONSliceFromString[string](version.Labels),
+		CommitMessage: version.CommitMessage,
+		CommitHash:    version.CommitHash,
+		Meta:          version.Meta,
+		Status:        version.Status,
+		Production:    version.Production,
+		CreatedAt:     version.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:     version.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
 }
 
@@ -430,15 +447,23 @@ func (p *Prompt) DeletePromptVersion(workspaceId, promptId, versionId db.Id) err
 		return ErrWorkspaceNotFound
 	}
 
-	prompt, err := p.PromptRepository.GetById(versionId)
+	prompt, err := p.PromptRepository.GetById(workspaceId, promptId)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrFailedDeletePromptVersion, err)
 	}
-	if prompt == nil || prompt.WorkspaceId != workspaceId || prompt.PromptId != promptId {
+	if prompt == nil {
 		return ErrPromptVersionNotFound
 	}
 
-	err = p.PromptRepository.DeleteVersion(versionId)
+	version, err := p.PromptVersionRepository.GetById(versionId)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrFailedDeletePromptVersion, err)
+	}
+	if version == nil || version.PromptId != promptId {
+		return ErrPromptVersionNotFound
+	}
+
+	err = p.PromptVersionRepository.Delete(versionId)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrFailedDeletePromptVersion, err)
 	}
@@ -458,39 +483,30 @@ func (p *Prompt) ListPrompts(workspaceId db.Id, limit, offset int) (*ListPrompts
 
 	total, err := p.PromptRepository.CountByWorkspaceId(workspaceId)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrFailedListPromptSummary, err)
+		return nil, fmt.Errorf("%w: %v", ErrFailedListPrompts, err)
 	}
 
-	summaries, err := p.PromptRepository.ListSummariesByWorkspace(workspaceId, limit, offset)
+	results, err := p.PromptRepository.ListByWorkspace(workspaceId, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrFailedListPromptSummary, err)
+		return nil, fmt.Errorf("%w: %v", ErrFailedListPrompts, err)
 	}
 
-	list := make([]*PromptSummaryResponse, 0, len(summaries))
-	for _, item := range summaries {
-		var summaryLabels []string
-		if item.LatestLabels != nil && lo.IsNotEmpty(*item.LatestLabels) {
-			_ = json.Unmarshal([]byte(*item.LatestLabels), &summaryLabels)
-		}
-		list = append(list, &PromptSummaryResponse{
-			PromptId:        item.PromptId.String(),
-			Name:            item.Name,
-			Handle:          item.Handle,
-			Description:     item.Description,
-			VersionCount:    item.VersionCount,
-			Type:            item.Type,
-			LatestVersion:   item.LatestVersion,
-			LatestCreatedAt: item.LatestCreatedAt.UTC().Format(time.RFC3339),
-			Labels:          summaryLabels,
-			HasProduction:   item.HasProduction,
+	list := make([]*PromptResultResponse, 0, len(results))
+	for _, item := range results {
+		list = append(list, &PromptResultResponse{
+			PromptId:     item.Id.String(),
+			Name:         item.Name,
+			Handle:       item.Handle,
+			Description:  item.Description,
+			VersionCount: item.VersionCount,
 		})
 	}
 
 	return &ListPromptsResponse{Prompts: list, Total: total}, nil
 }
 
-// GetPrompt returns one prompt summary by Id.
-func (p *Prompt) GetPrompt(workspaceId, promptId db.Id) (*PromptSummaryResponse, error) {
+// GetPrompt returns one prompt by Id.
+func (p *Prompt) GetPrompt(workspaceId, promptId db.Id) (*PromptResultResponse, error) {
 	workspace, err := p.WorkspaceRepository.GetById(workspaceId)
 	if err != nil {
 		return nil, err
@@ -499,30 +515,20 @@ func (p *Prompt) GetPrompt(workspaceId, promptId db.Id) (*PromptSummaryResponse,
 		return nil, ErrWorkspaceNotFound
 	}
 
-	summary, err := p.PromptRepository.GetSummaryByPromptId(workspaceId, promptId)
+	result, err := p.PromptRepository.GetById(workspaceId, promptId)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedGetPrompt, err)
 	}
-	if summary == nil {
+	if result == nil {
 		return nil, ErrPromptNotFound
 	}
 
-	var summaryLabels []string
-	if summary.LatestLabels != nil && lo.IsNotEmpty(*summary.LatestLabels) {
-		_ = json.Unmarshal([]byte(*summary.LatestLabels), &summaryLabels)
-	}
-
-	return &PromptSummaryResponse{
-		PromptId:        summary.PromptId.String(),
-		Name:            summary.Name,
-		Handle:          summary.Handle,
-		Description:     summary.Description,
-		VersionCount:    summary.VersionCount,
-		Type:            summary.Type,
-		LatestVersion:   summary.LatestVersion,
-		LatestCreatedAt: summary.LatestCreatedAt.UTC().Format(time.RFC3339),
-		Labels:          summaryLabels,
-		HasProduction:   summary.HasProduction,
+	return &PromptResultResponse{
+		PromptId:     result.Id.String(),
+		Name:         result.Name,
+		Handle:       result.Handle,
+		Description:  result.Description,
+		VersionCount: result.VersionCount,
 	}, nil
 }
 
@@ -536,40 +542,45 @@ func (p *Prompt) ListPromptVersions(workspaceId, promptId db.Id, limit, offset i
 		return nil, ErrWorkspaceNotFound
 	}
 
-	total, err := p.PromptRepository.CountVersionsByPromptId(workspaceId, promptId)
+	prompt, err := p.PromptRepository.GetById(workspaceId, promptId)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedListPromptVersions, err)
 	}
-	if total == 0 {
+	if prompt == nil {
 		return nil, ErrPromptNotFound
 	}
 
-	versions, err := p.PromptRepository.ListVersionsByPromptId(workspaceId, promptId, limit, offset)
+	total, err := p.PromptVersionRepository.CountByPromptId(promptId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedListPromptVersions, err)
+	}
+
+	versions, err := p.PromptVersionRepository.ListByPromptId(promptId, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedListPromptVersions, err)
 	}
 
 	list := make([]*PromptVersionResponse, 0, len(versions))
-	for _, item := range versions {
+	for _, version := range versions {
 		list = append(list, &PromptVersionResponse{
-			PromptId:      item.PromptId,
-			Id:            item.Id,
-			WorkspaceId:   item.WorkspaceId,
-			Name:          item.Name,
-			Handle:        item.Handle,
-			Description:   item.Description,
-			Version:       item.Version,
-			Type:          item.Type,
-			Content:       item.Content,
-			Config:        util.JSONRawFromString(item.Config),
-			Labels:        util.JSONSliceFromString[string](item.Labels),
-			CommitMessage: item.CommitMessage,
-			CommitHash:    item.CommitHash,
-			Meta:          item.Meta,
-			Status:        item.Status,
-			Production:    item.Production,
-			CreatedAt:     item.CreatedAt.UTC().Format(time.RFC3339),
-			UpdatedAt:     item.UpdatedAt.UTC().Format(time.RFC3339),
+			PromptId:      prompt.Id,
+			Id:            version.Id,
+			WorkspaceId:   workspaceId,
+			Name:          prompt.Name,
+			Handle:        prompt.Handle,
+			Description:   prompt.Description,
+			Version:       version.Version,
+			Type:          version.Type,
+			Content:       version.Content,
+			Config:        util.JSONRawFromString(version.Config),
+			Labels:        util.JSONSliceFromString[string](version.Labels),
+			CommitMessage: version.CommitMessage,
+			CommitHash:    version.CommitHash,
+			Meta:          version.Meta,
+			Status:        version.Status,
+			Production:    version.Production,
+			CreatedAt:     version.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:     version.UpdatedAt.UTC().Format(time.RFC3339),
 		})
 	}
 
@@ -586,7 +597,7 @@ func (p *Prompt) DeletePrompt(workspaceId, promptId db.Id) error {
 		return ErrWorkspaceNotFound
 	}
 
-	err = p.PromptRepository.DeletePrompt(workspaceId, promptId)
+	err = p.PromptRepository.Delete(workspaceId, promptId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return ErrPromptNotFound

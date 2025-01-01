@@ -36,6 +36,7 @@ Keep entries short. Remove obsolete notes. Never store secrets.
 | Stripe metadata camelCase (`workspaceId`, …) | snake_case metadata keys |
 | `subscriptions_meta.value` as `to_jsonb($::text)` / read `value #>> '{}'` | treating that column as plain text SQL |
 | vue-i18n literal `@` as `{'@'}` (e.g. `maya{'@'}example.com`) | raw `@` in locale strings (linked-message syntax; can blank the UI) |
+| `PromptRepository` + `PromptVersionRepository` composed in module (no prompt/version SQL joins) | one mega-repo / joined `PromptVersion` DTO |
 
 ## Locale
 

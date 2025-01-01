@@ -36,6 +36,7 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	version, err := pm.CreatePrompt(workspaceId, &req)
@@ -92,6 +93,7 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	version, err := pm.CreatePromptVersion(workspaceId, db.Id(promptIdStr), &req)
@@ -132,6 +134,7 @@ func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	result, err := pm.ListPrompts(workspaceId, limit, offset)
@@ -181,6 +184,7 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	promptVersion, err := pm.GetPromptVersionByHandle(workspaceId, name, r.URL.Query().Get("version"))
@@ -235,6 +239,7 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	prompt, err := pm.GetPrompt(workspaceId, db.Id(promptIdStr))
@@ -289,6 +294,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	version, err := pm.GetPromptVersion(workspaceId, db.Id(promptIdStr), db.Id(promptVersionIdStr))
@@ -349,6 +355,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	version, err := pm.UpdatePromptVersion(
@@ -409,6 +416,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	err := pm.DeletePromptVersion(workspaceId, db.Id(promptIdStr), db.Id(promptVersionIdStr))
@@ -457,6 +465,7 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	result, err := pm.ListPromptVersions(workspaceId, db.Id(promptIdStr), limit, offset)
@@ -510,6 +519,7 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 
 	pm := module.NewPrompt(
 		db.NewPromptRepository(db.GetDB()),
+		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
 	err := pm.DeletePrompt(workspaceId, db.Id(promptIdStr))

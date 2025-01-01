@@ -5,82 +5,28 @@ package db
 
 import (
 	"database/sql"
-	"encoding/json"
-	"fmt"
 	"time"
-
-	"github.com/clivern/actx0/pkg/util"
-
-	"github.com/samber/lo"
 )
 
-// PromptVersion is a prompt version joined with its parent prompt row.
-type PromptVersion struct {
-	Id            Id
-	PromptId      Id
-	WorkspaceId   Id
-	Name          string
-	Handle        string
-	Description   string
-	Version       int
-	Type          string
-	Content       string
-	Config        *string
-	Labels        *string
-	CommitMessage *string
-	CommitHash    string
-	Meta          *string
-	Status        string
-	Production    bool
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+// PromptResult is a prompt row with its version count.
+type PromptResult struct {
+	Id           Id
+	Name         string
+	Handle       string
+	Description  string
+	VersionCount int64
 }
 
-// PromptSummary aggregates versions for one prompt.
-type PromptSummary struct {
-	PromptId        Id
-	Name            string
-	Handle          string
-	Description     string
-	VersionCount    int64
-	Type            string
-	LatestVersion   int
-	LatestCreatedAt time.Time
-	LatestLabels    *string
-	HasProduction   bool
-}
-
-// Prompt is metadata stored on the prompts table.
-type Prompt struct {
-	Id          Id
-	WorkspaceId Id
-	Name        string
-	Handle      string
-	Description string
-}
-
-// PromptRepository is the interface for prompt and version CRUD.
+// PromptRepository is the interface for prompt parent-row CRUD.
 type PromptRepository interface {
-	CreatePrompt(workspaceId Id, name, handle, description string) (Id, error)
+	Create(workspaceId Id, name, handle, description string) (Id, error)
 	ExistsByHandle(workspaceId Id, handle string) (bool, error)
-	Create(prompt *PromptVersion) error
-	GetById(id Id) (*PromptVersion, error)
-	GetByHandleAndVersion(workspaceId Id, handle string, version int) (*PromptVersion, error)
-	GetLatestByHandle(workspaceId Id, handle string) (*PromptVersion, error)
-	GetByHandleAndLabel(workspaceId Id, handle, label string) (*PromptVersion, error)
-	Update(prompt *PromptVersion) error
-	DeleteVersion(id Id) error
-	DeletePrompt(workspaceId Id, promptId Id) error
-	ListByWorkspaceId(workspaceId Id, limit, offset int) ([]*PromptVersion, error)
-	ListSummariesByWorkspace(workspaceId Id, limit, offset int) ([]*PromptSummary, error)
-	GetPrompt(workspaceId Id, promptId Id) (*Prompt, error)
-	GetSummaryByPromptId(workspaceId Id, promptId Id) (*PromptSummary, error)
-	ListVersionsByPromptId(workspaceId Id, promptId Id, limit, offset int) ([]*PromptVersion, error)
+	GetById(workspaceId Id, id Id) (*PromptResult, error)
+	GetByHandle(workspaceId Id, handle string) (*PromptResult, error)
+	Delete(workspaceId Id, promptId Id) error
+	ListByWorkspace(workspaceId Id, limit, offset int) ([]*PromptResult, error)
 	Count() (int64, error)
 	CountByWorkspaceId(workspaceId Id) (int64, error)
-	CountVersionsByPromptId(workspaceId Id, promptId Id) (int64, error)
-	ClearLabelFromPromptId(promptId Id, label string, exceptId *Id) error
-	ClearProductionFromPromptId(promptId Id, exceptId *Id) error
 }
 
 type PromptRepositoryPostgres struct {
@@ -92,8 +38,8 @@ func NewPromptRepository(db *sql.DB) PromptRepository {
 	return &PromptRepositoryPostgres{db: db}
 }
 
-// CreatePrompt inserts a new prompt row.
-func (r *PromptRepositoryPostgres) CreatePrompt(workspaceId Id, name, handle, description string) (Id, error) {
+// Create inserts a new prompt row.
+func (r *PromptRepositoryPostgres) Create(workspaceId Id, name, handle, description string) (Id, error) {
 	id, err := NewId()
 	if err != nil {
 		return "", err
@@ -120,103 +66,26 @@ func (r *PromptRepositoryPostgres) ExistsByHandle(workspaceId Id, handle string)
 	return exists, err
 }
 
-// Create inserts a prompt version row for an existing prompt.
-func (r *PromptRepositoryPostgres) Create(prompt *PromptVersion) error {
-	if lo.IsEmpty(prompt.PromptId) {
-		return fmt.Errorf("prompt id required")
-	}
-
-	id, err := NewId()
-	if err != nil {
-		return err
-	}
-	prompt.Id = id
-
-	if prompt.Version == 0 {
-		var maxVersion int
-		err := r.db.QueryRow(
-			`SELECT COALESCE(MAX(version), 0) FROM prompt_versions WHERE prompt_id = $1`,
-			prompt.PromptId.String(),
-		).Scan(&maxVersion)
-		if err != nil {
-			return err
-		}
-		prompt.Version = maxVersion + 1
-	}
-
-	commitHash, err := util.RandomHash()
-	if err != nil {
-		return err
-	}
-	prompt.CommitHash = commitHash
-
-	if prompt.Production {
-		if err := r.ClearProductionFromPromptId(prompt.PromptId, nil); err != nil {
-			return err
-		}
-	}
-
-	err = r.db.QueryRow(
-		`INSERT INTO prompt_versions (
-			id, prompt_id, version, type, content, config, labels,
-			commit_message, commit_hash, meta, status, production
-		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-		RETURNING created_at, updated_at`,
-		prompt.Id.String(),
-		prompt.PromptId.String(),
-		prompt.Version,
-		prompt.Type,
-		prompt.Content,
-		prompt.Config,
-		prompt.Labels,
-		prompt.CommitMessage,
-		prompt.CommitHash,
-		prompt.Meta,
-		prompt.Status,
-		prompt.Production,
-	).Scan(&prompt.CreatedAt, &prompt.UpdatedAt)
-	if err != nil {
-		return err
-	}
-	_, err = r.db.Exec(
-		`UPDATE prompts SET updated_at = $1 WHERE id = $2`,
-		time.Now().UTC(),
-		prompt.PromptId.String(),
-	)
-	return err
-}
-
-// GetById returns a prompt by id.
-func (r *PromptRepositoryPostgres) GetById(id Id) (*PromptVersion, error) {
-	item := &PromptVersion{}
+// GetById returns a prompt with its version count.
+func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*PromptResult, error) {
+	item := &PromptResult{}
 	err := r.db.QueryRow(`
 		SELECT
-			v.id, v.prompt_id, p.workspace_id, p.name, p.handle, p.description,
-			v.version, v.type, v.content, v.config, v.labels,
-			v.commit_message, v.commit_hash, v.meta, v.status, v.production, v.created_at, v.updated_at
-		FROM prompt_versions v
-		JOIN prompts p ON p.id = v.prompt_id
-		WHERE v.id = $1`, id.String(),
+			p.id,
+			p.name,
+			p.handle,
+			p.description,
+			(SELECT COUNT(*) FROM prompt_versions v WHERE v.prompt_id = p.id)
+		FROM prompts p
+		WHERE p.workspace_id = $1 AND p.id = $2`,
+		workspaceId.String(),
+		id.String(),
 	).Scan(
 		&item.Id,
-		&item.PromptId,
-		&item.WorkspaceId,
 		&item.Name,
 		&item.Handle,
 		&item.Description,
-		&item.Version,
-		&item.Type,
-		&item.Content,
-		&item.Config,
-		&item.Labels,
-		&item.CommitMessage,
-		&item.CommitHash,
-		&item.Meta,
-		&item.Status,
-		&item.Production,
-		&item.CreatedAt,
-		&item.UpdatedAt,
+		&item.VersionCount,
 	)
 	if isNotFound(err) {
 		return nil, nil
@@ -224,39 +93,26 @@ func (r *PromptRepositoryPostgres) GetById(id Id) (*PromptVersion, error) {
 	return item, err
 }
 
-// GetByHandleAndVersion returns a prompt by handle and version.
-func (r *PromptRepositoryPostgres) GetByHandleAndVersion(workspaceId Id, handle string, version int) (*PromptVersion, error) {
-	item := &PromptVersion{}
+// GetByHandle returns a prompt by workspace and handle.
+func (r *PromptRepositoryPostgres) GetByHandle(workspaceId Id, handle string) (*PromptResult, error) {
+	item := &PromptResult{}
 	err := r.db.QueryRow(`
 		SELECT
-			v.id, v.prompt_id, p.workspace_id, p.name, p.handle, p.description,
-			v.version, v.type, v.content, v.config, v.labels,
-			v.commit_message, v.commit_hash, v.meta, v.status, v.production, v.created_at, v.updated_at
-		FROM prompt_versions v
-		JOIN prompts p ON p.id = v.prompt_id
-		WHERE p.workspace_id = $1 AND p.handle = $2 AND v.version = $3`,
+			p.id,
+			p.name,
+			p.handle,
+			p.description,
+			(SELECT COUNT(*) FROM prompt_versions v WHERE v.prompt_id = p.id)
+		FROM prompts p
+		WHERE p.workspace_id = $1 AND p.handle = $2`,
 		workspaceId.String(),
 		handle,
-		version,
 	).Scan(
 		&item.Id,
-		&item.PromptId,
-		&item.WorkspaceId,
 		&item.Name,
 		&item.Handle,
 		&item.Description,
-		&item.Version,
-		&item.Type,
-		&item.Content,
-		&item.Config,
-		&item.Labels,
-		&item.CommitMessage,
-		&item.CommitHash,
-		&item.Meta,
-		&item.Status,
-		&item.Production,
-		&item.CreatedAt,
-		&item.UpdatedAt,
+		&item.VersionCount,
 	)
 	if isNotFound(err) {
 		return nil, nil
@@ -264,190 +120,8 @@ func (r *PromptRepositoryPostgres) GetByHandleAndVersion(workspaceId Id, handle 
 	return item, err
 }
 
-// GetLatestByHandle returns the newest version of a prompt by handle.
-func (r *PromptRepositoryPostgres) GetLatestByHandle(workspaceId Id, handle string) (*PromptVersion, error) {
-	item := &PromptVersion{}
-	err := r.db.QueryRow(`
-		SELECT
-			v.id, v.prompt_id, p.workspace_id, p.name, p.handle, p.description,
-			v.version, v.type, v.content, v.config, v.labels,
-			v.commit_message, v.commit_hash, v.meta, v.status, v.production, v.created_at, v.updated_at
-		FROM prompt_versions v
-		JOIN prompts p ON p.id = v.prompt_id
-		WHERE p.workspace_id = $1 AND p.handle = $2
-		ORDER BY v.version DESC
-		LIMIT 1`, workspaceId.String(), handle,
-	).Scan(
-		&item.Id,
-		&item.PromptId,
-		&item.WorkspaceId,
-		&item.Name,
-		&item.Handle,
-		&item.Description,
-		&item.Version,
-		&item.Type,
-		&item.Content,
-		&item.Config,
-		&item.Labels,
-		&item.CommitMessage,
-		&item.CommitHash,
-		&item.Meta,
-		&item.Status,
-		&item.Production,
-		&item.CreatedAt,
-		&item.UpdatedAt,
-	)
-	if isNotFound(err) {
-		return nil, nil
-	}
-	return item, err
-}
-
-// GetByHandleAndLabel returns a prompt by handle and label.
-func (r *PromptRepositoryPostgres) GetByHandleAndLabel(workspaceId Id, handle, label string) (*PromptVersion, error) {
-	item := &PromptVersion{}
-	var err error
-	if label == "production" {
-		err = r.db.QueryRow(`
-			SELECT
-				v.id, v.prompt_id, p.workspace_id, p.name, p.handle, p.description,
-				v.version, v.type, v.content, v.config, v.labels,
-				v.commit_message, v.commit_hash, v.meta, v.status, v.production, v.created_at, v.updated_at
-			FROM prompt_versions v
-			JOIN prompts p ON p.id = v.prompt_id
-			WHERE p.workspace_id = $1 AND p.handle = $2 AND v.production = TRUE
-			LIMIT 1`, workspaceId.String(), handle,
-		).Scan(
-			&item.Id,
-			&item.PromptId,
-			&item.WorkspaceId,
-			&item.Name,
-			&item.Handle,
-			&item.Description,
-			&item.Version,
-			&item.Type,
-			&item.Content,
-			&item.Config,
-			&item.Labels,
-			&item.CommitMessage,
-			&item.CommitHash,
-			&item.Meta,
-			&item.Status,
-			&item.Production,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		)
-	} else {
-		labelFilter, marshalErr := json.Marshal([]string{label})
-		if marshalErr != nil {
-			return nil, marshalErr
-		}
-		err = r.db.QueryRow(`
-			SELECT
-				v.id, v.prompt_id, p.workspace_id, p.name, p.handle, p.description,
-				v.version, v.type, v.content, v.config, v.labels,
-				v.commit_message, v.commit_hash, v.meta, v.status, v.production, v.created_at, v.updated_at
-			FROM prompt_versions v
-			JOIN prompts p ON p.id = v.prompt_id
-			WHERE p.workspace_id = $1 AND p.handle = $2 AND v.labels @> $3::jsonb
-			ORDER BY v.version DESC
-			LIMIT 1`, workspaceId.String(), handle, string(labelFilter),
-		).Scan(
-			&item.Id,
-			&item.PromptId,
-			&item.WorkspaceId,
-			&item.Name,
-			&item.Handle,
-			&item.Description,
-			&item.Version,
-			&item.Type,
-			&item.Content,
-			&item.Config,
-			&item.Labels,
-			&item.CommitMessage,
-			&item.CommitHash,
-			&item.Meta,
-			&item.Status,
-			&item.Production,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		)
-	}
-	if isNotFound(err) {
-		return nil, nil
-	}
-	return item, err
-}
-
-// Update updates an existing prompt row.
-func (r *PromptRepositoryPostgres) Update(prompt *PromptVersion) error {
-	_, err := r.db.Exec(
-		`UPDATE prompt_versions
-		SET
-			type = $1,
-			content = $2,
-			config = $3,
-			labels = $4,
-			commit_message = $5,
-			meta = $6,
-			status = $7,
-			production = $8,
-			updated_at = $9
-		WHERE id = $10`,
-		prompt.Type,
-		prompt.Content,
-		prompt.Config,
-		prompt.Labels,
-		prompt.CommitMessage,
-		prompt.Meta,
-		prompt.Status,
-		prompt.Production,
-		time.Now().UTC(),
-		prompt.Id.String(),
-	)
-	if err != nil {
-		return err
-	}
-	_, err = r.db.Exec(
-		`UPDATE prompts SET updated_at = $1 WHERE id = $2`,
-		time.Now().UTC(),
-		prompt.PromptId.String(),
-	)
-	return err
-}
-
-// DeleteVersion deletes a single prompt version.
-func (r *PromptRepositoryPostgres) DeleteVersion(id Id) error {
-	var promptId Id
-	err := r.db.QueryRow(
-		`SELECT prompt_id FROM prompt_versions WHERE id = $1`,
-		id.String(),
-	).Scan(&promptId)
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db.Exec(`DELETE FROM prompt_versions WHERE id = $1`, id.String())
-	if err != nil {
-		return err
-	}
-
-	var remaining int
-	err = r.db.QueryRow(
-		`SELECT COUNT(*) FROM prompt_versions WHERE prompt_id = $1`,
-		promptId.String(),
-	).Scan(&remaining)
-	if err != nil {
-		return err
-	}
-	if remaining == 0 {
-		_, err = r.db.Exec(`DELETE FROM prompts WHERE id = $1`, promptId.String())
-	}
-	return err
-}
-
-// DeletePrompt deletes a prompt and all of its versions.
-func (r *PromptRepositoryPostgres) DeletePrompt(workspaceId Id, promptId Id) error {
+// Delete deletes a prompt and all of its versions.
+func (r *PromptRepositoryPostgres) Delete(workspaceId Id, promptId Id) error {
 	result, err := r.db.Exec(
 		`DELETE FROM prompts WHERE id = $1 AND workspace_id = $2`,
 		promptId.String(),
@@ -466,197 +140,16 @@ func (r *PromptRepositoryPostgres) DeletePrompt(workspaceId Id, promptId Id) err
 	return nil
 }
 
-// ClearLabelFromPromptId removes a label from all versions of a prompt.
-func (r *PromptRepositoryPostgres) ClearLabelFromPromptId(promptId Id, label string, exceptId *Id) error {
-	rows, err := r.db.Query(
-		`SELECT id, labels FROM prompt_versions WHERE prompt_id = $1`,
-		promptId.String(),
-	)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id Id
-		var labels *string
-		if err := rows.Scan(&id, &labels); err != nil {
-			return err
-		}
-		if exceptId != nil && id == *exceptId {
-			continue
-		}
-		updated, changed := util.RemoveLabelFromJSON(labels, label)
-		if !changed {
-			continue
-		}
-		_, err := r.db.Exec(
-			`UPDATE prompt_versions SET labels = $1, updated_at = $2 WHERE id = $3`,
-			updated,
-			time.Now().UTC(),
-			id.String(),
-		)
-		if err != nil {
-			return err
-		}
-	}
-	return rows.Err()
-}
-
-// ClearProductionFromPromptId removes the production label from a prompt.
-func (r *PromptRepositoryPostgres) ClearProductionFromPromptId(promptId Id, exceptId *Id) error {
-	query := `UPDATE prompt_versions SET production = FALSE, updated_at = $1 WHERE prompt_id = $2 AND production = TRUE`
-	args := []interface{}{time.Now().UTC(), promptId.String()}
-	if exceptId != nil {
-		query += ` AND id != $3`
-		args = append(args, exceptId.String())
-	}
-	_, err := r.db.Exec(query, args...)
-	return err
-}
-
-// ListByWorkspaceId lists prompt rows by workspace id.
-func (r *PromptRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, offset int) ([]*PromptVersion, error) {
-	rows, err := r.db.Query(`
-		SELECT
-			v.id, v.prompt_id, p.workspace_id, p.name, p.handle, p.description,
-			v.version, v.type, v.content, v.config, v.labels,
-			v.commit_message, v.commit_hash, v.meta, v.status, v.production, v.created_at, v.updated_at
-		FROM prompt_versions v
-		JOIN prompts p ON p.id = v.prompt_id
-		WHERE p.workspace_id = $1
-		ORDER BY p.handle ASC, v.version DESC
-		LIMIT $2 OFFSET $3`, workspaceId.String(), limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var list []*PromptVersion
-	for rows.Next() {
-		item := &PromptVersion{}
-		if err := rows.Scan(
-			&item.Id,
-			&item.PromptId,
-			&item.WorkspaceId,
-			&item.Name,
-			&item.Handle,
-			&item.Description,
-			&item.Version,
-			&item.Type,
-			&item.Content,
-			&item.Config,
-			&item.Labels,
-			&item.CommitMessage,
-			&item.CommitHash,
-			&item.Meta,
-			&item.Status,
-			&item.Production,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		list = append(list, item)
-	}
-	return list, rows.Err()
-}
-
-// ListVersionsByPromptId lists all versions for a prompt.
-func (r *PromptRepositoryPostgres) ListVersionsByPromptId(workspaceId Id, promptId Id, limit, offset int) ([]*PromptVersion, error) {
-	rows, err := r.db.Query(`
-		SELECT
-			v.id, v.prompt_id, p.workspace_id, p.name, p.handle, p.description,
-			v.version, v.type, v.content, v.config, v.labels,
-			v.commit_message, v.commit_hash, v.meta, v.status, v.production, v.created_at, v.updated_at
-		FROM prompt_versions v
-		JOIN prompts p ON p.id = v.prompt_id
-		WHERE p.workspace_id = $1 AND p.id = $2
-		ORDER BY v.version DESC
-		LIMIT $3 OFFSET $4`, workspaceId.String(), promptId.String(), limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var list []*PromptVersion
-	for rows.Next() {
-		item := &PromptVersion{}
-		if err := rows.Scan(
-			&item.Id,
-			&item.PromptId,
-			&item.WorkspaceId,
-			&item.Name,
-			&item.Handle,
-			&item.Description,
-			&item.Version,
-			&item.Type,
-			&item.Content,
-			&item.Config,
-			&item.Labels,
-			&item.CommitMessage,
-			&item.CommitHash,
-			&item.Meta,
-			&item.Status,
-			&item.Production,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		list = append(list, item)
-	}
-	return list, rows.Err()
-}
-
-// GetPrompt returns prompt metadata from the prompts table.
-func (r *PromptRepositoryPostgres) GetPrompt(workspaceId, promptId Id) (*Prompt, error) {
-	item := &Prompt{}
-	err := r.db.QueryRow(
-		`SELECT id, workspace_id, name, handle, description
-		FROM prompts WHERE workspace_id = $1 AND id = $2`,
-		workspaceId.String(),
-		promptId.String(),
-	).Scan(
-		&item.Id,
-		&item.WorkspaceId,
-		&item.Name,
-		&item.Handle,
-		&item.Description,
-	)
-	if isNotFound(err) {
-		return nil, nil
-	}
-	return item, err
-}
-
-// ListSummariesByWorkspace lists prompt summaries for a workspace.
-func (r *PromptRepositoryPostgres) ListSummariesByWorkspace(workspaceId Id, limit, offset int) ([]*PromptSummary, error) {
+// ListByWorkspace lists prompts for a workspace with version counts.
+func (r *PromptRepositoryPostgres) ListByWorkspace(workspaceId Id, limit, offset int) ([]*PromptResult, error) {
 	rows, err := r.db.Query(`
 		SELECT
 			p.id,
 			p.name,
 			p.handle,
 			p.description,
-			vc.version_count,
-			lv.type,
-			lv.version,
-			lv.created_at,
-			lv.labels,
-			vc.has_production
+			(SELECT COUNT(*) FROM prompt_versions v WHERE v.prompt_id = p.id)
 		FROM prompts p
-		JOIN (
-			SELECT prompt_id, COUNT(*) AS version_count, BOOL_OR(production) AS has_production
-			FROM prompt_versions
-			GROUP BY prompt_id
-		) vc ON vc.prompt_id = p.id
-		JOIN LATERAL (
-			SELECT type, version, created_at, labels
-			FROM prompt_versions
-			WHERE prompt_id = p.id
-			ORDER BY version DESC
-			LIMIT 1
-		) lv ON TRUE
 		WHERE p.workspace_id = $1
 		ORDER BY p.handle ASC
 		LIMIT $2 OFFSET $3`, workspaceId.String(), limit, offset)
@@ -665,70 +158,21 @@ func (r *PromptRepositoryPostgres) ListSummariesByWorkspace(workspaceId Id, limi
 	}
 	defer rows.Close()
 
-	var list []*PromptSummary
+	var list []*PromptResult
 	for rows.Next() {
-		item := &PromptSummary{}
+		item := &PromptResult{}
 		if err := rows.Scan(
-			&item.PromptId,
+			&item.Id,
 			&item.Name,
 			&item.Handle,
 			&item.Description,
 			&item.VersionCount,
-			&item.Type,
-			&item.LatestVersion,
-			&item.LatestCreatedAt,
-			&item.LatestLabels,
-			&item.HasProduction,
 		); err != nil {
 			return nil, err
 		}
 		list = append(list, item)
 	}
 	return list, rows.Err()
-}
-
-// GetSummaryByPromptId returns the summary for a prompt.
-func (r *PromptRepositoryPostgres) GetSummaryByPromptId(workspaceId Id, promptId Id) (*PromptSummary, error) {
-	item := &PromptSummary{}
-	err := r.db.QueryRow(`
-		SELECT
-			p.id,
-			p.name,
-			p.handle,
-			p.description,
-			(SELECT COUNT(*) FROM prompt_versions v WHERE v.prompt_id = p.id),
-			lv.type,
-			lv.version,
-			lv.created_at,
-			lv.labels,
-			EXISTS(SELECT 1 FROM prompt_versions v WHERE v.prompt_id = p.id AND v.production)
-		FROM prompts p
-		JOIN LATERAL (
-			SELECT type, version, created_at, labels
-			FROM prompt_versions
-			WHERE prompt_id = p.id
-			ORDER BY version DESC
-			LIMIT 1
-		) lv ON TRUE
-		WHERE p.workspace_id = $1 AND p.id = $2`,
-		workspaceId.String(),
-		promptId.String(),
-	).Scan(
-		&item.PromptId,
-		&item.Name,
-		&item.Handle,
-		&item.Description,
-		&item.VersionCount,
-		&item.Type,
-		&item.LatestVersion,
-		&item.LatestCreatedAt,
-		&item.LatestLabels,
-		&item.HasProduction,
-	)
-	if isNotFound(err) {
-		return nil, nil
-	}
-	return item, err
 }
 
 // CountByWorkspaceId counts prompt rows by workspace id.
@@ -739,20 +183,6 @@ func (r *PromptRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, er
 		FROM prompts
 		WHERE workspace_id = $1`,
 		workspaceId.String(),
-	).Scan(&count)
-	return count, err
-}
-
-// CountVersionsByPromptId counts versions for a prompt.
-func (r *PromptRepositoryPostgres) CountVersionsByPromptId(workspaceId Id, promptId Id) (int64, error) {
-	var count int64
-	err := r.db.QueryRow(
-		`SELECT COUNT(*)
-		FROM prompt_versions v
-		JOIN prompts p ON p.id = v.prompt_id
-		WHERE p.workspace_id = $1 AND p.id = $2`,
-		workspaceId.String(),
-		promptId.String(),
 	).Scan(&count)
 	return count, err
 }
