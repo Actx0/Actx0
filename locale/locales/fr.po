@@ -105,6 +105,12 @@ msgstr "Impossible de lister les documents."
 msgid "failed_search_documents"
 msgstr "Impossible de rechercher dans les documents."
 
+msgid "failed_search_session_messages"
+msgstr "Impossible de rechercher dans les messages de session."
+
+msgid "failed_search_session_memories"
+msgstr "Impossible de rechercher dans les mémoires de session."
+
 msgid "failed_update_document"
 msgstr "Impossible de mettre à jour le document."
 

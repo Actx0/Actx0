@@ -61,15 +61,17 @@ const (
 
 	CanListSessionMessages  = "CAN_LIST_SESSION_MESSAGES"
 	CanGetSessionMessage    = "CAN_GET_SESSION_MESSAGE"
+	CanQuerySessionMessages = "CAN_QUERY_SESSION_MESSAGES"
 	CanCreateSessionMessage = "CAN_CREATE_SESSION_MESSAGE"
 	CanUpdateSessionMessage = "CAN_UPDATE_SESSION_MESSAGE"
 	CanDeleteSessionMessage = "CAN_DELETE_SESSION_MESSAGE"
 
-	CanListSessionMemories = "CAN_LIST_SESSION_MEMORIES"
-	CanGetSessionMemory    = "CAN_GET_SESSION_MEMORY"
-	CanCreateSessionMemory = "CAN_CREATE_SESSION_MEMORY"
-	CanUpdateSessionMemory = "CAN_UPDATE_SESSION_MEMORY"
-	CanDeleteSessionMemory = "CAN_DELETE_SESSION_MEMORY"
+	CanListSessionMemories  = "CAN_LIST_SESSION_MEMORIES"
+	CanGetSessionMemory     = "CAN_GET_SESSION_MEMORY"
+	CanQuerySessionMemories = "CAN_QUERY_SESSION_MEMORIES"
+	CanCreateSessionMemory  = "CAN_CREATE_SESSION_MEMORY"
+	CanUpdateSessionMemory  = "CAN_UPDATE_SESSION_MEMORY"
+	CanDeleteSessionMemory  = "CAN_DELETE_SESSION_MEMORY"
 
 	CanListWorkspaceAudits = "CAN_LIST_WORKSPACE_AUDITS"
 	CanGetWorkspaceAudit   = "CAN_GET_WORKSPACE_AUDIT"
@@ -97,11 +99,13 @@ var AccessKeyPermissions = map[string]bool{
 	CanDeleteAgentSession:      true,
 	CanListSessionMessages:     true,
 	CanGetSessionMessage:       true,
+	CanQuerySessionMessages:    true,
 	CanCreateSessionMessage:    true,
 	CanUpdateSessionMessage:    true,
 	CanDeleteSessionMessage:    true,
 	CanListSessionMemories:     true,
 	CanGetSessionMemory:        true,
+	CanQuerySessionMemories:    true,
 	CanCreateSessionMemory:     true,
 	CanUpdateSessionMemory:     true,
 	CanDeleteSessionMemory:     true,
@@ -187,8 +191,10 @@ func (p *Perm) CanAsUser(permission string) (bool, error) {
 		CanGetAgentSession,
 		CanListSessionMessages,
 		CanGetSessionMessage,
+		CanQuerySessionMessages,
 		CanListSessionMemories,
-		CanGetSessionMemory:
+		CanGetSessionMemory,
+		CanQuerySessionMemories:
 		return true, nil
 	case CanUpdateWorkspace,
 		CanDeleteWorkspace,

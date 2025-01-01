@@ -4,6 +4,7 @@
 package module
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,17 +12,20 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+	"github.com/clivern/actx0/service/agent"
 
+	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
 var (
-	ErrSessionMemoryNotFound     = errors.New("session memory not found")
-	ErrFailedCreateSessionMemory = errors.New("failed create session memory")
-	ErrFailedListSessionMemories = errors.New("failed list session memories")
-	ErrFailedGetSessionMemory    = errors.New("failed get session memory")
-	ErrFailedUpdateSessionMemory = errors.New("failed update session memory")
-	ErrFailedDeleteSessionMemory = errors.New("failed delete session memory")
+	ErrSessionMemoryNotFound       = errors.New("session memory not found")
+	ErrFailedCreateSessionMemory   = errors.New("failed create session memory")
+	ErrFailedListSessionMemories   = errors.New("failed list session memories")
+	ErrFailedGetSessionMemory      = errors.New("failed get session memory")
+	ErrFailedUpdateSessionMemory   = errors.New("failed update session memory")
+	ErrFailedDeleteSessionMemory   = errors.New("failed delete session memory")
+	ErrFailedSearchSessionMemories = errors.New("failed search session memories")
 
 	ErrFailedRegenerateSessionMemories = errors.New("failed regenerate session memories")
 )
@@ -50,6 +54,25 @@ type UpdateSessionMemoryRequest struct {
 	Meta    *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 }
 
+// SearchSessionMemoriesRequest is the body for searching session memories.
+type SearchSessionMemoriesRequest struct {
+	Query string `json:"query" validate:"required,min=1" label:"Query"`
+	Limit int    `json:"limit" validate:"omitempty,min=1,max=100" label:"Limit"`
+}
+
+// SearchSessionMemoryHit is a scored session memory for API responses.
+type SearchSessionMemoryHit struct {
+	Id    db.Id   `json:"id"`
+	Kind  string  `json:"kind"`
+	Score float32 `json:"score"`
+	Text  string  `json:"text"`
+}
+
+// SearchSessionMemoriesResponse is returned when searching session memories.
+type SearchSessionMemoriesResponse struct {
+	Results []SearchSessionMemoryHit `json:"results"`
+}
+
 // SessionMemoryResponse is a session memory shaped for API responses.
 type SessionMemoryResponse struct {
 	Id        db.Id           `json:"id"`
@@ -74,9 +97,12 @@ type RegenerateSessionMemoriesResponse struct {
 
 // Memory is the module for session memory CRUD.
 type Memory struct {
-	MemoryRepository  db.SessionMemoryRepository
-	MessageRepository db.SessionMessageRepository
-	AgentSession      *AgentSession
+	MemoryRepository       db.SessionMemoryRepository
+	MessageRepository      db.SessionMessageRepository
+	AgentSession           *AgentSession
+	Agent                  *agent.Service
+	UsageRepository        db.UsageRepository
+	SubscriptionRepository db.SubscriptionRepository
 }
 
 // NewMemory creates a session memory module with the given repositories.
@@ -321,6 +347,55 @@ func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limi
 	}
 
 	return &ListSessionMemoriesResponse{Memories: list, Total: total}, nil
+}
+
+// SearchSessionMemories finds relevant session memories for a semantic query.
+func (m *Memory) SearchSessionMemories(ctx context.Context, workspaceId, agentId, sessionId db.Id, query string, limit int) (*SearchSessionMemoriesResponse, error) {
+	session, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	hits, usage, err := m.Agent.SearchSessionMemories(ctx, agent.SearchSessionRequest{
+		WorkspaceId: workspaceId,
+		AgentId:     agentId,
+		SessionId:   session.Id,
+		Query:       query,
+		Limit:       uint64(limit),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedSearchSessionMemories, err)
+	}
+
+	err = NewUsage().IncrementAIUsage(
+		m.UsageRepository,
+		m.SubscriptionRepository,
+		workspaceId,
+		usage.TotalTokens,
+		usage.Cost,
+	)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("workspaceId", workspaceId.String()).
+			Int64("total_tokens", usage.TotalTokens).
+			Int64("total_cost", usage.Cost).
+			Msg("Failed to record AI usage for session memory search")
+	}
+
+	results := make([]SearchSessionMemoryHit, 0, len(hits))
+	for _, hit := range hits {
+		results = append(results, SearchSessionMemoryHit{
+			Id:    hit.MemoryId,
+			Kind:  hit.Kind,
+			Score: hit.Score,
+			Text:  hit.Content,
+		})
+	}
+
+	return &SearchSessionMemoriesResponse{
+		Results: results,
+	}, nil
 }
 
 // RegenerateSessionMemories queues a task that clears and rebuilds session memories.

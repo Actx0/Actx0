@@ -108,6 +108,12 @@ msgstr "Failed to list documents."
 msgid "failed_search_documents"
 msgstr "Failed to search documents."
 
+msgid "failed_search_session_messages"
+msgstr "Failed to search session messages."
+
+msgid "failed_search_session_memories"
+msgstr "Failed to search session memories."
+
 msgid "failed_update_document"
 msgstr "Failed to update document."
 
