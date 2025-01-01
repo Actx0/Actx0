@@ -7,31 +7,32 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/clivern/actx0/core"
 	"github.com/clivern/actx0/mcp"
 
 	"github.com/spf13/cobra"
 )
 
+var (
+	mcpMgt     string
+	mcpPort    int
+	mcpPath    string
+	mcpTimeout int
+)
+
 var mcpCmd = &cobra.Command{
 	Use:   "mcp",
 	Short: "Start the actx0 MCP server",
-	Long:  `Start the actx0 Model Context Protocol server over streamable HTTP.`,
+	Long:  `Start the actx0 Model Context Protocol server as a proxy to the management API.`,
 	Run: func(_ *cobra.Command, _ []string) {
-		err := core.Load(config)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		err = core.SetupLogging()
-		if err != nil {
-			panic(err.Error())
-		}
-
-		err = mcp.Run(context.Background(), mcp.Options{
+		err := mcp.Run(context.Background(), mcp.Options{
 			Name:    "actx0",
 			Version: Version,
+			Mgt:     mcpMgt,
+			Port:    mcpPort,
+			Path:    mcpPath,
+			Timeout: time.Duration(mcpTimeout) * time.Second,
 		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "MCP server error: %s\n", err.Error())
@@ -42,13 +43,29 @@ var mcpCmd = &cobra.Command{
 
 // init registers the mcp subcommand.
 func init() {
-	mcpCmd.Flags().StringVarP(
-		&config,
-		"config",
-		"c",
-		"config.prod.yml",
-		"Absolute path to config file (required)",
+	mcpCmd.Flags().StringVar(
+		&mcpMgt,
+		"mgt",
+		"http://127.0.0.1:8000",
+		"Actx0 management server URL",
 	)
-	mcpCmd.MarkFlagRequired("config")
+	mcpCmd.Flags().IntVar(
+		&mcpPort,
+		"port",
+		8001,
+		"MCP HTTP listen port",
+	)
+	mcpCmd.Flags().StringVar(
+		&mcpPath,
+		"path",
+		"/mcp",
+		"MCP HTTP path",
+	)
+	mcpCmd.Flags().IntVar(
+		&mcpTimeout,
+		"timeout",
+		50,
+		"Request timeout in seconds",
+	)
 	rootCmd.AddCommand(mcpCmd)
 }
