@@ -71,6 +71,10 @@ type AccessKeyMeta struct {
 
 // CreateAccessKey creates an access key; the raw key is returned once.
 func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest) (*AccessKeyResponse, error) {
+	if !ValidAccessKeyPermissions(req.Permissions) {
+		return nil, ErrInvalidAccessKeyPermissions
+	}
+
 	workspace, err := a.WorkspaceRepository.GetById(workspaceId)
 	if err != nil {
 		return nil, err
@@ -86,10 +90,6 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 			return nil, ErrInvalidExpiresAt
 		}
 		expiresAt = new(t)
-	}
-
-	if !ValidAccessKeyPermissions(req.Permissions) {
-		return nil, ErrInvalidAccessKeyPermissions
 	}
 
 	raw, err := json.Marshal(AccessKeyMeta{Permissions: req.Permissions})
