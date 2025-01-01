@@ -91,11 +91,10 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 	if !ValidAccessKeyPermissions(req.Permissions) {
 		return nil, ErrInvalidAccessKeyPermissions
 	}
-	metaRaw, err := json.Marshal(AccessKeyMeta{Permissions: req.Permissions})
+	raw, err := json.Marshal(AccessKeyMeta{Permissions: req.Permissions})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidAccessKeyPermissions, err)
 	}
-	meta := string(metaRaw)
 
 	token, err := uuid.NewRandom()
 	if err != nil {
@@ -107,7 +106,7 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 		Name:        req.Name,
 		Key:         token.String(),
 		ExpiresAt:   expiresAt,
-		Meta:        &meta,
+		Meta:        new(string(raw)),
 	}
 
 	if err := a.WorkspaceAccessKeyRepository.Create(item); err != nil {
