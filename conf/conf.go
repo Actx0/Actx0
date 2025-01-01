@@ -57,7 +57,7 @@ or
 {"skip":false,"kind":"long_lived","content":"minimal memory sentence"}`
 
 	// ConsolidateMemorySystemPrompt instructs the lite LLM when consolidating session memories.
-	ConsolidateMemorySystemPrompt = `You consolidate an AI agent memory store. Input is a JSON array of memories: [{"id":"uuid","kind":"short_lived|long_lived","content":"..."}].
+	ConsolidateMemorySystemPrompt = `You consolidate an AI agent memory store. Input is a JSON array of memories: [{"id":"uuid","kind":"short_lived|long_lived","content":"...","created_at":"RFC3339 timestamp"}].
 
 Return the operations to apply:
 - {"op":"delete","id":"uuid"} to remove a duplicate, contradicted, obsolete, or worthless memory.
@@ -66,7 +66,7 @@ Return the operations to apply:
 
 Rules:
 - Merge overlapping memories into one; keep the fewest memories that preserve all meaning.
-- On contradictions, keep the newer fact and delete the outdated one.
+- On contradictions, compare created_at and keep the fact from the memory with the later timestamp; delete or rewrite the older one. Never overwrite newer content with older content.
 - Content must be minimal: one short third-person sentence, no filler. Keep exact names, numbers, dates, and identifiers.
 - Promote stable facts to long_lived; demote or delete stale short_lived items.
 - Do not touch memories that need no change. If nothing needs changing, return {"ops":[]}.

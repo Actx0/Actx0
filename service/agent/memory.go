@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
@@ -43,16 +44,18 @@ func (s *Service) ConsolidateMemory(ctx context.Context, sessionId db.Id) error 
 	}
 
 	type item struct {
-		Id      string `json:"id"`
-		Kind    string `json:"kind"`
-		Content string `json:"content"`
+		Id        string `json:"id"`
+		Kind      string `json:"kind"`
+		Content   string `json:"content"`
+		CreatedAt string `json:"created_at"`
 	}
 	items := make([]item, 0, len(memories))
 	for _, memory := range memories {
 		items = append(items, item{
-			Id:      memory.Id.String(),
-			Kind:    memory.Kind,
-			Content: memory.Content,
+			Id:        memory.Id.String(),
+			Kind:      memory.Kind,
+			Content:   memory.Content,
+			CreatedAt: memory.CreatedAt.UTC().Format(time.RFC3339),
 		})
 	}
 	input, _ := json.Marshal(items)
@@ -405,7 +408,7 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 
 	reply, usage, err := s.liteLLM.Complete(ctx, []ai.Message{
 		{Role: "system", Content: conf.GenerateMemorySystemPrompt},
-		{Role: "user", Content: message.Content},
+		{Role: "user", Content: fmt.Sprintf("<message>\n%s\n</message>", message.Content)},
 	}, ai.CompleteOptions{JSONObject: true})
 	if err != nil {
 		return fmt.Errorf("%w: complete: %v", ErrGenerateFailed, err)
