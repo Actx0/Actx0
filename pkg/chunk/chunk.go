@@ -50,7 +50,7 @@ type Chunker struct {
 
 // New returns a chunker for the given configuration.
 func New(config Config) (*Chunker, error) {
-	splitter, err := newSplitter(config)
+	splitter, err := NewSplitter(config)
 	if err != nil {
 		return nil, err
 	}
@@ -76,9 +76,9 @@ func (c *Chunker) Split(text string) ([]string, error) {
 	return chunks, nil
 }
 
-// newSplitter creates a text splitter for the given strategy.
-func newSplitter(config Config) (textsplitter.TextSplitter, error) {
-	switch splitterType(config.Splitter) {
+// NewSplitter creates a text splitter for the given strategy.
+func NewSplitter(config Config) (textsplitter.TextSplitter, error) {
+	switch lo.Ternary(lo.IsEmpty(config.Splitter), SplitterRecursive, config.Splitter) {
 	case SplitterRecursive:
 		return NewRecursiveCharacter(config), nil
 	case SplitterMarkdown:
@@ -86,15 +86,6 @@ func newSplitter(config Config) (textsplitter.TextSplitter, error) {
 	default:
 		return nil, fmt.Errorf("chunk unsupported splitter %q", config.Splitter)
 	}
-}
-
-// splitterType returns the splitter type for a document format.
-func splitterType(splitter Splitter) Splitter {
-	if lo.IsEmpty(splitter) {
-		return SplitterRecursive
-	}
-
-	return splitter
 }
 
 // NewRecursiveCharacter creates a recursive character text splitter.
