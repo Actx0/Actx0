@@ -25,6 +25,7 @@ type WorkspaceUsageMetrics struct {
 	DocumentsCount   int64   `json:"documentsCount"`
 	PromptsCount     int64   `json:"promptsCount"`
 	StorageGB        float64 `json:"storageGB"`
+	SessionsCount    int64   `json:"sessionsCount"`
 	HistoryRecords   int64   `json:"historyRecords"`
 	MemoryRecords    int64   `json:"memoryRecords"`
 	AITokens         int64   `json:"aiTokens"`
@@ -40,6 +41,7 @@ type UsageSnapshotDeps struct {
 	SubscriptionRepository      db.SubscriptionRepository
 	SessionMessageRepository    db.SessionMessageRepository
 	SessionMemoryRepository     db.SessionMemoryRepository
+	AgentSessionRepository      db.AgentSessionRepository
 }
 
 // NewUsage returns a usage module.
@@ -196,6 +198,34 @@ func (u *Usage) HistoryRecords(messages db.SessionMessageRepository, workspaceId
 	return messages.CountByWorkspaceId(workspaceId)
 }
 
+// SessionsCount returns agent session rows stored across a workspace.
+func (u *Usage) SessionsCount(sessions db.AgentSessionRepository, workspaceId db.Id) (int64, error) {
+	return sessions.CountByWorkspaceId(workspaceId)
+}
+
+// IsSessionsCountReached reports whether adding sessions would exceed the plan limit.
+func (u *Usage) IsSessionsCountReached(sessions db.AgentSessionRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.SessionsCount(sessions, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).SessionsCount
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
+}
+
 // IsHistoryRecordsReached reports whether adding messages would exceed the plan limit.
 func (u *Usage) IsHistoryRecordsReached(messages db.SessionMessageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
 	used, err := u.HistoryRecords(messages, workspaceId)
@@ -279,6 +309,11 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 		return nil, err
 	}
 
+	sessionsCount, err := u.SessionsCount(deps.AgentSessionRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
 	memoryRecords, err := u.MemoryRecords(deps.SessionMemoryRepository, workspaceId)
 	if err != nil {
 		return nil, err
@@ -300,6 +335,7 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 		DocumentsCount:   documents,
 		PromptsCount:     prompts,
 		StorageGB:        float64(storageBytes) / bytesPerGB,
+		SessionsCount:    sessionsCount,
 		HistoryRecords:   historyRecords,
 		MemoryRecords:    memoryRecords,
 		AITokens:         aiTokens,

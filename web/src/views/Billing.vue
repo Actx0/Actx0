@@ -298,6 +298,7 @@ const usageData = ref({
     documentsCount: 0,
     promptsCount: 0,
     storageGB: 0,
+    sessionsCount: 0,
     historyRecords: 0,
     memoryRecords: 0,
     aiTokens: 0,
@@ -309,6 +310,7 @@ const usageData = ref({
     documentsCount: 100,
     promptsCount: 50,
     storageGB: 5,
+    sessionsCount: 25,
     historyRecords: 1_000,
     memoryRecords: 500,
     aiTokens: 500_000
@@ -495,6 +497,16 @@ const buildUsageMetrics = (limits, used) => {
       limit: limits.storageGB,
       displayUsed: t('billing_page.storage_gb', { value: used.storageGB.toFixed(1) }),
       displayLimit: t('billing_page.storage_gb', { value: limits.storageGB })
+    },
+    {
+      id: 'sessionsCount',
+      resetPolicy: 'capacity',
+      label: t('billing_page.metrics.sessions_count_label'),
+      hint: t('billing_page.metrics.sessions_count_hint'),
+      used: used.sessionsCount,
+      limit: limits.sessionsCount,
+      displayUsed: formatNumber(used.sessionsCount),
+      displayLimit: formatNumber(limits.sessionsCount)
     },
     {
       id: 'historyRecords',

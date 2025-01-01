@@ -36,6 +36,7 @@ type AgentSessionRepository interface {
 	ListByAgentIdAndLabels(agentId Id, labels string, limit, offset int) ([]*AgentSession, error)
 	CountByAgentId(agentId Id) (int64, error)
 	CountByAgentIdAndLabels(agentId Id, labels string) (int64, error)
+	CountByWorkspaceId(workspaceId Id) (int64, error)
 }
 
 type AgentSessionRepositoryPostgres struct {
@@ -336,6 +337,18 @@ func (r *AgentSessionRepositoryPostgres) CountByAgentIdAndLabels(agentId Id, lab
 		WHERE agent_id = $1 AND labels @> $2::jsonb`,
 		agentId.String(),
 		labels,
+	).Scan(&count)
+	return count, err
+}
+
+// CountByWorkspaceId counts agent session rows across a workspace.
+func (r *AgentSessionRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, error) {
+	var count int64
+	err := r.db.QueryRow(
+		`SELECT COUNT(*)
+		FROM sessions
+		WHERE workspace_id = $1`,
+		workspaceId.String(),
 	).Scan(&count)
 	return count, err
 }

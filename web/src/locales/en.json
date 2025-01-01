@@ -880,6 +880,8 @@
       "prompts_count_hint": "Prompts stored in this workspace",
       "storage_used_label": "Storage Used",
       "storage_used_hint": "Total file storage consumed",
+      "sessions_count_label": "Sessions",
+      "sessions_count_hint": "Agent conversation sessions in this workspace",
       "history_records_label": "History Records",
       "history_records_hint": "Agent context rows stored across sessions",
       "memory_records_label": "Memory Records",

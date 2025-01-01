@@ -57,6 +57,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentSessionRepository(db.GetDB()),
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	session, err := sm.CreateAgentSession(
 		workspaceId,
@@ -87,6 +88,10 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentSessionAlreadyExists):
 			util.WriteJSON(w, http.StatusConflict, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_already_exists"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to create agent session")
@@ -135,6 +140,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentSessionRepository(db.GetDB()),
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := sm.ListAgentSessions(
 		workspaceId,
@@ -209,6 +215,7 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentSessionRepository(db.GetDB()),
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	session, err := sm.GetAgentSession(
 		workspaceId,
@@ -274,6 +281,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentSessionRepository(db.GetDB()),
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	session, err := sm.GetAgentSessionByLabels(
 		workspaceId,
@@ -354,6 +362,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentSessionRepository(db.GetDB()),
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	session, err := sm.UpdateAgentSessionByLabels(
 		workspaceId,
@@ -441,6 +450,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentSessionRepository(db.GetDB()),
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := sm.DeleteAgentSessionByLabels(
 		workspaceId,

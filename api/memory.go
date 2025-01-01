@@ -61,6 +61,7 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -149,6 +150,7 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -235,6 +237,7 @@ func ListSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -321,6 +324,7 @@ func GetSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -409,6 +413,7 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -500,6 +505,7 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -582,6 +588,7 @@ func RegenerateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -665,6 +672,7 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
@@ -778,6 +786,7 @@ func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
+			db.NewSubscriptionRepository(db.GetDB()),
 		),
 		db.NewSubscriptionRepository(db.GetDB()),
 	)
