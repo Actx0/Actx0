@@ -44,7 +44,7 @@ func (c *EmbedClient) Generate(ctx context.Context, texts []string, opts ...Embe
 	request := operations.CreateEmbeddingsRequest{
 		Model:      c.model,
 		Input:      operations.CreateInputUnionArrayOfStr(texts),
-		InputType:  strPtr(opts[0].InputType),
+		InputType:  new(opts[0].InputType),
 		Dimensions: &opts[0].Dimensions,
 	}
 
@@ -103,9 +103,4 @@ func (c *EmbedClient) EmbedQuery(ctx context.Context, text string, opts EmbedOpt
 		return nil, Usage{}, err
 	}
 	return res[0], u, err
-}
-
-// strPtr returns a pointer to the given string.
-func strPtr(value string) *string {
-	return &value
 }

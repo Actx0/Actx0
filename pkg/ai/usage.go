@@ -3,7 +3,11 @@
 
 package ai
 
-import "math"
+import (
+	"math"
+
+	"github.com/samber/lo"
+)
 
 // USDToNano converts USD amounts into fixed-point nano-USD integers.
 const USDToNano = 1_000_000_000
@@ -17,8 +21,5 @@ type Usage struct {
 
 // CostFromUSD converts an OpenRouter usage.cost value into fixed-point nano-USD.
 func CostFromUSD(amount float64) int64 {
-	if amount <= 0 {
-		return 0
-	}
-	return int64(math.Round(amount * USDToNano))
+	return lo.Ternary(amount <= 0, int64(0), int64(math.Round(amount*USDToNano)))
 }
