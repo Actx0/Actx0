@@ -9,8 +9,11 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/migration"
+	"github.com/clivern/actx0/pkg/ai"
+	"github.com/clivern/actx0/pkg/qdrant"
 
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 // ConsolidateMemory summarizes and compacts session memory.
@@ -35,12 +38,180 @@ func (s *Service) ListMemories(ctx context.Context, sessionId db.Id, limit, offs
 
 // IndexSessionMessage embeds a session message into Qdrant.
 func (s *Service) IndexSessionMessage(ctx context.Context, messageId db.Id) error {
-	return ErrNotImplemented
+	message, err := s.messages.GetById(messageId)
+	if err != nil {
+		return fmt.Errorf("%w: get message: %v", ErrIndexFailed, err)
+	}
+	if message == nil {
+		return ErrMessageNotFound
+	}
+
+	session, err := s.sessions.GetById(message.SessionId)
+	if err != nil {
+		return fmt.Errorf("%w: get session: %v", ErrIndexFailed, err)
+	}
+	if session == nil {
+		return ErrSessionNotFound
+	}
+
+	embeddings, usage, err := s.embed.EmbedDocuments(ctx, []string{message.Content}, ai.EmbedOptions{
+		Dimensions: int64(viper.GetInt("app.ai.embed.qdb.vector_size")),
+	})
+	if err != nil {
+		return fmt.Errorf("%w: embed message: %v", ErrIndexFailed, err)
+	}
+
+	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("workspace_id", session.WorkspaceId.String()).
+			Int64("total_tokens", usage.TotalTokens).
+			Int64("total_cost", usage.Cost).
+			Msg("Failed to record AI usage")
+	}
+
+	if sub != nil && sub.CurrentPeriodStart != nil && sub.CurrentPeriodEnd != nil {
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAITokens,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.TotalTokens,
+			db.UsageUnitTokens,
+		)
+
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAICost,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.Cost,
+			db.UsageUnitNanoUSD,
+		)
+	}
+
+	log.Info().
+		Str("message_id", messageId.String()).
+		Int64("prompt_tokens", usage.PromptTokens).
+		Int64("total_tokens", usage.TotalTokens).
+		Int64("total_cost", usage.Cost).
+		Msg("Session message embedded")
+
+	err = s.vectors.DeleteByFilter(ctx, migration.AgentSessionMessagesCollection, map[string]string{
+		migration.PayloadMessageID: message.Id.String(),
+	})
+	if err != nil {
+		return fmt.Errorf("%w: delete existing vectors: %v", ErrIndexFailed, err)
+	}
+
+	err = s.vectors.Upsert(ctx, migration.AgentSessionMessagesCollection, []qdrant.Point{
+		{
+			Id:     message.InternalId.String(),
+			Vector: qdrant.Float32Vector(embeddings[0]),
+			Payload: map[string]string{
+				migration.PayloadWorkspaceID: session.WorkspaceId.String(),
+				migration.PayloadAgentID:     session.AgentId.String(),
+				migration.PayloadSessionID:   session.Id.String(),
+				migration.PayloadMessageID:   message.Id.String(),
+				migration.PayloadText:        message.Content,
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w: upsert vectors: %v", ErrIndexFailed, err)
+	}
+
+	return nil
 }
 
 // IndexSessionMemory embeds a session memory into Qdrant.
 func (s *Service) IndexSessionMemory(ctx context.Context, memoryId db.Id) error {
-	return ErrNotImplemented
+	memory, err := s.memories.GetById(memoryId)
+	if err != nil {
+		return fmt.Errorf("%w: get memory: %v", ErrIndexFailed, err)
+	}
+	if memory == nil {
+		return ErrMemoryNotFound
+	}
+
+	session, err := s.sessions.GetById(memory.SessionId)
+	if err != nil {
+		return fmt.Errorf("%w: get session: %v", ErrIndexFailed, err)
+	}
+	if session == nil {
+		return ErrSessionNotFound
+	}
+
+	embeddings, usage, err := s.embed.EmbedDocuments(ctx, []string{memory.Content}, ai.EmbedOptions{
+		Dimensions: int64(viper.GetInt("app.ai.embed.qdb.vector_size")),
+	})
+	if err != nil {
+		return fmt.Errorf("%w: embed memory: %v", ErrIndexFailed, err)
+	}
+
+	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("workspace_id", session.WorkspaceId.String()).
+			Int64("total_tokens", usage.TotalTokens).
+			Int64("total_cost", usage.Cost).
+			Msg("Failed to record AI usage")
+	}
+
+	if sub != nil && sub.CurrentPeriodStart != nil && sub.CurrentPeriodEnd != nil {
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAITokens,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.TotalTokens,
+			db.UsageUnitTokens,
+		)
+
+		s.usage.IncrementByPeriod(
+			session.WorkspaceId,
+			db.UsageTypeAICost,
+			sub.CurrentPeriodStart.UTC(),
+			sub.CurrentPeriodEnd.UTC(),
+			usage.Cost,
+			db.UsageUnitNanoUSD,
+		)
+	}
+
+	log.Info().
+		Str("memory_id", memoryId.String()).
+		Int64("prompt_tokens", usage.PromptTokens).
+		Int64("total_tokens", usage.TotalTokens).
+		Int64("total_cost", usage.Cost).
+		Msg("Session memory embedded")
+
+	err = s.vectors.DeleteByFilter(ctx, migration.AgentSessionMemoriesCollection, map[string]string{
+		migration.PayloadMemoryID: memory.Id.String(),
+	})
+	if err != nil {
+		return fmt.Errorf("%w: delete existing vectors: %v", ErrIndexFailed, err)
+	}
+
+	err = s.vectors.Upsert(ctx, migration.AgentSessionMemoriesCollection, []qdrant.Point{
+		{
+			Id:     memory.InternalId.String(),
+			Vector: qdrant.Float32Vector(embeddings[0]),
+			Payload: map[string]string{
+				migration.PayloadWorkspaceID: session.WorkspaceId.String(),
+				migration.PayloadAgentID:     session.AgentId.String(),
+				migration.PayloadSessionID:   session.Id.String(),
+				migration.PayloadMemoryID:    memory.Id.String(),
+				migration.PayloadText:        memory.Content,
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w: upsert vectors: %v", ErrIndexFailed, err)
+	}
+
+	return nil
 }
 
 // GenerateMemoryFromMessage extracts and stores memory from a session message.
