@@ -141,7 +141,6 @@ func RandomHandle(min, max int) (string, error) {
 }
 
 // HandleFromName derives a dash-separated lowercase handle from a display name.
-// maxLength limits the result; pass 0 or a negative value to disable truncation.
 func HandleFromName(name string, maxLength int) string {
 	name = strings.TrimSpace(strings.ToLower(name))
 	var b strings.Builder
