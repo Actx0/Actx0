@@ -340,26 +340,12 @@ func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id
 		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
 	}
 
-	queued := 0
-	if messageCount > 0 {
-		messages, err := m.MessageRepository.ListBySessionId(sessionId, int(messageCount), 0)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
-		}
-
-		for _, message := range messages {
-			if message.Role == "user" {
-				queued++
-			}
-		}
-	}
-
 	err = m.EnqueueRegenerateMemoriesTask(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
 
-	return &RegenerateSessionMemoriesResponse{Queued: queued}, nil
+	return &RegenerateSessionMemoriesResponse{Queued: int(messageCount)}, nil
 }
 
 // EnqueueIndexTask enqueues an async task to index a session memory.
