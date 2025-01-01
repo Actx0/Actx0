@@ -4,8 +4,6 @@ Manually validate each file for AI slop, unnecessary defensive code, and style d
 
 Mark done: `- [x] path/to/file.go`
 
-**Progress:** 14 / 171
-
 ---
 
 ## Root
@@ -19,8 +17,8 @@ Mark done: `- [x] path/to/file.go`
 - [ ] api/api_key.go
 - [ ] api/billing.go
 - [ ] api/customer.go
-- [ ] api/health.go
-- [ ] api/health_test.go
+- [x] api/health.go
+- [x] api/health_test.go
 - [ ] api/integration.go
 - [ ] api/invite.go
 - [ ] api/knowledge.go
@@ -34,11 +32,11 @@ Mark done: `- [x] path/to/file.go`
 - [ ] api/password.go
 - [ ] api/profile.go
 - [ ] api/prompt.go
-- [ ] api/ready.go
+- [x] api/ready.go
 - [ ] api/register.go
 - [ ] api/session.go
 - [ ] api/settings.go
-- [ ] api/setup.go
+- [x] api/setup.go
 - [ ] api/stats.go
 - [ ] api/subscription.go
 - [ ] api/tools.go

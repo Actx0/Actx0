@@ -16,8 +16,7 @@ import (
 func ReadyAction(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("Readiness check")
 
-	database := db.GetDB()
-	err := database.Ping()
+	err := db.GetDB().Ping()
 	if err != nil {
 		log.Error().
 			Err(err).
