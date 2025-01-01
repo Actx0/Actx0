@@ -230,8 +230,13 @@ func SetupServer(Static embed.FS) http.Handler {
 		))
 	}
 
-	r.Handle("/assets/*", http.StripPrefix("/", http.FileServer(http.FS(dist)))) // static frontend assets
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {                    // SPA fallback — serve index.html
+	assets := http.StripPrefix("/", http.FileServer(http.FS(dist)))
+	r.Handle("/assets/*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		assets.ServeHTTP(w, r)
+	}))
+
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) { // SPA fallback — serve index.html
 		indexFile, err := dist.Open("index.html")
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
@@ -246,6 +251,7 @@ func SetupServer(Static embed.FS) http.Handler {
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
 		http.ServeContent(w, r, "index.html", stat.ModTime(), indexFile.(io.ReadSeeker))
 	})
 
