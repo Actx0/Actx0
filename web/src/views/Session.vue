@@ -159,6 +159,20 @@
                       <span class="text-xs text-theme-textLight">{{ formatDateTime(memory.updatedAt) }}</span>
                     </div>
                     <p class="mt-2 text-sm text-theme-text whitespace-pre-wrap">{{ memory.content }}</p>
+                    <div v-if="hasMetadata(memory.meta)" class="mt-2">
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1 text-xs text-theme-textLight hover:text-theme-text underline-offset-2 hover:underline"
+                        :aria-expanded="isMemoryMetaOpen(memory.id)"
+                        @click="toggleMemoryMeta(memory.id)"
+                      >
+                        {{ isMemoryMetaOpen(memory.id) ? $t('agents_page.hide_metadata') : $t('agents_page.show_metadata') }}
+                      </button>
+                      <pre
+                        v-if="isMemoryMetaOpen(memory.id)"
+                        class="mt-2 overflow-x-auto rounded-lg border border-theme-border bg-theme-hover px-3 py-2 text-xs font-mono text-theme-text"
+                      >{{ formatMetadata(memory.meta) }}</pre>
+                    </div>
                   </div>
                   <button
                     v-if="canManage"
@@ -229,6 +243,7 @@ const { currentWorkspace, canManage } = useWorkspaceContext()
 const activeTab = ref('messages')
 const sessionMetaOpen = ref(false)
 const openMessageMetaIds = ref({})
+const openMemoryMetaIds = ref({})
 const pendingDelete = ref(null)
 const deleting = ref(false)
 const deleteError = ref(null)
@@ -347,6 +362,17 @@ function toggleMessageMeta(messageId) {
   openMessageMetaIds.value = {
     ...openMessageMetaIds.value,
     [messageId]: !openMessageMetaIds.value[messageId],
+  }
+}
+
+function isMemoryMetaOpen(memoryId) {
+  return Boolean(openMemoryMetaIds.value[memoryId])
+}
+
+function toggleMemoryMeta(memoryId) {
+  openMemoryMetaIds.value = {
+    ...openMemoryMetaIds.value,
+    [memoryId]: !openMemoryMetaIds.value[memoryId],
   }
 }
 
