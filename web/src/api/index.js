@@ -166,42 +166,27 @@ export const sessionAPI = {
   getByExternalId: (workspaceId, agentId, externalId) => api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions`, {
     params: { id: externalId },
   }),
-  delete: (workspaceId, agentId, params) =>
-    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/by-labels`, { params }),
+  delete: (workspaceId, agentId, params) => api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/by-labels`, { params }),
 }
 
 export const messageAPI = {
-  list: (workspaceId, agentId, sessionId, params) =>
-    api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages`, { params }),
-  get: (workspaceId, agentId, sessionId, messageId) =>
-    api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`),
-  create: (workspaceId, agentId, sessionId, data) =>
-    api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages`, data),
-  createBatch: (workspaceId, agentId, sessionId, data) =>
-    api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/batch`, data),
-  update: (workspaceId, agentId, sessionId, messageId, data) =>
-    api.put(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`, data),
-  delete: (workspaceId, agentId, sessionId, messageId) =>
-    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`),
-  deleteBatch: (workspaceId, agentId, sessionId, data) =>
-    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/batch`, { data }),
+  list: (workspaceId, agentId, sessionId, params) => api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages`, { params }),
+  get: (workspaceId, agentId, sessionId, messageId) => api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`),
+  create: (workspaceId, agentId, sessionId, data) => api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages`, data),
+  createBatch: (workspaceId, agentId, sessionId, data) => api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/batch`, data),
+  update: (workspaceId, agentId, sessionId, messageId, data) => api.put(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`, data),
+  delete: (workspaceId, agentId, sessionId, messageId) => api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`),
+  deleteBatch: (workspaceId, agentId, sessionId, data) => api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/batch`, { data }),
 }
 
 export const memoryAPI = {
-  list: (workspaceId, agentId, sessionId, params) =>
-    api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories`, { params }),
-  get: (workspaceId, agentId, sessionId, memoryId) =>
-    api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`),
-  create: (workspaceId, agentId, sessionId, data) =>
-    api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories`, data),
-  createBatch: (workspaceId, agentId, sessionId, data) =>
-    api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/batch`, data),
-  update: (workspaceId, agentId, sessionId, memoryId, data) =>
-    api.put(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`, data),
-  delete: (workspaceId, agentId, sessionId, memoryId) =>
-    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`),
-  deleteBatch: (workspaceId, agentId, sessionId, data) =>
-    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/batch`, { data }),
+  list: (workspaceId, agentId, sessionId, params) => api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories`, { params }),
+  get: (workspaceId, agentId, sessionId, memoryId) => api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`),
+  create: (workspaceId, agentId, sessionId, data) => api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories`, data),
+  createBatch: (workspaceId, agentId, sessionId, data) => api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/batch`, data),
+  update: (workspaceId, agentId, sessionId, memoryId, data) => api.put(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`, data),
+  delete: (workspaceId, agentId, sessionId, memoryId) => api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`),
+  deleteBatch: (workspaceId, agentId, sessionId, data) => api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/batch`, { data }),
 }
 
 export { stringifyMeta, buildMessageBatchPayload, buildMemoryBatchPayload } from './session-resources'
