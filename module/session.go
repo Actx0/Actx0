@@ -10,6 +10,8 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 // SessionManager manages sessions (create, revoke, etc.).
@@ -102,15 +104,10 @@ func (s *SessionManager) GetUserSessions(userId db.Id) ([]*db.Session, error) {
 		return nil, err
 	}
 
-	var activeSessions []*db.Session
 	now := time.Now().UTC()
-	for _, session := range sessions {
-		if session.ExpiresAt.After(now) {
-			activeSessions = append(activeSessions, session)
-		}
-	}
-
-	return activeSessions, nil
+	return lo.Filter(sessions, func(session *db.Session, _ int) bool {
+		return session.ExpiresAt.After(now)
+	}), nil
 }
 
 // CleanupExpiredSessions removes all expired sessions from the database.

@@ -15,6 +15,7 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 // WriteJSON writes a value as JSON to an HTTP response.
@@ -138,18 +139,10 @@ func RemoveLabelFromJSON(labels *string, label string) (*string, bool) {
 	if err := json.Unmarshal([]byte(*labels), &items); err != nil {
 		return labels, false
 	}
-	next := make([]string, 0, len(items))
-	found := false
-	for _, item := range items {
-		if item == label {
-			found = true
-			continue
-		}
-		next = append(next, item)
-	}
-	if !found {
+	if !lo.Contains(items, label) {
 		return labels, false
 	}
+	next := lo.Without(items, label)
 	if len(next) == 0 {
 		return nil, true
 	}

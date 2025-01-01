@@ -14,6 +14,8 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 var (
@@ -197,21 +199,13 @@ func (p *Prompt) CreatePromptVersion(workspaceId, promptId db.Id, req *CreatePro
 		return nil, ErrPromptNotFound
 	}
 
-	labelSet := make(map[string]struct{})
+	var existing []string
 	if req.Labels != nil && *req.Labels != "" {
-		var existing []string
 		if err := json.Unmarshal([]byte(*req.Labels), &existing); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 		}
-		for _, label := range existing {
-			labelSet[label] = struct{}{}
-		}
 	}
-	labelSet[PromptLabelLatest] = struct{}{}
-	latestLabels := make([]string, 0, len(labelSet))
-	for label := range labelSet {
-		latestLabels = append(latestLabels, label)
-	}
+	latestLabels := lo.Uniq(append(existing, PromptLabelLatest))
 	labelsRaw, err := json.Marshal(latestLabels)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)

@@ -10,6 +10,7 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // RequireRole creates a middleware that checks if the authenticated user has one of the required roles
@@ -40,16 +41,7 @@ func RequireRole(allowedRoles ...string) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Check if user has one of the allowed roles
-			hasRole := false
-			for _, role := range allowedRoles {
-				if user.Role == role {
-					hasRole = true
-					break
-				}
-			}
-
-			if !hasRole {
+			if !lo.Contains(allowedRoles, user.Role) {
 				log.Info().
 					Str("path", r.URL.Path).
 					Str("userId", user.Id.String()).

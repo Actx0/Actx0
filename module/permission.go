@@ -9,6 +9,8 @@ import (
 	"errors"
 
 	"github.com/clivern/actx0/db"
+
+	"github.com/samber/lo"
 )
 
 // Workspace permission constants. Use with Perm.Can for workspace-scoped checks.
@@ -107,12 +109,9 @@ func ValidAccessKeyPermissions(permissions []string) bool {
 	if len(permissions) == 0 {
 		return false
 	}
-	for _, permission := range permissions {
-		if !AccessKeyPermissions[permission] {
-			return false
-		}
-	}
-	return true
+	return lo.EveryBy(permissions, func(permission string) bool {
+		return AccessKeyPermissions[permission]
+	})
 }
 
 // Perm checks workspace permissions for users and workspace access keys.
@@ -249,12 +248,7 @@ func (p *Perm) CanAsAccessKey(permission string) (bool, error) {
 		return false, err
 	}
 
-	for _, granted := range perms {
-		if granted == permission {
-			return true, nil
-		}
-	}
-	return false, nil
+	return lo.Contains(perms, permission), nil
 }
 
 // ParseAccessKeyPermissions decodes the permission list stored on a workspace access key.

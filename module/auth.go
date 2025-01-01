@@ -16,6 +16,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
 
@@ -37,8 +38,8 @@ var (
 )
 
 const (
-	defaultSessionDuration    = time.Hour * 24 * 7
-	rememberMeSessionDuration = time.Hour * 24 * 30
+	DefaultSessionDuration    = time.Hour * 24 * 7
+	RememberMeSessionDuration = time.Hour * 24 * 30
 )
 
 // LoginRequest is the body you send to log in.
@@ -53,6 +54,17 @@ type LoginResult struct {
 	User          *db.User
 	Session       *db.Session
 	CookieOptions *util.CookieOptions
+}
+
+// ForgotPasswordRequest is the body for requesting a password reset (just email).
+type ForgotPasswordRequest struct {
+	Email string `json:"email" validate:"required,email,min=4,max=255" label:"Email"`
+}
+
+// ResetPasswordRequest is the body for resetting a password (token + new password).
+type ResetPasswordRequest struct {
+	Token    string `json:"token" validate:"required,min=1" label:"Token"`
+	Password string `json:"password" validate:"required,strong_password,min=8,max=60" label:"Password"`
 }
 
 // Mailer sends the transactional emails used by the auth flows.
@@ -116,12 +128,7 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 		return nil, fmt.Errorf("update last login: %w", err)
 	}
 
-	var duration time.Duration
-	if req.RememberMe {
-		duration = rememberMeSessionDuration
-	} else {
-		duration = defaultSessionDuration
-	}
+	duration := lo.Ternary(req.RememberMe, RememberMeSessionDuration, DefaultSessionDuration)
 
 	token, err := util.GenerateSecureToken(32)
 	if err != nil {
@@ -153,17 +160,12 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 		SessionID: session.Id,
 	})
 
-	var cookieOptions *util.CookieOptions
-	if strings.HasPrefix(viper.GetString("app.url"), "https://") {
-		cookieOptions = util.SecureCookieOptions()
-	} else {
-		cookieOptions = util.DefaultCookieOptions()
-	}
-	if req.RememberMe {
-		cookieOptions.MaxAge = int(rememberMeSessionDuration / time.Second)
-	} else {
-		cookieOptions.MaxAge = 0
-	}
+	cookieOptions := lo.Ternary(
+		strings.HasPrefix(viper.GetString("app.url"), "https://"),
+		util.SecureCookieOptions(),
+		util.DefaultCookieOptions(),
+	)
+	cookieOptions.MaxAge = lo.Ternary(req.RememberMe, int(RememberMeSessionDuration/time.Second), 0)
 
 	return &LoginResult{
 		User:          user,
@@ -189,17 +191,6 @@ func (a *Auth) Logout(ctx context.Context, userId db.Id) error {
 	UserLoggedOut.Emit(ctx, UserLoggedOutData{UserID: userId})
 
 	return nil
-}
-
-// ForgotPasswordRequest is the body for requesting a password reset (just email).
-type ForgotPasswordRequest struct {
-	Email string `json:"email" validate:"required,email,min=4,max=255" label:"Email"`
-}
-
-// ResetPasswordRequest is the body for resetting a password (token + new password).
-type ResetPasswordRequest struct {
-	Token    string `json:"token" validate:"required,min=1" label:"Token"`
-	Password string `json:"password" validate:"required,strong_password,min=8,max=60" label:"Password"`
 }
 
 // ForgotPassword creates a password reset token and emails the reset link.

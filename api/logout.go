@@ -44,22 +44,27 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 
 	err := am.Logout(r.Context(), user.Id)
 	if err != nil {
-		logger := log.Error().
-			Str("userId", user.Id.String()).
-			Err(err)
-
 		switch {
 		case errors.Is(err, module.ErrFailedCleanupExpiredSessions):
-			logger.Msg("Failed to cleanup expired sessions")
+			log.Error().
+				Str("userId", user.Id.String()).
+				Err(err).
+				Msg("Failed to cleanup expired sessions")
 		case errors.Is(err, module.ErrFailedRevokeSessions):
-			logger.Msg("Failed to revoke session")
+			log.Error().
+				Str("userId", user.Id.String()).
+				Err(err).
+				Msg("Failed to revoke session")
 		default:
-			logger.Msg("Logout failed")
+			log.Error().
+				Str("userId", user.Id.String()).
+				Err(err).
+				Msg("Logout failed")
 		}
 	} else {
 		log.Info().
 			Str("userId", user.Id.String()).
-			Msg("Session revoked")
+			Msg("Session successfully revoked")
 	}
 
 	util.WriteJSON(w, http.StatusOK, map[string]interface{}{

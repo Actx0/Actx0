@@ -4,7 +4,7 @@ Manually validate each file for AI slop, unnecessary defensive code, and style d
 
 Mark done: `- [x] path/to/file.go`
 
-**Progress:** 13 / 171
+**Progress:** 14 / 171
 
 ---
 
@@ -25,7 +25,7 @@ Mark done: `- [x] path/to/file.go`
 - [ ] api/invite.go
 - [ ] api/knowledge.go
 - [ ] api/login.go
-- [ ] api/logout.go
+- [x] api/logout.go
 - [ ] api/me.go
 - [ ] api/member.go
 - [ ] api/memory.go
