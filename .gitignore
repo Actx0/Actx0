@@ -36,3 +36,7 @@ actx0
 # Documentation (clone from git@github.com:actx0/adoc.git)
 docs/
 .ruff_cache/
+
+# Local commit helper
+commit.sh
+
