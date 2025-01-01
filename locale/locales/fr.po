@@ -48,6 +48,9 @@ msgstr "Le mot de passe actuel est requis."
 msgid "failed_check_access"
 msgstr "Impossible de vérifier l'accès."
 
+msgid "failed_load_workspace"
+msgstr "Impossible de charger l'espace de travail."
+
 msgid "failed_check_maintenance"
 msgstr "Impossible de vérifier le mode maintenance."
 
@@ -119,6 +122,9 @@ msgstr "Version de prompt invalide."
 
 msgid "not_implemented"
 msgstr "Non implémenté."
+
+msgid "insufficient_permissions"
+msgstr "Permissions insuffisantes."
 
 msgid "no_permission_manage_documents"
 msgstr "Vous n'avez pas la permission de gérer les documents dans cet espace de travail."
@@ -308,6 +314,12 @@ msgstr "ID de clé API invalide."
 
 msgid "invalid_api_key"
 msgstr "Clé API invalide."
+
+msgid "invalid_or_expired_session"
+msgstr "Session invalide ou expirée."
+
+msgid "invalid_route_configuration"
+msgstr "Configuration de route invalide."
 
 msgid "invalid_expires_at_format"
 msgstr "Format expiresAt invalide."

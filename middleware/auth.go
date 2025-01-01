@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/locale"
 	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/util"
 
@@ -39,7 +40,7 @@ func Auth() func(http.Handler) http.Handler {
 						Str("path", r.URL.Path).
 						Msg("API key validation failed")
 					util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
-						"errorMessage": "Invalid API key",
+						"errorMessage": locale.TR(r, "invalid_api_key"),
 					})
 					return
 				}
@@ -62,7 +63,7 @@ func Auth() func(http.Handler) http.Handler {
 						Str("path", r.URL.Path).
 						Msg("Access key validation failed")
 					util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
-						"errorMessage": "Invalid access key",
+						"errorMessage": locale.TR(r, "invalid_access_key"),
 					})
 					return
 				}
@@ -71,7 +72,7 @@ func Auth() func(http.Handler) http.Handler {
 						Str("path", r.URL.Path).
 						Msg("Access key not found or expired")
 					util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
-						"errorMessage": "Invalid access key",
+						"errorMessage": locale.TR(r, "invalid_access_key"),
 					})
 					return
 				}
@@ -92,7 +93,7 @@ func Auth() func(http.Handler) http.Handler {
 					Str("path", r.URL.Path).
 					Msg("No session cookie found")
 				util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
-					"errorMessage": "Not authenticated",
+					"errorMessage": locale.TR(r, "not_authenticated"),
 				})
 				return
 			}
@@ -114,7 +115,7 @@ func Auth() func(http.Handler) http.Handler {
 					Str("path", r.URL.Path).
 					Msg("Session validation failed")
 				util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
-					"errorMessage": "Invalid or expired session",
+					"errorMessage": locale.TR(r, "invalid_or_expired_session"),
 				})
 				return
 			}

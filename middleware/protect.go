@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/locale"
 	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/util"
 
@@ -39,7 +40,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Str("path", r.URL.Path).
 						Msg("User required: principal not in context")
 					util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
-						"errorMessage": "Not authenticated",
+						"errorMessage": locale.TR(r, "not_authenticated"),
 					})
 					return
 				}
@@ -50,7 +51,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Str("userId", user.Id.String()).
 						Msg("Inactive user blocked from protected route")
 					util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
-						"errorMessage": "Account is inactive",
+						"errorMessage": locale.TR(r, "account_not_active"),
 					})
 					return
 				}
@@ -63,7 +64,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Strs("allowedRoles", cfg.Roles).
 						Msg("Insufficient role for route")
 					util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
-						"errorMessage": "Insufficient permissions",
+						"errorMessage": locale.TR(r, "insufficient_permissions"),
 					})
 					return
 				}
@@ -77,7 +78,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Str("path", r.URL.Path).
 						Msg("Protect Workspace missing workspace id param")
 					util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
-						"errorMessage": "Invalid route configuration",
+						"errorMessage": locale.TR(r, "invalid_route_configuration"),
 					})
 					return
 				}
@@ -89,13 +90,13 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Str("workspaceId", wid).
 						Msg("Failed to load workspace")
 					util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
-						"errorMessage": "Failed to load workspace",
+						"errorMessage": locale.TR(r, "failed_load_workspace"),
 					})
 					return
 				}
 				if workspace == nil {
 					util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
-						"errorMessage": "Workspace not found",
+						"errorMessage": locale.TR(r, "workspace_not_found"),
 					})
 					return
 				}
@@ -118,7 +119,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 							Str("permission", cfg.Perm).
 							Msg("Workspace permission check missing workspace id param")
 						util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
-							"errorMessage": "Invalid route configuration",
+							"errorMessage": locale.TR(r, "invalid_route_configuration"),
 						})
 						return
 					}
@@ -132,7 +133,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 							Str("userId", user.Id.String()).
 							Msg("Inactive user blocked from workspace route")
 						util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
-							"errorMessage": "Account is inactive",
+							"errorMessage": locale.TR(r, "account_not_active"),
 						})
 						return
 					}
@@ -144,7 +145,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Str("path", r.URL.Path).
 						Msg("Workspace permission check failed: no principal in context")
 					util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
-						"errorMessage": "Not authenticated",
+						"errorMessage": locale.TR(r, "not_authenticated"),
 					})
 					return
 				}
@@ -153,7 +154,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 				if err != nil {
 					if errors.Is(err, module.ErrPermissionWorkspaceMissing) {
 						util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
-							"errorMessage": "Workspace not found",
+							"errorMessage": locale.TR(r, "workspace_not_found"),
 						})
 						return
 					}
@@ -163,7 +164,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Str("permission", cfg.Perm).
 						Msg("Failed to check workspace permission")
 					util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
-						"errorMessage": "Failed to check access",
+						"errorMessage": locale.TR(r, "failed_check_access"),
 					})
 					return
 				}
@@ -173,7 +174,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						Str("permission", cfg.Perm).
 						Msg("Workspace permission denied")
 					util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
-						"errorMessage": "Insufficient permissions",
+						"errorMessage": locale.TR(r, "insufficient_permissions"),
 					})
 					return
 				}

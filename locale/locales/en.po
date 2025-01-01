@@ -48,6 +48,9 @@ msgstr "Current password is required."
 msgid "failed_check_access"
 msgstr "Failed to check access."
 
+msgid "failed_load_workspace"
+msgstr "Failed to load workspace."
+
 msgid "failed_check_maintenance"
 msgstr "Failed to check maintenance mode."
 
@@ -119,6 +122,9 @@ msgstr "Invalid prompt version."
 
 msgid "not_implemented"
 msgstr "Not implemented."
+
+msgid "insufficient_permissions"
+msgstr "Insufficient permissions."
 
 msgid "no_permission_manage_documents"
 msgstr "You do not have permission to manage documents in this workspace."
@@ -308,6 +314,12 @@ msgstr "Invalid API key ID."
 
 msgid "invalid_api_key"
 msgstr "Invalid API key."
+
+msgid "invalid_or_expired_session"
+msgstr "Invalid or expired session."
+
+msgid "invalid_route_configuration"
+msgstr "Invalid route configuration."
 
 msgid "invalid_expires_at_format"
 msgstr "Invalid expiresAt format."
