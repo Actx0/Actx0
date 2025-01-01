@@ -1,0 +1,50 @@
+---
+description: Vue frontend code style conventions for views and components
+globs: web/src/**/*.vue
+alwaysApply: false
+---
+
+# Vue Frontend Style
+
+## Component structure
+- `<template>` first, then `<script setup>` (plain JS, Composition API).
+- Script section order: imports → composables (`useI18n`, `useRouter`, ...) → state (`reactive` form, `ref` flags) → action handlers → `onMounted` at the very bottom of the file.
+
+## Translations
+- Never hardcode user-facing text. Use `$t('section.key')` in templates and `t('...')` in script (via `useI18n`).
+- Add every new key to both `web/src/locales/en.json` and `web/src/locales/fr.json`.
+
+## API calls
+- All HTTP calls go through the named exports of `@/api` (e.g. `setupAPI`, `authAPI`). Never import axios or use `fetch` directly in components.
+- If an endpoint is missing, add it to the matching `*API` object in `web/src/api/index.js`.
+
+## Self-contained actions
+- A handler owns its whole flow. Inline single-use logic (validation, mapping) inside the handler instead of extracting top-level helpers used only once.
+
+```js
+// ❌ BAD: single-use helper at top level
+const validateForm = () => { ... }
+const handleSetup = async () => {
+  if (!validateForm()) return
+  ...
+}
+
+// ✅ GOOD: validation lives inside the handler
+const handleSetup = async () => {
+  if (form.adminPassword !== form.confirmPassword) {
+    error.value = t('setup.error_passwords_match')
+    return
+  }
+  ...
+}
+```
+
+## State and errors
+- Forms are one `reactive` object; UI flags (`loading`, `error`) are `ref`s.
+- Async handlers: set `loading` true, clear `error`, `try/catch/finally`, reset `loading` in `finally`.
+- Error message fallback pattern: `err.response?.data?.errorMessage || t('view.error_default')`.
+- Success feedback via `showFlash(t('common.saved'))` from `@/lib/flash`.
+
+## Styling
+- Tailwind utility classes only, with theme tokens (`text-theme-text`, `bg-theme-bg`, `border-theme-border`) and shared classes (`input-field`, `btn-primary`). No scoped `<style>` blocks.
+- Disable inputs and submit buttons while `loading`.
