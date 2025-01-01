@@ -145,8 +145,8 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	documentIdStr := chi.URLParam(r, "documentId")
-	if lo.IsEmpty(documentIdStr) {
+	documentId := chi.URLParam(r, "documentId")
+	if lo.IsEmpty(documentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_document_id"),
 		})
@@ -171,7 +171,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 	err = dm.DeleteDocument(
 		r.Context(),
 		db.Id(wid),
-		db.Id(documentIdStr),
+		db.Id(documentId),
 	)
 	if err != nil {
 		switch {
@@ -184,7 +184,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "document_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("documentId", documentIdStr).Msg("Failed to delete document")
+			log.Error().Err(err).Str("documentId", documentId).Msg("Failed to delete document")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_delete_document"),
 			})

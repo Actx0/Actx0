@@ -117,8 +117,8 @@ func GetUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiKeyIdStr := chi.URLParam(r, "apiKeyId")
-	if lo.IsEmpty(apiKeyIdStr) {
+	apiKeyId := chi.URLParam(r, "apiKeyId")
+	if lo.IsEmpty(apiKeyId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_api_key_id"),
 		})
@@ -126,12 +126,12 @@ func GetUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().
-		Str("apiKeyId", apiKeyIdStr).
+		Str("apiKeyId", apiKeyId).
 		Str("userId", user.Id.String()).
 		Msg("Getting API key")
 
 	am := module.NewAPIKey(db.NewAPIKeyRepository(db.GetDB()))
-	k, err := am.GetAPIKey(db.Id(apiKeyIdStr), user)
+	k, err := am.GetAPIKey(db.Id(apiKeyId), user)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrAPIKeyNotFound):
@@ -142,7 +142,7 @@ func GetUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 		default:
 			log.Error().
 				Err(err).
-				Str("apiKeyId", apiKeyIdStr).
+				Str("apiKeyId", apiKeyId).
 				Str("userId", user.Id.String()).
 				Msg("Failed to get API key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -165,8 +165,8 @@ func DeleteUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiKeyIdStr := chi.URLParam(r, "apiKeyId")
-	if lo.IsEmpty(apiKeyIdStr) {
+	apiKeyId := chi.URLParam(r, "apiKeyId")
+	if lo.IsEmpty(apiKeyId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_api_key_id"),
 		})
@@ -174,12 +174,12 @@ func DeleteUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().
-		Str("apiKeyId", apiKeyIdStr).
+		Str("apiKeyId", apiKeyId).
 		Str("userId", user.Id.String()).
 		Msg("Deleting API key")
 
 	am := module.NewAPIKey(db.NewAPIKeyRepository(db.GetDB()))
-	err := am.DeleteAPIKey(db.Id(apiKeyIdStr), user)
+	err := am.DeleteAPIKey(db.Id(apiKeyId), user)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrAPIKeyNotFound):
@@ -190,7 +190,7 @@ func DeleteUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 		default:
 			log.Error().
 				Err(err).
-				Str("apiKeyId", apiKeyIdStr).
+				Str("apiKeyId", apiKeyId).
 				Str("userId", user.Id.String()).
 				Msg("Failed to delete API key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -202,7 +202,7 @@ func DeleteUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().
 		Str("userId", user.Id.String()).
-		Str("apiKeyId", apiKeyIdStr).
+		Str("apiKeyId", apiKeyId).
 		Msg("API key deleted")
 
 	w.WriteHeader(http.StatusNoContent)

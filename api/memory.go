@@ -28,16 +28,16 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -60,8 +60,8 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	)
 	memory, err := mm.CreateSessionMemory(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
 		&req,
 	)
 
@@ -80,7 +80,7 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionIdStr).Msg("Failed to create session memory")
+			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to create session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_create_session_memory"),
 			})
@@ -102,16 +102,16 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -134,8 +134,8 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	)
 	memories, err := mm.BatchCreateSessionMemories(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
 		&req,
 	)
 
@@ -154,7 +154,7 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionIdStr).Msg("Failed to batch create session memories")
+			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch create session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_create_session_memory"),
 			})
@@ -178,16 +178,16 @@ func ListSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -206,8 +206,8 @@ func ListSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	)
 	result, err := mm.ListSessionMemories(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
 		limit,
 		offset,
 	)
@@ -227,7 +227,7 @@ func ListSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionIdStr).Msg("Failed to list session memories")
+			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to list session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_list_session_memories"),
 			})
@@ -256,24 +256,24 @@ func GetSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
 	}
 
-	memoryIdStr := chi.URLParam(r, "memoryId")
-	if lo.IsEmpty(memoryIdStr) {
+	memoryId := chi.URLParam(r, "memoryId")
+	if lo.IsEmpty(memoryId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_memory_id"),
 		})
@@ -290,9 +290,9 @@ func GetSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	)
 	memory, err := mm.GetSessionMemory(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
-		db.Id(memoryIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
+		db.Id(memoryId),
 	)
 
 	if err != nil {
@@ -314,7 +314,7 @@ func GetSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("memoryId", memoryIdStr).Msg("Failed to get session memory")
+			log.Error().Err(err).Str("memoryId", memoryId).Msg("Failed to get session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_get_session_memory"),
 			})
@@ -336,24 +336,24 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
 	}
 
-	memoryIdStr := chi.URLParam(r, "memoryId")
-	if lo.IsEmpty(memoryIdStr) {
+	memoryId := chi.URLParam(r, "memoryId")
+	if lo.IsEmpty(memoryId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_memory_id"),
 		})
@@ -376,9 +376,9 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	)
 	memory, err := mm.UpdateSessionMemory(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
-		db.Id(memoryIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
+		db.Id(memoryId),
 		&req,
 	)
 
@@ -401,7 +401,7 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("memoryId", memoryIdStr).Msg("Failed to update session memory")
+			log.Error().Err(err).Str("memoryId", memoryId).Msg("Failed to update session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_update_session_memory"),
 			})
@@ -423,24 +423,24 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
 	}
 
-	memoryIdStr := chi.URLParam(r, "memoryId")
-	if lo.IsEmpty(memoryIdStr) {
+	memoryId := chi.URLParam(r, "memoryId")
+	if lo.IsEmpty(memoryId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_memory_id"),
 		})
@@ -457,9 +457,9 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	)
 	err := mm.DeleteSessionMemory(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
-		db.Id(memoryIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
+		db.Id(memoryId),
 	)
 
 	if err != nil {
@@ -481,7 +481,7 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("memoryId", memoryIdStr).Msg("Failed to delete session memory")
+			log.Error().Err(err).Str("memoryId", memoryId).Msg("Failed to delete session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_delete_session_memory"),
 			})
@@ -503,16 +503,16 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -535,8 +535,8 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	)
 	err := mm.BatchDeleteSessionMemories(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
 		&req,
 	)
 
@@ -559,7 +559,7 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionIdStr).Msg("Failed to batch delete session memories")
+			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch delete session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_delete_session_memory"),
 			})

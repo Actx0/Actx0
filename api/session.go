@@ -28,8 +28,8 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -60,7 +60,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	)
 	session, err := sm.CreateAgentSession(
 		workspaceId,
-		db.Id(agentIdStr),
+		db.Id(agentId),
 		externalId,
 		labels,
 		&req,
@@ -89,7 +89,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_already_exists"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to create agent session")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to create agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_create_agent_session"),
 			})
@@ -111,8 +111,8 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -130,7 +130,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 	)
 	result, err := sm.ListAgentSessions(
 		workspaceId,
-		db.Id(agentIdStr),
+		db.Id(agentId),
 		externalId,
 		labels,
 		limit,
@@ -152,7 +152,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invalid_session_labels"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to list agent sessions")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to list agent sessions")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_list_agent_sessions"),
 			})
@@ -181,16 +181,16 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
 	}
 
-	sessionIdStr := chi.URLParam(r, "sessionId")
-	if lo.IsEmpty(sessionIdStr) {
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -204,8 +204,8 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	)
 	session, err := sm.GetAgentSession(
 		workspaceId,
-		db.Id(agentIdStr),
-		db.Id(sessionIdStr),
+		db.Id(agentId),
+		db.Id(sessionId),
 	)
 
 	if err != nil {
@@ -223,7 +223,7 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionIdStr).Msg("Failed to get agent session")
+			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to get agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_get_agent_session"),
 			})
@@ -245,8 +245,8 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -269,7 +269,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	)
 	session, err := sm.GetAgentSessionByLabels(
 		workspaceId,
-		db.Id(agentIdStr),
+		db.Id(agentId),
 		externalId,
 		labels,
 	)
@@ -297,7 +297,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to get agent session")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to get agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_get_agent_session"),
 			})
@@ -319,8 +319,8 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -349,7 +349,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	)
 	session, err := sm.UpdateAgentSessionByLabels(
 		workspaceId,
-		db.Id(agentIdStr),
+		db.Id(agentId),
 		externalId,
 		labels,
 		&req,
@@ -382,7 +382,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_already_exists"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to update agent session")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to update agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_update_agent_session"),
 			})
@@ -404,8 +404,8 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -428,7 +428,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	)
 	err := sm.DeleteAgentSessionByLabels(
 		workspaceId,
-		db.Id(agentIdStr),
+		db.Id(agentId),
 		externalId,
 		labels,
 	)
@@ -456,7 +456,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to delete agent session")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to delete agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_delete_agent_session"),
 			})

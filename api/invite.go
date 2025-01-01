@@ -153,8 +153,8 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inviteIdStr := chi.URLParam(r, "inviteId")
-	if lo.IsEmpty(inviteIdStr) {
+	inviteId := chi.URLParam(r, "inviteId")
+	if lo.IsEmpty(inviteId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_invite_id"),
 		})
@@ -162,7 +162,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().
-		Str("inviteId", inviteIdStr).
+		Str("inviteId", inviteId).
 		Str("workspaceId", workspaceId).
 		Msg("Getting invite")
 
@@ -174,7 +174,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceUserRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
-	invite, err := im.GetInvite(db.Id(workspaceId), db.Id(inviteIdStr))
+	invite, err := im.GetInvite(db.Id(workspaceId), db.Id(inviteId))
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -188,7 +188,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 		default:
 			log.Error().
 				Err(err).
-				Str("inviteId", inviteIdStr).
+				Str("inviteId", inviteId).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to get invite")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -211,8 +211,8 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inviteIdStr := chi.URLParam(r, "inviteId")
-	if lo.IsEmpty(inviteIdStr) {
+	inviteId := chi.URLParam(r, "inviteId")
+	if lo.IsEmpty(inviteId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_invite_id"),
 		})
@@ -220,7 +220,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().
-		Str("inviteId", inviteIdStr).
+		Str("inviteId", inviteId).
 		Str("workspaceId", workspaceId).
 		Msg("Deleting invite")
 
@@ -232,7 +232,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceUserRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
-	err := im.DeleteInvite(db.Id(workspaceId), db.Id(inviteIdStr))
+	err := im.DeleteInvite(db.Id(workspaceId), db.Id(inviteId))
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -245,7 +245,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 			})
 		default:
 			log.Error().Err(err).
-				Str("inviteId", inviteIdStr).
+				Str("inviteId", inviteId).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to delete invite")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -256,7 +256,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().
-		Str("inviteId", inviteIdStr).
+		Str("inviteId", inviteId).
 		Str("workspaceId", workspaceId).
 		Msg("Invite deleted")
 
