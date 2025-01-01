@@ -127,10 +127,10 @@ var planUsageLimits = map[string]PlanUsageLimits{
 }
 
 // NewBilling creates a billing module.
-func NewBilling(wr db.WorkspaceRepository, sr db.SubscriptionRepository) *Billing {
+func NewBilling(workspaces db.WorkspaceRepository, subscriptions db.SubscriptionRepository) *Billing {
 	return &Billing{
-		WorkspaceRepository:    wr,
-		SubscriptionRepository: sr,
+		WorkspaceRepository:    workspaces,
+		SubscriptionRepository: subscriptions,
 	}
 }
 

@@ -40,8 +40,8 @@ type Register struct {
 }
 
 // NewRegister creates a Register module with the given repositories.
-func NewRegister(ur db.UserRepository) *Register {
-	return &Register{UserRepository: ur}
+func NewRegister(users db.UserRepository) *Register {
+	return &Register{UserRepository: users}
 }
 
 // Register creates a regular user account.

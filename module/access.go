@@ -32,10 +32,10 @@ type Access struct {
 }
 
 // NewAccess creates an access key module with the given repositories.
-func NewAccess(wra db.WorkspaceAccessKeyRepository, wr db.WorkspaceRepository) *Access {
+func NewAccess(accessKeys db.WorkspaceAccessKeyRepository, workspaces db.WorkspaceRepository) *Access {
 	return &Access{
-		WorkspaceAccessKeyRepository: wra,
-		WorkspaceRepository:          wr,
+		WorkspaceAccessKeyRepository: accessKeys,
+		WorkspaceRepository:          workspaces,
 	}
 }
 

@@ -26,10 +26,10 @@ type Audit struct {
 }
 
 // NewAudit creates an audit module with the given repositories.
-func NewAudit(ar db.AuditEventRepository, wr db.WorkspaceRepository) *Audit {
+func NewAudit(audits db.AuditEventRepository, workspaces db.WorkspaceRepository) *Audit {
 	return &Audit{
-		AuditRepository:     ar,
-		WorkspaceRepository: wr,
+		AuditRepository:     audits,
+		WorkspaceRepository: workspaces,
 	}
 }
 

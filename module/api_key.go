@@ -25,8 +25,8 @@ type APIKey struct {
 }
 
 // NewAPIKey creates an API key module with the given repository.
-func NewAPIKey(akr db.APIKeyRepository) *APIKey {
-	return &APIKey{APIKeyRepository: akr}
+func NewAPIKey(apiKeys db.APIKeyRepository) *APIKey {
+	return &APIKey{APIKeyRepository: apiKeys}
 }
 
 // ListAPIKeysResult is what you get back when listing API keys.

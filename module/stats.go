@@ -14,10 +14,10 @@ type Stats struct {
 }
 
 // NewStats creates a stats module with the given repositories.
-func NewStats(wr db.WorkspaceRepository, sr db.WorkspaceStatsRepository) *Stats {
+func NewStats(workspaces db.WorkspaceRepository, stats db.WorkspaceStatsRepository) *Stats {
 	return &Stats{
-		WorkspaceRepository: wr,
-		StatsRepository:     sr,
+		WorkspaceRepository: workspaces,
+		StatsRepository:     stats,
 	}
 }
 

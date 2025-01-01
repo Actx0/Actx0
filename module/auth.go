@@ -82,17 +82,17 @@ type Auth struct {
 
 // NewAuth creates an Auth module with the given repositories.
 func NewAuth(
-	ur db.UserRepository,
-	sesr db.SessionRepository,
-	cr db.ConfigRepository,
-	prtr db.PasswordResetTokenRepository,
+	users db.UserRepository,
+	sessions db.SessionRepository,
+	config db.ConfigRepository,
+	resetTokens db.PasswordResetTokenRepository,
 	mailer Mailer,
 ) *Auth {
 	return &Auth{
-		UserRepository:               ur,
-		SessionRepository:            sesr,
-		ConfigRepository:             cr,
-		PasswordResetTokenRepository: prtr,
+		UserRepository:               users,
+		SessionRepository:            sessions,
+		ConfigRepository:             config,
+		PasswordResetTokenRepository: resetTokens,
 		Mailer:                       mailer,
 	}
 }

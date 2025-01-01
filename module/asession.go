@@ -68,11 +68,11 @@ type AgentSession struct {
 }
 
 // NewAgentSession creates an agent session module with the given repositories.
-func NewAgentSession(sr db.AgentSessionRepository, ar db.AgentRepository, wr db.WorkspaceRepository) *AgentSession {
+func NewAgentSession(sessions db.AgentSessionRepository, agents db.AgentRepository, workspaces db.WorkspaceRepository) *AgentSession {
 	return &AgentSession{
-		SessionRepository:   sr,
-		AgentRepository:     ar,
-		WorkspaceRepository: wr,
+		SessionRepository:   sessions,
+		AgentRepository:     agents,
+		WorkspaceRepository: workspaces,
 	}
 }
 

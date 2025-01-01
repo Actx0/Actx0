@@ -91,10 +91,10 @@ type Document struct {
 }
 
 // NewDocument creates a document module with the given repositories and store.
-func NewDocument(dr db.WorkspaceDocumentRepository, wr db.WorkspaceRepository, store storage.Store) *Document {
+func NewDocument(documents db.WorkspaceDocumentRepository, workspaces db.WorkspaceRepository, store storage.Store) *Document {
 	return &Document{
-		DocumentRepository:  dr,
-		WorkspaceRepository: wr,
+		DocumentRepository:  documents,
+		WorkspaceRepository: workspaces,
 		Store:               store,
 	}
 }

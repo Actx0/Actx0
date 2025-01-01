@@ -16,8 +16,8 @@ type Settings struct {
 }
 
 // NewSettings creates a settings module with the given config repo.
-func NewSettings(cr db.ConfigRepository) *Settings {
-	return &Settings{ConfigRepository: cr}
+func NewSettings(config db.ConfigRepository) *Settings {
+	return &Settings{ConfigRepository: config}
 }
 
 // Update persists the provided settings to the config repository.

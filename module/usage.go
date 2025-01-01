@@ -45,39 +45,39 @@ func NewUsage() *Usage {
 }
 
 // MembersCount returns the number of members in a workspace.
-func (u *Usage) MembersCount(r db.WorkspaceUserRepository, workspaceId db.Id) (int64, error) {
-	return r.CountByWorkspaceId(workspaceId)
+func (u *Usage) MembersCount(workspaceUsers db.WorkspaceUserRepository, workspaceId db.Id) (int64, error) {
+	return workspaceUsers.CountByWorkspaceId(workspaceId)
 }
 
 // DocumentsCount returns the number of documents in a workspace.
-func (u *Usage) DocumentsCount(r db.WorkspaceDocumentRepository, workspaceId db.Id) (int64, error) {
-	return r.CountByWorkspaceId(workspaceId)
+func (u *Usage) DocumentsCount(documents db.WorkspaceDocumentRepository, workspaceId db.Id) (int64, error) {
+	return documents.CountByWorkspaceId(workspaceId)
 }
 
 // StorageUsed returns total document storage in bytes for a workspace.
-func (u *Usage) StorageUsed(r db.WorkspaceDocumentRepository, workspaceId db.Id) (int64, error) {
-	return r.SumSizeByWorkspaceId(workspaceId)
+func (u *Usage) StorageUsed(documents db.WorkspaceDocumentRepository, workspaceId db.Id) (int64, error) {
+	return documents.SumSizeByWorkspaceId(workspaceId)
 }
 
 // APICalls returns API call usage for the current calendar month.
-func (u *Usage) APICalls(ur db.UsageRepository, workspaceId db.Id) (int64, error) {
+func (u *Usage) APICalls(usage db.UsageRepository, workspaceId db.Id) (int64, error) {
 	start, _ := currentMonthPeriod()
-	return ur.GetQuantityByPeriod(workspaceId, db.UsageTypeAPICalls, start)
+	return usage.GetQuantityByPeriod(workspaceId, db.UsageTypeAPICalls, start)
 }
 
 // PromptsCount returns the number of prompts in a workspace.
-func (u *Usage) PromptsCount(r db.PromptRepository, workspaceId db.Id) (int64, error) {
-	return r.CountByWorkspaceId(workspaceId)
+func (u *Usage) PromptsCount(prompts db.PromptRepository, workspaceId db.Id) (int64, error) {
+	return prompts.CountByWorkspaceId(workspaceId)
 }
 
 // HistoryRecords returns session message rows stored across a workspace.
-func (u *Usage) HistoryRecords(r db.SessionMessageRepository, workspaceId db.Id) (int64, error) {
-	return r.CountByWorkspaceId(workspaceId)
+func (u *Usage) HistoryRecords(messages db.SessionMessageRepository, workspaceId db.Id) (int64, error) {
+	return messages.CountByWorkspaceId(workspaceId)
 }
 
 // MemoryRecords returns session memory rows stored across a workspace.
-func (u *Usage) MemoryRecords(r db.SessionMemoryRepository, workspaceId db.Id) (int64, error) {
-	return r.CountByWorkspaceId(workspaceId)
+func (u *Usage) MemoryRecords(memories db.SessionMemoryRepository, workspaceId db.Id) (int64, error) {
+	return memories.CountByWorkspaceId(workspaceId)
 }
 
 // GetWorkspaceUsage returns all billing usage metrics for a workspace.
@@ -141,8 +141,8 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 }
 
 // AITokens returns AI token usage for the workspace subscription period.
-func (u *Usage) AITokens(ur db.UsageRepository, sr db.SubscriptionRepository, workspaceId db.Id) (int64, error) {
-	subscription, err := sr.GetByWorkspaceId(workspaceId)
+func (u *Usage) AITokens(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id) (int64, error) {
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
 	if err != nil {
 		return 0, err
 	}
@@ -150,7 +150,7 @@ func (u *Usage) AITokens(ur db.UsageRepository, sr db.SubscriptionRepository, wo
 		return 0, nil
 	}
 
-	return ur.GetQuantityByPeriod(
+	return usage.GetQuantityByPeriod(
 		workspaceId,
 		db.UsageTypeAITokens,
 		subscription.CurrentPeriodStart.UTC(),
@@ -158,8 +158,8 @@ func (u *Usage) AITokens(ur db.UsageRepository, sr db.SubscriptionRepository, wo
 }
 
 // AICost returns AI spend in USD for the workspace subscription period.
-func (u *Usage) AICost(ur db.UsageRepository, sr db.SubscriptionRepository, workspaceId db.Id) (float64, error) {
-	subscription, err := sr.GetByWorkspaceId(workspaceId)
+func (u *Usage) AICost(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id) (float64, error) {
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
 	if err != nil {
 		return 0, err
 	}
@@ -167,7 +167,7 @@ func (u *Usage) AICost(ur db.UsageRepository, sr db.SubscriptionRepository, work
 		return 0, nil
 	}
 
-	cost, err := ur.GetQuantityByPeriod(
+	cost, err := usage.GetQuantityByPeriod(
 		workspaceId,
 		db.UsageTypeAICost,
 		subscription.CurrentPeriodStart.UTC(),
@@ -186,9 +186,9 @@ func currentMonthPeriod() (time.Time, time.Time) {
 }
 
 // IncrementAPICalls records one successful workspace API call for the current month.
-func (u *Usage) IncrementAPICalls(ur db.UsageRepository, workspaceId db.Id) error {
+func (u *Usage) IncrementAPICalls(usage db.UsageRepository, workspaceId db.Id) error {
 	start, end := currentMonthPeriod()
-	return ur.IncrementByPeriod(
+	return usage.IncrementByPeriod(
 		workspaceId,
 		db.UsageTypeAPICalls,
 		start,
@@ -199,12 +199,12 @@ func (u *Usage) IncrementAPICalls(ur db.UsageRepository, workspaceId db.Id) erro
 }
 
 // IncrementAIUsage adds AI token and cost usage for the workspace subscription period.
-func (u *Usage) IncrementAIUsage(ur db.UsageRepository, sr db.SubscriptionRepository, workspaceId db.Id, tokens, cost int64) error {
+func (u *Usage) IncrementAIUsage(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, tokens, cost int64) error {
 	if tokens == 0 && cost == 0 {
 		return nil
 	}
 
-	subscription, err := sr.GetByWorkspaceId(workspaceId)
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (u *Usage) IncrementAIUsage(ur db.UsageRepository, sr db.SubscriptionReposi
 	periodEnd := subscription.CurrentPeriodEnd.UTC()
 
 	if tokens != 0 {
-		if err := ur.IncrementByPeriod(
+		if err := usage.IncrementByPeriod(
 			workspaceId,
 			db.UsageTypeAITokens,
 			periodStart,
@@ -229,7 +229,7 @@ func (u *Usage) IncrementAIUsage(ur db.UsageRepository, sr db.SubscriptionReposi
 	}
 
 	if cost != 0 {
-		if err := ur.IncrementByPeriod(
+		if err := usage.IncrementByPeriod(
 			workspaceId,
 			db.UsageTypeAICost,
 			periodStart,

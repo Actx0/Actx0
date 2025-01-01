@@ -57,20 +57,20 @@ type Invite struct {
 
 // NewInvite creates an invite module with the given repositories.
 func NewInvite(
-	uir db.UserInviteRepository,
-	ur db.UserRepository,
-	cr db.ConfigRepository,
-	wr db.WorkspaceRepository,
-	wur db.WorkspaceUserRepository,
-	m InviteMailer,
+	invites db.UserInviteRepository,
+	users db.UserRepository,
+	config db.ConfigRepository,
+	workspaces db.WorkspaceRepository,
+	workspaceUsers db.WorkspaceUserRepository,
+	mailer InviteMailer,
 ) *Invite {
 	return &Invite{
-		UserInviteRepository:    uir,
-		UserRepository:          ur,
-		ConfigRepository:        cr,
-		WorkspaceRepository:     wr,
-		WorkspaceUserRepository: wur,
-		Mailer:                  m,
+		UserInviteRepository:    invites,
+		UserRepository:          users,
+		ConfigRepository:        config,
+		WorkspaceRepository:     workspaces,
+		WorkspaceUserRepository: workspaceUsers,
+		Mailer:                  mailer,
 	}
 }
 
