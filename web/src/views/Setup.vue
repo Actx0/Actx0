@@ -136,36 +136,18 @@ const form = reactive({
 const loading = ref(false)
 const error = ref(null)
 
-onMounted(async () => {
-  try {
-    const response = await setupAPI.checkInstalled()
-    if (response.data.installed) {
-      router.push('/login')
-    }
-  } catch (err) {
-    console.error('Failed to check setup status:', err)
-  }
-})
-
-const validateForm = () => {
-  if (form.adminPassword !== form.confirmPassword) {
-    error.value = t('setup.error_passwords_match')
-    return false
-  }
-
-  if (form.adminPassword.length < 8) {
-    error.value = t('setup.error_password_length')
-    return false
-  }
-
-  return true
-}
-
 const handleSetup = async () => {
   loading.value = true
   error.value = null
 
-  if (!validateForm()) {
+  if (form.adminPassword !== form.confirmPassword) {
+    error.value = t('setup.error_passwords_match')
+    loading.value = false
+    return
+  }
+
+  if (form.adminPassword.length < 8) {
+    error.value = t('setup.error_password_length')
     loading.value = false
     return
   }
@@ -188,5 +170,16 @@ const handleSetup = async () => {
     loading.value = false
   }
 }
+
+onMounted(async () => {
+  try {
+    const response = await setupAPI.checkInstalled()
+    if (response.data.installed) {
+      router.push('/login')
+    }
+  } catch (err) {
+    console.error('Failed to check setup status:', err)
+  }
+})
 </script>
 
