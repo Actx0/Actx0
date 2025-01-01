@@ -400,7 +400,9 @@
     "failed_delete_session": "Failed to delete session",
     "memory_kind_summary": "Summary",
     "memory_kind_fact": "Fact",
-    "memory_kind_preference": "Preference"
+    "memory_kind_preference": "Preference",
+    "memory_kind_short_lived": "Short-lived",
+    "memory_kind_long_lived": "Long-lived"
   },
   "members_page": {
     "title": "Members",

@@ -26,7 +26,7 @@ var (
 
 // CreateSessionMemoryRequest is the body for creating a session memory.
 type CreateSessionMemoryRequest struct {
-	Kind    string  `json:"kind" validate:"required,oneof=summary fact preference" label:"Kind"`
+	Kind    string  `json:"kind" validate:"required,oneof=summary fact preference short_lived long_lived" label:"Kind"`
 	Content string  `json:"content" validate:"required" label:"Content"`
 	Meta    *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 }
@@ -43,7 +43,7 @@ type BatchDeleteSessionMemoriesRequest struct {
 
 // UpdateSessionMemoryRequest is the body for updating a session memory.
 type UpdateSessionMemoryRequest struct {
-	Kind    string  `json:"kind" validate:"omitempty,oneof=summary fact preference" label:"Kind"`
+	Kind    string  `json:"kind" validate:"omitempty,oneof=summary fact preference short_lived long_lived" label:"Kind"`
 	Content string  `json:"content" validate:"required" label:"Content"`
 	Meta    *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 }
