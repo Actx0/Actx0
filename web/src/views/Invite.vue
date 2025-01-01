@@ -55,7 +55,7 @@
               </div>
               <div>
                 <p class="text-xs font-medium uppercase tracking-wide text-theme-textLight">{{ $t('invite.expires') }}</p>
-                <p class="mt-1 text-sm font-semibold text-theme-text">{{ formatDate(invite.expiresAt) }}</p>
+                <p class="mt-1 text-sm font-semibold text-theme-text">{{ formatDate(invite.expiresAt, locale) }}</p>
               </div>
             </div>
           </div>
@@ -110,6 +110,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { invite_api } from '@/api'
+import { formatDate } from '@/utils/dt'
 
 const route = useRoute()
 const router = useRouter()
@@ -120,13 +121,6 @@ const loading = ref(true)
 const actionLoading = ref(null)
 const error = ref(null)
 const actionError = ref(null)
-
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString(
-    locale.value,
-    { month: 'short', day: 'numeric', year: 'numeric' }
-  )
-}
 
 async function loadInvite() {
   if (!route.params.token) {

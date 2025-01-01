@@ -326,6 +326,7 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { workspace_api } from '@/api'
 import { saveWorkspaceToStorage, removeWorkspaceFromStorage } from '@/utils/storage'
+import { formatDate } from '@/utils/dt'
 import { canManageWorkspace, useWorkspaceContext } from '@/lib/permission'
 
 const { t } = useI18n()
@@ -356,18 +357,6 @@ const deleteError = ref(null)
 const deleteForm = reactive({ confirmName: '' })
 
 const switchLoadingId = ref(null)
-
-function formatDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString(
-      'en-US',
-      { month: 'short', day: 'numeric', year: 'numeric' }
-    )
-  } catch {
-    return iso
-  }
-}
 
 async function loadPage() {
   loading.value = true

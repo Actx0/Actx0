@@ -236,10 +236,10 @@ import { useWorkspaceContext } from '@/lib/permission'
 import {
   agentDetailPath,
   formatLabels,
-  formatDateTime,
   hasMetadata,
   formatMetadata,
 } from '@/lib/agent'
+import { formatDateTime } from '@/utils/dt'
 
 const LIST_LIMIT = 100
 

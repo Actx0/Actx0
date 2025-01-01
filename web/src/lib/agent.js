@@ -13,15 +13,6 @@ export function formatLabels(labels) {
   return Object.entries(labels).map(([key, value]) => `${key}=${value}`)
 }
 
-export function formatAgentDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
-}
-
 export function buildCreatePayload(form) {
   return {
     name: form.name.trim(),
@@ -31,20 +22,6 @@ export function buildCreatePayload(form) {
 
 export function buildUpdatePayload(form) {
   return buildCreatePayload(form)
-}
-
-export function formatDateTime(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return iso
-  }
 }
 
 export function hasMetadata(meta) {

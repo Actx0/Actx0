@@ -31,7 +31,7 @@
               <dl class="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 <div>
                   <dt class="text-theme-textLight">{{ $t('agents_page.created_at') }}</dt>
-                  <dd class="mt-0.5 text-theme-text">{{ formatAgentDate(agent.createdAt) }}</dd>
+                  <dd class="mt-0.5 text-theme-text">{{ formatDate(agent.createdAt) }}</dd>
                 </div>
               </dl>
             </div>
@@ -278,7 +278,8 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { agent_api, session_api } from '@/api'
-import { formatAgentDate, buildUpdatePayload, sessionDetailPath, formatLabels, formatDateTime } from '@/lib/agent'
+import { buildUpdatePayload, sessionDetailPath, formatLabels } from '@/lib/agent'
+import { formatDate, formatDateTime } from '@/utils/dt'
 
 const { t } = useI18n()
 const route = useRoute()

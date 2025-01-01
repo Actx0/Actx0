@@ -169,6 +169,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { workspace_invite_api, workspace_member_api } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
+import { formatDate } from '@/utils/dt'
 
 const { t } = useI18n()
 const { currentUser, currentWorkspace } = useWorkspaceContext()
@@ -186,15 +187,6 @@ const inviteForm = reactive({
   email: '',
   role: 'regular'
 })
-
-function formatDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
-}
 
 function formatRole(role) {
   if (role === 'regular') return t('members_page.role_regular')

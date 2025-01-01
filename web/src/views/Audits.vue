@@ -128,7 +128,8 @@ import AppNav from '@/components/AppNav.vue'
 import { audit_api } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
 import { useUrlPagination } from '@/lib/pagination'
-import { formatDateTime, hasMetadata, formatMetadata } from '@/lib/agent'
+import { hasMetadata, formatMetadata } from '@/lib/agent'
+import { formatDateTime } from '@/utils/dt'
 
 const { t, te } = useI18n()
 const route = useRoute()
