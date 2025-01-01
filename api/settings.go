@@ -23,7 +23,13 @@ type UpdateSettingsRequest struct {
 
 // UpdateSettingsAction updates app settings (admin only).
 func UpdateSettingsAction(w http.ResponseWriter, r *http.Request) {
-	user, _ := middleware.GetUserFromContext(r.Context())
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok || user == nil {
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+			"errorMessage": locale.TR(r, "not_authenticated"),
+		})
+		return
+	}
 
 	log.Info().
 		Str("userId", user.Id.String()).
@@ -60,7 +66,13 @@ func UpdateSettingsAction(w http.ResponseWriter, r *http.Request) {
 
 // GetSettingsAction returns current app settings.
 func GetSettingsAction(w http.ResponseWriter, r *http.Request) {
-	user, _ := middleware.GetUserFromContext(r.Context())
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok || user == nil {
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+			"errorMessage": locale.TR(r, "not_authenticated"),
+		})
+		return
+	}
 
 	log.Info().
 		Str("userId", user.Id.String()).
