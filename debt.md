@@ -36,7 +36,7 @@ Mark done: `- [x] path/to/file`
 - [x] api/billing.go
 - [x] api/agent.go
 - [ ] api/prompt.go
-- [ ] api/knowledge.go
+- [x] api/knowledge.go
 - [ ] api/session.go
 - [ ] api/message.go
 - [ ] api/memory.go
@@ -136,7 +136,7 @@ Mark done: `- [x] path/to/file`
 - [x] module/member.go
 - [ ] module/prompt.go
 - [x] module/agent.go
-- [ ] module/document.go
+- [x] module/document.go
 - [ ] module/asession.go
 - [ ] module/memory.go
 - [ ] module/message.go
