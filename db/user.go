@@ -59,6 +59,7 @@ type UserRepository interface {
 	GetById(id Id) (*User, error)
 	GetByAPIKey(apiKey string) (*User, error)
 	GetByEmail(email string) (*User, error)
+	GetByEmailVerifyToken(token string) (*User, error)
 	Update(user *User) error
 	UpdateLastLogin(id Id) error
 	Delete(id Id) error
@@ -215,6 +216,39 @@ func (r *UserRepositoryPostgres) GetByEmail(email string) (*User, error) {
 		FROM users
 		WHERE email = $1`,
 		email,
+	).Scan(
+		&user.Id,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Provider,
+		&user.ProviderUserId,
+		&user.Role,
+		&user.IsActive,
+		&user.IsEmailVerified,
+		&user.EmailVerifyToken,
+		&user.LastLoginAt,
+		&user.Language,
+		&user.Theme,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if isNotFound(err) {
+		return nil, nil
+	}
+	return user, err
+}
+
+// GetByEmailVerifyToken returns a user by email verification token
+func (r *UserRepositoryPostgres) GetByEmailVerifyToken(token string) (*User, error) {
+	user := &User{}
+	err := r.db.QueryRow(
+		`SELECT
+			id, name, email, pwd_hash, provider, provider_user_id, role, is_active,
+			is_email_verified, email_verify_token, last_login_at, language, theme, created_at, updated_at
+		FROM users
+		WHERE email_verify_token = $1`,
+		token,
 	).Scan(
 		&user.Id,
 		&user.Name,

@@ -64,6 +64,7 @@ export const authAPI = {
   forgotPassword: (data) => api.post('public/action/forgot-password', data),
   resetPassword: (data) => api.post('public/action/reset-password', data),
   register: (data) => api.post('public/action/register', data),
+  verifyEmail: (token) => api.post(`public/action/verify-email/${token}`),
 }
 
 export const setupAPI = {
