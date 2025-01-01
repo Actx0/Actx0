@@ -52,7 +52,7 @@ type WorkspaceResponse struct {
 	Id           db.Id  `json:"id"`
 	Name         string `json:"name"`
 	Handle       string `json:"handle"`
-	MembersCount int64  `json:"membersCount"`
+	MembersCount int64  `json:"count"`
 	Role         string `json:"role"`
 	CreatedAt    string `json:"createdAt"`
 	UpdatedAt    string `json:"updatedAt"`
@@ -66,7 +66,7 @@ type ListWorkspacesResponse struct {
 
 // CreateWorkspace creates a workspace and adds the user as owner.
 func (w *Workspace) CreateWorkspace(req *CreateWorkspaceRequest, user *db.User) (*WorkspaceResponse, error) {
-	handle, err := w.CreateWorkspaceHandle(15, 30)
+	handle, err := w.CreateWorkspaceHandle()
 	if err != nil {
 		return nil, err
 	}
@@ -90,14 +90,14 @@ func (w *Workspace) CreateWorkspace(req *CreateWorkspaceRequest, user *db.User) 
 		return nil, err
 	}
 
-	periodStart := time.Now().UTC()
-	periodEnd := periodStart.AddDate(0, 1, 0)
+	pst := time.Now().UTC()
+	pen := pst.AddDate(0, 1, 0)
 	err = w.SubscriptionRepository.Create(&db.Subscription{
 		WorkspaceId:        workspace.Id,
 		Plan:               stripe.PlanHobby,
 		Status:             BillingStatusActive,
-		CurrentPeriodStart: &periodStart,
-		CurrentPeriodEnd:   &periodEnd,
+		CurrentPeriodStart: &pst,
+		CurrentPeriodEnd:   &pen,
 	})
 	if err != nil {
 		return nil, err
@@ -221,7 +221,7 @@ func (w *Workspace) UpdateWorkspace(workspaceId db.Id, req *UpdateWorkspaceReque
 		role = membership.Role
 	}
 
-	membersCount, err := w.WorkspaceUserRepository.CountByWorkspaceId(workspace.Id)
+	count, err := w.WorkspaceUserRepository.CountByWorkspaceId(workspace.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (w *Workspace) UpdateWorkspace(workspaceId db.Id, req *UpdateWorkspaceReque
 		Id:           workspace.Id,
 		Name:         workspace.Name,
 		Handle:       workspace.Handle,
-		MembersCount: membersCount,
+		MembersCount: count,
 		Role:         role,
 		CreatedAt:    workspace.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:    workspace.UpdatedAt.UTC().Format(time.RFC3339),
@@ -250,23 +250,36 @@ func (w *Workspace) DeleteWorkspace(workspaceId db.Id) error {
 	return w.WorkspaceRepository.Delete(workspaceId)
 }
 
-// CreateWorkspaceHandle creates a unique random alphanumeric workspace handle
-func (w *Workspace) CreateWorkspaceHandle(min, max int) (string, error) {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+// CreateWorkspaceHandle creates a unique handle like abcd-1234 (4–5 letters, dash, 4–5 digits).
+func (w *Workspace) CreateWorkspaceHandle() (string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyz"
+	const digits = "0123456789"
 
 	for {
-		length, err := util.RandInt(min, max)
+		letterLen, err := util.RandInt(4, 8)
+		if err != nil {
+			return "", err
+		}
+		digitLen, err := util.RandInt(4, 8)
 		if err != nil {
 			return "", err
 		}
 
-		handle := make([]byte, length)
-		for i := range handle {
-			idx, err := util.RandInt(0, len(chars)-1)
+		handle := make([]byte, letterLen+1+digitLen)
+		for i := 0; i < letterLen; i++ {
+			idx, err := util.RandInt(0, len(letters)-1)
 			if err != nil {
 				return "", err
 			}
-			handle[i] = chars[idx]
+			handle[i] = letters[idx]
+		}
+		handle[letterLen] = '-'
+		for i := 0; i < digitLen; i++ {
+			idx, err := util.RandInt(0, len(digits)-1)
+			if err != nil {
+				return "", err
+			}
+			handle[letterLen+1+i] = digits[idx]
 		}
 
 		existing, err := w.WorkspaceRepository.GetByHandle(string(handle))
