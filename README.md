@@ -3,8 +3,8 @@
     <h3 align="center">Actx0</h3>
     <p align="center">A Zero Latency Memory Platform for AI Agents</p>
     <p align="center">
-        <a href="https://github.com/Clivern/actx0/actions/workflows/api.yml">
-            <img src="https://github.com/Clivern/actx0/actions/workflows/api.yml/badge.svg">
+        <a href="https://github.com/Actx0/Actx0/actions/workflows/ci.yml">
+            <img alt="CI" src="https://github.com/Actx0/Actx0/actions/workflows/ci.yml/badge.svg">
         </a>
         <a href="https://github.com/Clivern/actx0/releases">
             <img src="https://img.shields.io/badge/Version-v0.1.0-red.svg">
