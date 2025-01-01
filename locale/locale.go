@@ -23,6 +23,7 @@ func Load(f fs.FS) error {
 	if err != nil {
 		panic("locale: failed to read dir: " + err.Error())
 	}
+
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
@@ -39,6 +40,7 @@ func Load(f fs.FS) error {
 		po.Parse(data)
 		locales[strings.TrimSuffix(name, ".po")] = po
 	}
+
 	return nil
 }
 
@@ -47,12 +49,14 @@ func T(lang, key string) string {
 	if lo.IsEmpty(lang) {
 		lang = defaultLang
 	}
+
 	po, ok := locales[lang]
 	if ok && po != nil {
 		if msg := getMsg(po, key); lo.IsNotEmpty(msg) {
 			return msg
 		}
 	}
+
 	if lang != defaultLang {
 		poEn := locales[defaultLang]
 		if poEn != nil {
@@ -61,16 +65,16 @@ func T(lang, key string) string {
 			}
 		}
 	}
+
 	return key
 }
 
 // getMsg looks up the translation for key in po. Key is a msgid, not a format string.
 func getMsg(po *gotext.Po, key string) string {
-	out := reflect.ValueOf(po).MethodByName("Get").Call([]reflect.Value{reflect.ValueOf(key)})
-	if len(out) == 1 && out[0].Kind() == reflect.String {
-		return out[0].String()
-	}
-	return ""
+	return reflect.ValueOf(po).
+		MethodByName("Get").
+		Call([]reflect.Value{reflect.ValueOf(key)})[0].
+		String()
 }
 
 // GetLangFromRequest returns the preferred language from the request.
@@ -79,13 +83,12 @@ func GetLangFromRequest(r *http.Request) string {
 		return defaultLang
 	}
 
-	ah := r.Header.Get("Accept-Language")
-	if lo.IsEmpty(ah) {
+	al := r.Header.Get("Accept-Language")
+	if lo.IsEmpty(al) {
 		return defaultLang
 	}
 
-	parts := strings.Split(strings.TrimSpace(ah), ",")
-	for _, p := range parts {
+	for p := range strings.SplitSeq(strings.TrimSpace(al), ",") {
 		p = strings.TrimSpace(p)
 		if idx := strings.Index(p, ";"); idx > 0 {
 			p = p[:idx]
