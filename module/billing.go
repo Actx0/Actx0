@@ -351,26 +351,21 @@ func (b *Billing) SyncStripeSubscription(client *stripe.Client, payload *stripes
 		status = BillingStatusCanceled
 	}
 
-	provider := BillingProviderStripe
-	subscription.Provider = &provider
+	subscription.Provider = new(BillingProviderStripe)
 	if payload.Customer != nil && lo.IsNotEmpty(payload.Customer.ID) {
-		customerId := payload.Customer.ID
-		subscription.ProviderCustomerId = &customerId
+		subscription.ProviderCustomerId = new(payload.Customer.ID)
 	}
 	if lo.IsNotEmpty(payload.ID) && status != BillingStatusCanceled {
-		providerSubscriptionId := payload.ID
-		subscription.ProviderSubscriptionId = &providerSubscriptionId
+		subscription.ProviderSubscriptionId = new(payload.ID)
 	}
 
 	if payload.Items != nil && len(payload.Items.Data) > 0 {
 		item := payload.Items.Data[0]
 		if item.CurrentPeriodStart > 0 {
-			value := time.Unix(item.CurrentPeriodStart, 0).UTC()
-			subscription.CurrentPeriodStart = &value
+			subscription.CurrentPeriodStart = new(time.Unix(item.CurrentPeriodStart, 0).UTC())
 		}
 		if item.CurrentPeriodEnd > 0 {
-			value := time.Unix(item.CurrentPeriodEnd, 0).UTC()
-			subscription.CurrentPeriodEnd = &value
+			subscription.CurrentPeriodEnd = new(time.Unix(item.CurrentPeriodEnd, 0).UTC())
 		}
 		if lo.IsEmpty(plan) && item.Price != nil {
 			plan = client.Config().PlanForPriceId(item.Price.ID)
@@ -418,8 +413,8 @@ func (b *Billing) UpdateHobbyPlanPeriods(subscription *db.Subscription) error {
 		periodEnd = periodStart.AddDate(0, 1, 0)
 	}
 
-	subscription.CurrentPeriodStart = &periodStart
-	subscription.CurrentPeriodEnd = &periodEnd
+	subscription.CurrentPeriodStart = new(periodStart)
+	subscription.CurrentPeriodEnd = new(periodEnd)
 
 	err := b.SubscriptionRepository.Update(subscription)
 
