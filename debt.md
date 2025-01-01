@@ -1,8 +1,8 @@
-# Go file review checklist
+# File review checklist
 
 Manually validate each file for AI slop, unnecessary defensive code, and style drift.
 
-Mark done: `- [x] path/to/file.go`
+Mark done: `- [x] path/to/file`
 
 ---
 
@@ -245,3 +245,99 @@ Mark done: `- [x] path/to/file.go`
 - [ ] task/doc.go
 - [ ] task/task.go
 - [ ] task/util.go
+
+## web/
+
+- [ ] web/index.html
+- [ ] web/postcss.config.js
+- [ ] web/tailwind.config.js
+- [ ] web/vite.config.js
+- [ ] web/.eslintrc.cjs
+
+## web/src/
+
+- [ ] web/src/App.vue
+- [ ] web/src/i18n.js
+- [ ] web/src/main.js
+- [ ] web/src/style.css
+
+## web/src/api/
+
+- [ ] web/src/api/index.js
+- [ ] web/src/api/session-resources.js
+
+## web/src/components/
+
+- [ ] web/src/components/AppNav.vue
+- [ ] web/src/components/CaseLayout.vue
+- [ ] web/src/components/CookieConsent.vue
+- [ ] web/src/components/EmptyPage.vue
+- [ ] web/src/components/FlashNotice.vue
+- [ ] web/src/components/LandingNav.vue
+- [ ] web/src/components/PromptFormFields.vue
+
+## web/src/lib/
+
+- [ ] web/src/lib/agent.js
+- [ ] web/src/lib/auth.js
+- [ ] web/src/lib/code.js
+- [ ] web/src/lib/cookies.js
+- [ ] web/src/lib/flash.js
+- [ ] web/src/lib/landingPage.js
+- [ ] web/src/lib/pagination.js
+- [ ] web/src/lib/permission.js
+- [ ] web/src/lib/preferences.js
+- [ ] web/src/lib/prompt.js
+
+## web/src/mocks/
+
+- [ ] web/src/mocks/agents.js
+- [ ] web/src/mocks/integrations.js
+
+## web/src/router/
+
+- [ ] web/src/router/index.js
+
+## web/src/utils/
+
+- [ ] web/src/utils/date.js
+- [ ] web/src/utils/storage.js
+
+## web/src/views/
+
+- [ ] web/src/views/Agent.vue
+- [ ] web/src/views/Agents.vue
+- [ ] web/src/views/Audits.vue
+- [ ] web/src/views/Billing.vue
+- [ ] web/src/views/Dashboard.vue
+- [ ] web/src/views/Docs.vue
+- [ ] web/src/views/ForgotPassword.vue
+- [ ] web/src/views/Integrations.vue
+- [ ] web/src/views/Invite.vue
+- [ ] web/src/views/Knowledge.vue
+- [ ] web/src/views/Landing.vue
+- [ ] web/src/views/Login.vue
+- [ ] web/src/views/Members.vue
+- [ ] web/src/views/NotFound.vue
+- [ ] web/src/views/Profile.vue
+- [ ] web/src/views/PromptDetail.vue
+- [ ] web/src/views/Prompts.vue
+- [ ] web/src/views/Register.vue
+- [ ] web/src/views/ResetPassword.vue
+- [ ] web/src/views/SelectWorkspace.vue
+- [ ] web/src/views/ServerError.vue
+- [ ] web/src/views/Session.vue
+- [ ] web/src/views/Settings.vue
+- [ ] web/src/views/Setup.vue
+- [ ] web/src/views/Status.vue
+- [ ] web/src/views/VerifyEmail.vue
+- [ ] web/src/views/Workspaces.vue
+
+## web/src/views/cases/
+
+- [ ] web/src/views/cases/CustomerSupport.vue
+- [ ] web/src/views/cases/DevTools.vue
+- [ ] web/src/views/cases/ECommerce.vue
+- [ ] web/src/views/cases/Education.vue
+- [ ] web/src/views/cases/Healthcare.vue
+- [ ] web/src/views/cases/Sales.vue

@@ -17,8 +17,8 @@ Keep entries short. Remove obsolete notes. Never store secrets.
 
 ## Debt review
 
-- Checklist: repo-root `debt.md` (`- [ ]` / `- [x] path`).
-- Slash command: `/debt` (see `.cursor/commands/debt.md`). Supports a path or `pkg/foo/*.go`.
+- Checklist: repo-root `debt.md` (`- [ ]` / `- [x] path`) — Go packages and `web/` frontend.
+- Slash command: `/debt` (see `.cursor/commands/debt.md`). Supports a path (e.g. `api/me.go`, `web/src/App.vue`).
 - Goal while reviewing: strip AI slop, unused wrappers, defensive code; match happy-path style.
 
 ## Prefer / avoid

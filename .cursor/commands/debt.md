@@ -1,12 +1,12 @@
 # Debt
 
-Mark a Go file as reviewed in `debt.md`.
+Mark a file as reviewed in `debt.md` (Go under package dirs, frontend under `web/`).
 
 ## File
 
 Use the path the user typed after `/debt`. If they gave no path, use the currently focused / open editor file.
 
-Normalize to a repo-relative path (strip leading `./` or absolute workspace prefix). Prefer the form already used in `debt.md` (e.g. `locale/locale.go`, `api/health.go`).
+Normalize to a repo-relative path (strip leading `./` or absolute workspace prefix). Prefer the form already used in `debt.md` (e.g. `locale/locale.go`, `api/health.go`, `web/src/App.vue`).
 
 ## Steps
 
@@ -24,6 +24,7 @@ Normalize to a repo-relative path (strip leading `./` or absolute workspace pref
 - `/debt` with `locale/locale.go` focused → marks `- [x] locale/locale.go`
 - `/debt api/me.go` → marks `- [x] api/me.go`
 - `/debt ./db/audit.go` → marks `- [x] db/audit.go`
+- `/debt web/src/lib/auth.js` → marks `- [x] web/src/lib/auth.js`
 
 ## Notes
 
