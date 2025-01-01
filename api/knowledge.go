@@ -211,10 +211,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := req.Limit
-	if limit == 0 {
-		limit = conf.DefaultSearchLimit
-	}
+	limit := lo.Ternary(req.Limit == 0, conf.DefaultSearchLimit, req.Limit)
 
 	store, err := storage.New()
 	if err != nil {
