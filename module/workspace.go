@@ -66,7 +66,7 @@ type ListWorkspacesResponse struct {
 
 // CreateWorkspace creates a workspace and adds the user as owner.
 func (w *Workspace) CreateWorkspace(req *CreateWorkspaceRequest, user *db.User) (*WorkspaceResponse, error) {
-	handle, err := w.CreateWorkspaceHandle()
+	handle, err := w.CreateWorkspaceHandle(4, 8)
 	if err != nil {
 		return nil, err
 	}
@@ -250,44 +250,19 @@ func (w *Workspace) DeleteWorkspace(workspaceId db.Id) error {
 	return w.WorkspaceRepository.Delete(workspaceId)
 }
 
-// CreateWorkspaceHandle creates a unique handle like abcd-1234 (4–5 letters, dash, 4–5 digits).
-func (w *Workspace) CreateWorkspaceHandle() (string, error) {
-	const letters = "abcdefghijklmnopqrstuvwxyz"
-	const digits = "0123456789"
-
+// CreateWorkspaceHandle creates a unique handle like abcd-1234 (min–max letters, dash, min–max digits).
+func (w *Workspace) CreateWorkspaceHandle(min, max int) (string, error) {
 	for {
-		letterLen, err := util.RandInt(4, 8)
+		handle, err := util.RandomHandle(min, max)
 		if err != nil {
 			return "", err
 		}
-		digitLen, err := util.RandInt(4, 8)
-		if err != nil {
-			return "", err
-		}
-
-		handle := make([]byte, letterLen+1+digitLen)
-		for i := 0; i < letterLen; i++ {
-			idx, err := util.RandInt(0, len(letters)-1)
-			if err != nil {
-				return "", err
-			}
-			handle[i] = letters[idx]
-		}
-		handle[letterLen] = '-'
-		for i := 0; i < digitLen; i++ {
-			idx, err := util.RandInt(0, len(digits)-1)
-			if err != nil {
-				return "", err
-			}
-			handle[letterLen+1+i] = digits[idx]
-		}
-
-		existing, err := w.WorkspaceRepository.GetByHandle(string(handle))
+		existing, err := w.WorkspaceRepository.GetByHandle(handle)
 		if err != nil {
 			return "", err
 		}
 		if existing == nil {
-			return string(handle), nil
+			return handle, nil
 		}
 	}
 }

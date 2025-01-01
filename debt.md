@@ -33,7 +33,7 @@ Mark done: `- [x] path/to/file`
 - [x] api/invite.go
 - [x] api/member.go
 - [ ] api/billing.go
-- [ ] api/workspace.go
+- [x] api/workspace.go
 
 - [ ] api/agent.go
 - [ ] api/prompt.go
@@ -133,7 +133,7 @@ Mark done: `- [x] path/to/file`
 - [x] module/stats.go
 - [x] module/tools.go
 - [x] module/usage.go
-- [ ] module/workspace.go
+- [x] module/workspace.go
 - [x] module/member.go
 
 - [ ] module/prompt.go
