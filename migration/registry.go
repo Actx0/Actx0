@@ -585,6 +585,7 @@ func createSessionsTable(db *sql.DB) error {
 			status VARCHAR(50) NOT NULL DEFAULT 'active',
 			labels JSONB,
 			meta JSONB,
+			last_activity_at TIMESTAMP NULL,
 			created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
 			updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
 			UNIQUE (agent_id, external_id)
