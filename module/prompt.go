@@ -112,12 +112,12 @@ type PromptVersionResponse struct {
 
 // ListPromptsResponse is returned when listing prompts.
 type ListPromptsResponse struct {
-	Prompts []*PromptResultResponse
+	Prompts []*PromptResponse
 	Total   int64
 }
 
-// PromptResultResponse is a prompt for list/get views.
-type PromptResultResponse struct {
+// PromptResponse is a prompt for list/get views.
+type PromptResponse struct {
 	PromptId     string `json:"promptId"`
 	Name         string `json:"name"`
 	Handle       string `json:"handle"`
@@ -132,7 +132,7 @@ type ListPromptVersionsResponse struct {
 }
 
 // CreatePrompt creates a new prompt with its first version.
-func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*PromptResultResponse, error) {
+func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*PromptResponse, error) {
 	workspace, err := p.WorkspaceRepository.GetById(workspaceId)
 	if err != nil {
 		return nil, err
@@ -172,7 +172,7 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 		return nil, err
 	}
 
-	return &PromptResultResponse{
+	return &PromptResponse{
 		PromptId:     promptId.String(),
 		Name:         req.Name,
 		Handle:       handle,
@@ -487,9 +487,9 @@ func (p *Prompt) ListPrompts(workspaceId db.Id, limit, offset int) (*ListPrompts
 		return nil, fmt.Errorf("%w: %v", ErrFailedListPrompts, err)
 	}
 
-	list := make([]*PromptResultResponse, 0, len(results))
+	list := make([]*PromptResponse, 0, len(results))
 	for _, item := range results {
-		list = append(list, &PromptResultResponse{
+		list = append(list, &PromptResponse{
 			PromptId:     item.Id.String(),
 			Name:         item.Name,
 			Handle:       item.Handle,
@@ -502,7 +502,7 @@ func (p *Prompt) ListPrompts(workspaceId db.Id, limit, offset int) (*ListPrompts
 }
 
 // GetPrompt returns one prompt by Id.
-func (p *Prompt) GetPrompt(workspaceId, promptId db.Id) (*PromptResultResponse, error) {
+func (p *Prompt) GetPrompt(workspaceId, promptId db.Id) (*PromptResponse, error) {
 	workspace, err := p.WorkspaceRepository.GetById(workspaceId)
 	if err != nil {
 		return nil, err
@@ -519,7 +519,7 @@ func (p *Prompt) GetPrompt(workspaceId, promptId db.Id) (*PromptResultResponse, 
 		return nil, ErrPromptNotFound
 	}
 
-	return &PromptResultResponse{
+	return &PromptResponse{
 		PromptId:     result.Id.String(),
 		Name:         result.Name,
 		Handle:       result.Handle,
