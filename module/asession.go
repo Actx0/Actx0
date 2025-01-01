@@ -104,8 +104,7 @@ func (s *AgentSession) CreateAgentSession(workspaceId, agentId db.Id, externalId
 		if err != nil {
 			return nil, ErrInvalidSessionLabels
 		}
-		value := string(labelsRaw)
-		labelsJSON = &value
+		labelsJSON = new(string(labelsRaw))
 
 		existing, err := s.SessionRepository.GetByAgentIdAndExactLabels(agent.Id, value)
 		if err != nil {
@@ -539,13 +538,18 @@ func (s *AgentSession) DeleteAgentSessionByLabels(workspaceId, agentId db.Id, ex
 		return fmt.Errorf("%w: %v", ErrFailedDeleteAgentSession, err)
 	}
 
-	_, err = GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+	return s.EnqueueDeleteTask(workspaceId, agent.Id, session.Id)
+}
+
+// EnqueueDeleteTask enqueues an async task to delete a session resource.
+func (s *AgentSession) EnqueueDeleteTask(workspaceId, agentId, sessionId db.Id) error {
+	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
 		WorkspaceId: workspaceId,
 		Type:        "task.agent.session.delete",
 		Priority:    AsyncPriorityLow,
 		Payload: map[string]string{
-			"agentId":   agent.Id.String(),
-			"sessionId": session.Id.String(),
+			"agentId":   agentId.String(),
+			"sessionId": sessionId.String(),
 		},
 	})
 
