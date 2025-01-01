@@ -68,8 +68,8 @@ Mark done: `- [x] path/to/file`
 - [x] db/helpers.go
 - [x] db/integration.go
 - [x] db/invite.go
-- [ ] db/memory.go
-- [ ] db/message.go
+- [x] db/memory.go
+- [x] db/message.go
 - [x] db/preset.go
 - [ ] db/prompt.go
 - [ ] db/session.go
