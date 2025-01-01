@@ -124,7 +124,6 @@ export const workspaceAccessKeyAPI = {
   delete: (workspaceId, id) => api.delete(`/workspaces/${workspaceId}/keys/${id}`),
 }
 
-// API endpoints for current user's API keys
 export const apiKeysAPI = {
   list: (params) => api.get('/apiKeys', { params }),
   create: (data) => api.post('/apiKeys', data),
