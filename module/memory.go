@@ -330,6 +330,11 @@ func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id
 		return nil, err
 	}
 
+	err = m.MemoryRepository.DeleteBySessionId(sessionId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
+	}
+
 	messageCount, err := m.MessageRepository.CountBySessionId(sessionId)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
