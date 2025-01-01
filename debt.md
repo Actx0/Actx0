@@ -126,7 +126,7 @@ Mark done: `- [x] path/to/file`
 - [x] module/permission.go
 - [x] module/profile.go
 - [x] module/register.go
-- [x] module/session.go
+- [x] module/sess.go
 - [x] module/settings.go
 - [x] module/setup.go
 - [x] module/stats.go
@@ -137,7 +137,7 @@ Mark done: `- [x] path/to/file`
 - [x] module/prompt.go
 - [x] module/agent.go
 - [x] module/document.go
-- [ ] module/asession.go
+- [ ] module/session.go
 - [ ] module/memory.go
 - [ ] module/message.go
 
