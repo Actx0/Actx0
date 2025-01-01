@@ -18,6 +18,7 @@ func LoadTemplates(templateFS fs.FS) error {
 	if err != nil {
 		return fmt.Errorf("parse mail templates: %w", err)
 	}
+
 	templates = parsed
 	return nil
 }
@@ -27,7 +28,12 @@ func renderTemplate(name string, data any) (string, error) {
 	var buf bytes.Buffer
 	err := templates.ExecuteTemplate(&buf, name, data)
 	if err != nil {
-		return "", fmt.Errorf("render mail template %s: %w", name, err)
+		return "", fmt.Errorf(
+			"render mail template %s: %w",
+			name,
+			err,
+		)
 	}
+
 	return buf.String(), nil
 }

@@ -187,12 +187,12 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/storage/
 
-- [ ] pkg/storage/config.go
-- [ ] pkg/storage/document.go
-- [ ] pkg/storage/errors.go
-- [ ] pkg/storage/local.go
-- [ ] pkg/storage/s3.go
-- [ ] pkg/storage/store.go
+- [x] pkg/storage/config.go
+- [x] pkg/storage/document.go
+- [x] pkg/storage/errors.go
+- [x] pkg/storage/local.go
+- [x] pkg/storage/s3.go
+- [x] pkg/storage/store.go
 
 ## pkg/stripe/
 
