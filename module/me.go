@@ -77,7 +77,7 @@ func (m *Me) GetByAPIKey(key string) (*MeAPIKeyResponse, error) {
 	}
 
 	return &MeAPIKeyResponse{
-		PrincipalType: "api_key",
+		PrincipalType: "API_KEY",
 		Owner: MeAPIKeyOwner{
 			Id:    owner.Id,
 			Email: owner.Email,
@@ -115,7 +115,7 @@ func (m *Me) GetByAccessKey(key string) (*MeAccessKeyResponse, error) {
 	}
 
 	return &MeAccessKeyResponse{
-		PrincipalType: "access_key",
+		PrincipalType: "ACCESS_KEY",
 		AccessKey: AccessKeyResponse{
 			Id:          accessKey.Id,
 			WorkspaceId: accessKey.WorkspaceId,
