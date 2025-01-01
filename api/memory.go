@@ -52,6 +52,7 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMemory(
 		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
 		module.NewAgentSession(
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
@@ -134,6 +135,7 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMemory(
 		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
 		module.NewAgentSession(
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
@@ -214,6 +216,7 @@ func ListSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMemory(
 		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
 		module.NewAgentSession(
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
@@ -298,6 +301,7 @@ func GetSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMemory(
 		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
 		module.NewAgentSession(
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
@@ -384,6 +388,7 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMemory(
 		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
 		module.NewAgentSession(
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
@@ -473,6 +478,7 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMemory(
 		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
 		module.NewAgentSession(
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),
@@ -524,6 +530,82 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// RegenerateSessionMemoriesAction deletes session memories and queues generation from user messages.
+func RegenerateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
+	wid := chi.URLParam(r, "workspaceId")
+	if lo.IsEmpty(wid) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_workspace_id"),
+		})
+		return
+	}
+	workspaceId := db.Id(wid)
+
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_agent_id"),
+		})
+		return
+	}
+
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_session_reference"),
+		})
+		return
+	}
+
+	mm := module.NewMemory(
+		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
+		module.NewAgentSession(
+			db.NewAgentSessionRepository(db.GetDB()),
+			db.NewAgentRepository(db.GetDB()),
+			db.NewWorkspaceRepository(db.GetDB()),
+		),
+	)
+	result, err := mm.RegenerateSessionMemories(
+		workspaceId,
+		db.Id(agentId),
+		db.Id(sessionId),
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrWorkspaceNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "agent_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentSessionNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		default:
+			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to regenerate session memories")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+				"errorMessage": locale.TR(r, "failed_regenerate_session_memories"),
+			})
+		}
+		return
+	}
+
+	defer record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       ActionMemoryRegenerate,
+		ResourceType: ResourceMemory,
+		ResourceId:   db.Id(sessionId),
+		Meta:         map[string]any{"sessionId": sessionId, "queued": result.Queued},
+	})
+
+	util.WriteJSON(w, http.StatusAccepted, result)
+}
+
 // BatchDeleteSessionMemoriesAction deletes multiple memories in an agent session.
 func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
@@ -559,6 +641,7 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMemory(
 		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
 		module.NewAgentSession(
 			db.NewAgentSessionRepository(db.GetDB()),
 			db.NewAgentRepository(db.GetDB()),

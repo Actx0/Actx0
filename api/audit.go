@@ -61,6 +61,7 @@ const (
 	ActionMemoryDelete      = "memory.delete"
 	ActionMemoryBatchCreate = "memory.batch_create"
 	ActionMemoryBatchDelete = "memory.batch_delete"
+	ActionMemoryRegenerate  = "memory.regenerate"
 
 	ActionBillingCheckout = "billing.checkout"
 	ActionBillingPortal   = "billing.portal"

@@ -147,6 +147,9 @@ msgstr "Failed to delete session message."
 msgid "failed_delete_session_memory"
 msgstr "Failed to delete session memory."
 
+msgid "failed_regenerate_session_memories"
+msgstr "Failed to regenerate session memories."
+
 msgid "failed_delete_api_key"
 msgstr "Failed to delete API key."
 

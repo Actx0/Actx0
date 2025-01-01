@@ -408,7 +408,13 @@
     "edit_memory_title": "Modifier la mémoire",
     "memory_kind_label": "Type",
     "memory_content_label": "Contenu",
-    "failed_save_memory": "Échec de l'enregistrement de la mémoire"
+    "failed_save_memory": "Échec de l'enregistrement de la mémoire",
+    "regenerate_memory": "Régénérer",
+    "regenerate_memory_title": "Régénérer la mémoire",
+    "regenerate_memory_confirm": "Supprimer toute la mémoire de cette session et la reconstruire à partir des messages utilisateur ? Cette action est irréversible.",
+    "regenerating": "Régénération…",
+    "regenerate_memory_queued": "{count} messages mis en file pour la génération de mémoire.",
+    "failed_regenerate_memory": "Échec de la régénération de la mémoire"
   },
   "members_page": {
     "title": "Membres",

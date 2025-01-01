@@ -186,6 +186,7 @@ export const memory_api = {
   update: (workspaceId, agentId, sessionId, memoryId, data) => api.put(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`, data),
   delete: (workspaceId, agentId, sessionId, memoryId) => api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`),
   deleteBatch: (workspaceId, agentId, sessionId, data) => api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/batch`, { data }),
+  regenerate: (workspaceId, agentId, sessionId) => api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/regenerate`),
 }
 
 export { stringifyMeta, buildMessageBatchPayload, buildMemoryBatchPayload } from './session-resources'

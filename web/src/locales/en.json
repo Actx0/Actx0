@@ -408,7 +408,13 @@
     "edit_memory_title": "Edit memory",
     "memory_kind_label": "Kind",
     "memory_content_label": "Content",
-    "failed_save_memory": "Failed to save memory"
+    "failed_save_memory": "Failed to save memory",
+    "regenerate_memory": "Regenerate",
+    "regenerate_memory_title": "Regenerate memory",
+    "regenerate_memory_confirm": "Delete all memory for this session and rebuild it from the user messages? This cannot be undone.",
+    "regenerating": "Regenerating…",
+    "regenerate_memory_queued": "Queued {count} messages for memory generation.",
+    "failed_regenerate_memory": "Failed to regenerate memory"
   },
   "members_page": {
     "title": "Members",
