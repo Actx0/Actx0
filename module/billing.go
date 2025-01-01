@@ -35,6 +35,7 @@ var (
 type Billing struct {
 	WorkspaceRepository    db.WorkspaceRepository
 	SubscriptionRepository db.SubscriptionRepository
+	Usage                  Usage
 }
 
 // BillingStatusResponse is the billing state exposed to the UI.
@@ -128,10 +129,11 @@ var planUsageLimits = map[string]PlanUsageLimits{
 }
 
 // NewBilling creates a billing module.
-func NewBilling(workspaces db.WorkspaceRepository, subscriptions db.SubscriptionRepository) *Billing {
+func NewBilling(workspaces db.WorkspaceRepository, subscriptions db.SubscriptionRepository, usage Usage) *Billing {
 	return &Billing{
 		WorkspaceRepository:    workspaces,
 		SubscriptionRepository: subscriptions,
+		Usage:                  usage,
 	}
 }
 
@@ -193,7 +195,7 @@ func (b *Billing) GetBillingUsage(workspaceId db.Id, deps UsageSnapshotDeps) (*B
 		return nil, err
 	}
 
-	used, err := NewUsage().GetWorkspaceUsage(deps, workspaceId)
+	used, err := b.Usage.GetWorkspaceUsage(deps, workspaceId)
 	if err != nil {
 		return nil, err
 	}
