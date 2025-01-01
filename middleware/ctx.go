@@ -38,10 +38,8 @@ func GetAppCtx(ctx context.Context) (*module.AppCtx, bool) {
 func GetClientIP(r *http.Request) string {
 	// Check X-Forwarded-For header
 	if xff := r.Header.Get("X-Forwarded-For"); lo.IsNotEmpty(xff) {
-		if i := strings.Index(xff, ","); i >= 0 {
-			return strings.TrimSpace(xff[:i])
-		}
-		return strings.TrimSpace(xff)
+		ip, _, _ := strings.Cut(xff, ",")
+		return strings.TrimSpace(ip)
 	}
 
 	// Check X-Real-IP header
