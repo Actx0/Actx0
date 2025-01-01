@@ -61,7 +61,6 @@ type CreatePromptRequest struct {
 	Type          string  `json:"type" validate:"required,oneof=text chat" label:"Type"`
 	Content       string  `json:"content" validate:"required" label:"Content"`
 	Config        *string `json:"config" validate:"omitempty,json" label:"Config"`
-	Labels        *string `json:"labels" validate:"omitempty,json" label:"Labels"`
 	CommitMessage *string `json:"commitMessage" validate:"omitempty,max=255" label:"Commit message"`
 	Meta          *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 	Production    bool    `json:"production" label:"Production"`
@@ -72,7 +71,6 @@ type CreatePromptVersionRequest struct {
 	Type          string  `json:"type" validate:"required,oneof=text chat" label:"Type"`
 	Content       string  `json:"content" validate:"required" label:"Content"`
 	Config        *string `json:"config" validate:"omitempty,json" label:"Config"`
-	Labels        *string `json:"labels" validate:"omitempty,json" label:"Labels"`
 	CommitMessage *string `json:"commitMessage" validate:"omitempty,max=255" label:"Commit message"`
 	Meta          *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 	Production    bool    `json:"production" label:"Production"`
@@ -83,7 +81,6 @@ type UpdatePromptVersionRequest struct {
 	Type          string  `json:"type" validate:"omitempty,oneof=text chat" label:"Type"`
 	Content       string  `json:"content" validate:"required" label:"Content"`
 	Config        *string `json:"config" validate:"omitempty,json" label:"Config"`
-	Labels        *string `json:"labels" validate:"omitempty,json" label:"Labels"`
 	CommitMessage *string `json:"commitMessage" validate:"omitempty,max=255" label:"Commit message"`
 	Meta          *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 	Status        string  `json:"status" validate:"omitempty,oneof=active archived" label:"Status"`
@@ -162,7 +159,6 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 		Type:          req.Type,
 		Content:       req.Content,
 		Config:        req.Config,
-		Labels:        req.Labels,
 		CommitMessage: req.CommitMessage,
 		Meta:          req.Meta,
 		Production:    req.Production,
@@ -199,23 +195,16 @@ func (p *Prompt) CreatePromptVersion(workspaceId, promptId db.Id, req *CreatePro
 		return nil, ErrPromptNotFound
 	}
 
-	var existing []string
-	if req.Labels != nil && lo.IsNotEmpty(*req.Labels) {
-		if err := json.Unmarshal([]byte(*req.Labels), &existing); err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
-		}
-	}
-	latestLabels := lo.Uniq(append(existing, PromptLabelLatest))
-	labelsRaw, err := json.Marshal(latestLabels)
+	err = p.PromptVersionRepository.ClearLabelFromPromptId(promptId, PromptLabelLatest)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 	}
-	labels := string(labelsRaw)
 
-	err = p.PromptVersionRepository.ClearLabelFromPromptId(promptId, PromptLabelLatest, nil)
+	latestLabels, err := json.Marshal([]string{PromptLabelLatest})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 	}
+	labels := string(latestLabels)
 
 	version := &db.PromptVersion{
 		PromptId:      promptId,
@@ -282,7 +271,7 @@ func (p *Prompt) GetPromptVersionByHandle(workspaceId db.Id, handle, versionSpec
 	case "", PromptLabelLatest:
 		version, err = p.PromptVersionRepository.GetLatestByPromptId(prompt.Id)
 	case "production":
-		version, err = p.PromptVersionRepository.GetByPromptIdAndLabel(prompt.Id, "production")
+		version, err = p.PromptVersionRepository.GetProductionByPromptId(prompt.Id)
 	default:
 		vn, parseErr := strconv.Atoi(strings.TrimPrefix(versionSpec, "v"))
 		if parseErr != nil || vn < 1 {
@@ -394,7 +383,6 @@ func (p *Prompt) UpdatePromptVersion(workspaceId, promptId, versionId db.Id, req
 	}
 	version.Content = req.Content
 	version.Config = req.Config
-	version.Labels = req.Labels
 	version.CommitMessage = req.CommitMessage
 	version.Meta = req.Meta
 	if lo.IsNotEmpty(req.Status) {

@@ -5,7 +5,6 @@ package db
 
 import (
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/clivern/actx0/pkg/util"
@@ -35,12 +34,12 @@ type PromptVersionRepository interface {
 	GetById(id Id) (*PromptVersion, error)
 	GetByPromptIdAndVersion(promptId Id, version int) (*PromptVersion, error)
 	GetLatestByPromptId(promptId Id) (*PromptVersion, error)
-	GetByPromptIdAndLabel(promptId Id, label string) (*PromptVersion, error)
+	GetProductionByPromptId(promptId Id) (*PromptVersion, error)
 	Update(version *PromptVersion) error
 	Delete(id Id) error
 	ListByPromptId(promptId Id, limit, offset int) ([]*PromptVersion, error)
 	CountByPromptId(promptId Id) (int64, error)
-	ClearLabelFromPromptId(promptId Id, label string, exceptId *Id) error
+	ClearLabelFromPromptId(promptId Id, label string) error
 	ClearProductionFromPromptId(promptId Id, exceptId *Id) error
 }
 
@@ -215,67 +214,33 @@ func (r *PromptVersionRepositoryPostgres) GetLatestByPromptId(promptId Id) (*Pro
 	return item, err
 }
 
-// GetByPromptIdAndLabel returns a prompt version by prompt id and label.
-func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndLabel(promptId Id, label string) (*PromptVersion, error) {
+// GetProductionByPromptId returns the production version for a prompt.
+func (r *PromptVersionRepositoryPostgres) GetProductionByPromptId(promptId Id) (*PromptVersion, error) {
 	item := &PromptVersion{}
-	var err error
-	if label == "production" {
-		err = r.db.QueryRow(
-			`SELECT
-				id, prompt_id, version, type, content, config, labels,
-				commit_message, commit_hash, meta, status, production, created_at, updated_at
-			FROM prompt_versions
-			WHERE prompt_id = $1 AND production = TRUE
-			LIMIT 1`,
-			promptId.String(),
-		).Scan(
-			&item.Id,
-			&item.PromptId,
-			&item.Version,
-			&item.Type,
-			&item.Content,
-			&item.Config,
-			&item.Labels,
-			&item.CommitMessage,
-			&item.CommitHash,
-			&item.Meta,
-			&item.Status,
-			&item.Production,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		)
-	} else {
-		labelFilter, marshalErr := json.Marshal([]string{label})
-		if marshalErr != nil {
-			return nil, marshalErr
-		}
-		err = r.db.QueryRow(
-			`SELECT
-				id, prompt_id, version, type, content, config, labels,
-				commit_message, commit_hash, meta, status, production, created_at, updated_at
-			FROM prompt_versions
-			WHERE prompt_id = $1 AND labels @> $2::jsonb
-			ORDER BY version DESC
-			LIMIT 1`,
-			promptId.String(),
-			string(labelFilter),
-		).Scan(
-			&item.Id,
-			&item.PromptId,
-			&item.Version,
-			&item.Type,
-			&item.Content,
-			&item.Config,
-			&item.Labels,
-			&item.CommitMessage,
-			&item.CommitHash,
-			&item.Meta,
-			&item.Status,
-			&item.Production,
-			&item.CreatedAt,
-			&item.UpdatedAt,
-		)
-	}
+	err := r.db.QueryRow(
+		`SELECT
+			id, prompt_id, version, type, content, config, labels,
+			commit_message, commit_hash, meta, status, production, created_at, updated_at
+		FROM prompt_versions
+		WHERE prompt_id = $1 AND production = TRUE
+		LIMIT 1`,
+		promptId.String(),
+	).Scan(
+		&item.Id,
+		&item.PromptId,
+		&item.Version,
+		&item.Type,
+		&item.Content,
+		&item.Config,
+		&item.Labels,
+		&item.CommitMessage,
+		&item.CommitHash,
+		&item.Meta,
+		&item.Status,
+		&item.Production,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -350,40 +315,26 @@ func (r *PromptVersionRepositoryPostgres) Delete(id Id) error {
 }
 
 // ClearLabelFromPromptId removes a label from all versions of a prompt.
-func (r *PromptVersionRepositoryPostgres) ClearLabelFromPromptId(promptId Id, label string, exceptId *Id) error {
-	rows, err := r.db.Query(
-		`SELECT id, labels FROM prompt_versions WHERE prompt_id = $1`,
+func (r *PromptVersionRepositoryPostgres) ClearLabelFromPromptId(promptId Id, label string) error {
+	_, err := r.db.Exec(
+		`UPDATE prompt_versions
+		SET
+			labels = (
+				SELECT CASE
+					WHEN COUNT(*) = 0 THEN NULL
+					ELSE jsonb_agg(to_jsonb(x))
+				END
+				FROM jsonb_array_elements_text(COALESCE(labels, '[]'::jsonb)) AS t(x)
+				WHERE x <> $1
+			),
+			updated_at = $2
+		WHERE prompt_id = $3
+			AND labels @> jsonb_build_array($1)`,
+		label,
+		time.Now().UTC(),
 		promptId.String(),
 	)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id Id
-		var labels *string
-		if err := rows.Scan(&id, &labels); err != nil {
-			return err
-		}
-		if exceptId != nil && id == *exceptId {
-			continue
-		}
-		updated, changed := util.RemoveLabelFromJSON(labels, label)
-		if !changed {
-			continue
-		}
-		_, err := r.db.Exec(
-			`UPDATE prompt_versions SET labels = $1, updated_at = $2 WHERE id = $3`,
-			updated,
-			time.Now().UTC(),
-			id.String(),
-		)
-		if err != nil {
-			return err
-		}
-	}
-	return rows.Err()
+	return err
 }
 
 // ClearProductionFromPromptId clears the production flag on sibling versions.
