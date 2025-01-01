@@ -73,7 +73,7 @@ Mark done: `- [x] path/to/file`
 - [x] db/preset.go
 - [ ] db/prompt.go
 - [ ] db/session.go
-- [ ] db/subscription.go
+- [x] db/subscription.go
 - [x] db/types.go
 - [x] db/usage.go
 - [x] db/user.go

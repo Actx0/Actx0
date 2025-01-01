@@ -90,6 +90,7 @@ func (r *SubscriptionRepositoryPostgres) Create(subscription *Subscription) erro
 		subscription.CurrentPeriodStart,
 		subscription.CurrentPeriodEnd,
 	).Scan(&subscription.CreatedAt, &subscription.UpdatedAt)
+
 	return err
 }
 
@@ -116,6 +117,7 @@ func (r *SubscriptionRepositoryPostgres) GetById(id Id) (*Subscription, error) {
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
+
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -145,6 +147,7 @@ func (r *SubscriptionRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Subs
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
+
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -174,6 +177,7 @@ func (r *SubscriptionRepositoryPostgres) GetByProviderSubscriptionId(providerSub
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
+
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -236,7 +240,15 @@ func (r *SubscriptionMetaRepositoryPostgres) Get(id Id, key string) (*Subscripti
 		FROM subscriptions_meta
 		WHERE subscription_id = $1 AND key = $2`,
 		id.String(), key,
-	).Scan(&meta.Id, &meta.SubscriptionId, &meta.Key, &meta.Value, &meta.CreatedAt, &meta.UpdatedAt)
+	).Scan(
+		&meta.Id,
+		&meta.SubscriptionId,
+		&meta.Key,
+		&meta.Value,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
+
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -277,15 +289,24 @@ func (r *SubscriptionMetaRepositoryPostgres) ListBySubscriptionId(id Id) ([]*Sub
 		return nil, err
 	}
 	defer rows.Close()
+
 	var list []*SubscriptionMeta
 	for rows.Next() {
 		meta := &SubscriptionMeta{}
-		err := rows.Scan(&meta.Id, &meta.SubscriptionId, &meta.Key, &meta.Value, &meta.CreatedAt, &meta.UpdatedAt)
+		err := rows.Scan(
+			&meta.Id,
+			&meta.SubscriptionId,
+			&meta.Key,
+			&meta.Value,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, meta)
 	}
+
 	return list, rows.Err()
 }
 
