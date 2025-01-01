@@ -4,9 +4,9 @@
       <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <router-link to="/" class="flex items-center gap-2.5">
           <img src="/logo.png" :alt="$t('common.logo_alt')" class="h-8 w-auto" />
-          <span class="text-lg font-semibold tracking-tight">{{ $t('status_page.brand') }}</span>
+          <span class="text-lg font-semibold tracking-tight">{{ $t('common.brand') }}</span>
         </router-link>
-        <router-link to="/" class="landing-link">{{ $t('status_page.back_home') }}</router-link>
+        <router-link to="/" class="landing-link">{{ $t('status_page.back_to_home') }}</router-link>
       </nav>
     </header>
 
