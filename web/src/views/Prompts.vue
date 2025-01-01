@@ -233,11 +233,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
+import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { promptAPI } from '@/api'
 import {
@@ -250,14 +251,14 @@ import {
 } from '@/lib/prompt'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const { currentWorkspace, canManage: canEdit } = useWorkspaceContext()
+const { offset, limit, goToOffset } = useUrlPagination({ limit: 50 })
 
 const prompts = ref([])
 const loading = ref(false)
 const total = ref(0)
-const limit = ref(50)
-const offset = ref(0)
 const errorMessage = ref(null)
 
 const showCreateModal = ref(false)
@@ -292,7 +293,7 @@ async function loadPage() {
   loading.value = true
   errorMessage.value = null
   try {
-    const res = await promptAPI.list(currentWorkspace.id, { limit: limit.value, offset: offset.value })
+    const res = await promptAPI.list(currentWorkspace.id, { limit, offset: offset.value })
     prompts.value = res.data.prompts || []
     total.value = res.data._meta?.total ?? 0
   } catch (err) {
@@ -305,9 +306,10 @@ async function loadPage() {
 
 function goToPage(newOffset) {
   if (newOffset < 0 || newOffset >= total.value) return
-  offset.value = newOffset
-  loadPage()
+  goToOffset(newOffset)
 }
+
+watch(() => route.query.page, loadPage)
 
 function openCreateModal() {
   form.value = emptyPromptForm()

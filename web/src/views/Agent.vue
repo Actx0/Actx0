@@ -165,9 +165,20 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatDateTime(session.createdAt) }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <router-link :to="sessionDetailPath(agentId, session.id)" class="text-primary-600 hover:text-primary-700 hover:underline">
-                      {{ $t('agents_page.view') }}
-                    </router-link>
+                    <span class="inline-flex items-center gap-3">
+                      <router-link :to="sessionDetailPath(agentId, session.id)" class="text-primary-600 hover:text-primary-700 hover:underline">
+                        {{ $t('agents_page.view') }}
+                      </router-link>
+                      <button
+                        v-if="canEdit"
+                        type="button"
+                        class="text-red-600 hover:text-red-700 hover:underline disabled:opacity-50"
+                        :disabled="deletingSessionId === session.id"
+                        @click="openDeleteSessionModal(session)"
+                      >
+                        {{ deletingSessionId === session.id ? $t('agents_page.deleting') : $t('agents_page.delete') }}
+                      </button>
+                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -190,6 +201,27 @@
         </section>
       </template>
     </main>
+
+    <!-- Delete session modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="deleteSessionTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteSessionModal">
+          <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
+            <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.delete_session_title') }}</h2>
+            <div v-if="deleteSessionError" class="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ deleteSessionError }}</div>
+            <p class="mt-2 text-sm text-theme-textLight">
+              {{ $t('agents_page.delete_session_confirm', { name: deleteSessionTarget.title || $t('agents_page.untitled_session') }) }}
+            </p>
+            <div class="mt-6 flex gap-3 justify-end">
+              <button type="button" class="btn-secondary" :disabled="deletingSession" @click="closeDeleteSessionModal">{{ $t('common.cancel') }}</button>
+              <button type="button" class="btn-primary bg-red-600 hover:bg-red-700 focus:ring-red-500" :disabled="deletingSession" @click="confirmDeleteSession">
+                {{ deletingSession ? $t('agents_page.deleting') : $t('agents_page.delete') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Edit modal -->
     <Teleport to="body">
@@ -229,6 +261,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
+import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { agentAPI, sessionAPI } from '@/api'
 import { formatAgentDate, buildUpdatePayload, sessionDetailPath, formatLabels, formatDateTime } from '@/lib/agent'
@@ -236,6 +269,7 @@ import { formatAgentDate, buildUpdatePayload, sessionDetailPath, formatLabels, f
 const { t } = useI18n()
 const route = useRoute()
 const { currentWorkspace, canManage: canEdit } = useWorkspaceContext()
+const { offset: sessionsOffset, limit: sessionsLimit, goToOffset: goToSessionsOffset, goToPage: setSessionsPage } = useUrlPagination({ limit: 50 })
 
 const agent = ref(null)
 const loading = ref(false)
@@ -245,14 +279,17 @@ const sessions = ref([])
 const sessionsLoading = ref(false)
 const sessionsError = ref(null)
 const sessionsTotal = ref(0)
-const sessionsLimit = 50
-const sessionsOffset = ref(0)
 
 const showEditModal = ref(false)
 const editError = ref(null)
 const saveLoading = ref(false)
 const copiedField = ref(null)
 const editForm = ref({ name: '', description: '' })
+
+const deleteSessionTarget = ref(null)
+const deleteSessionError = ref(null)
+const deletingSession = ref(false)
+const deletingSessionId = ref(null)
 
 const agentId = computed(() => route.params.agentId)
 
@@ -309,7 +346,6 @@ async function loadAgent() {
   agent.value = null
   sessions.value = []
   sessionsTotal.value = 0
-  sessionsOffset.value = 0
   try {
     const res = await agentAPI.get(currentWorkspace.id, agentId.value)
     agent.value = res.data
@@ -345,9 +381,13 @@ async function loadSessions() {
 }
 
 function goToSessionsPage(offset) {
-  sessionsOffset.value = Math.max(0, offset)
-  loadSessions()
+  if (offset < 0 || offset >= sessionsTotal.value) return
+  goToSessionsOffset(offset)
 }
+
+watch(() => route.query.page, () => {
+  if (agent.value) loadSessions()
+})
 
 function sessionStatusLabel(status) {
   if (status === 'closed') return t('agents_page.session_closed')
@@ -412,8 +452,51 @@ async function copyText(text) {
   }
 }
 
+function openDeleteSessionModal(session) {
+  deleteSessionTarget.value = session
+  deleteSessionError.value = null
+}
+
+function closeDeleteSessionModal() {
+  if (!deletingSession.value) {
+    deleteSessionTarget.value = null
+    deleteSessionError.value = null
+  }
+}
+
+async function confirmDeleteSession() {
+  const session = deleteSessionTarget.value
+  if (!session) return
+
+  deletingSession.value = true
+  deletingSessionId.value = session.id
+  deleteSessionError.value = null
+
+  try {
+    await sessionAPI.delete(currentWorkspace.id, agentId.value, { id: session.externalId })
+    deleteSessionTarget.value = null
+
+    if (sessionsOffset.value >= sessionsTotal.value - 1 && sessionsOffset.value > 0) {
+      goToSessionsOffset(Math.max(0, sessionsOffset.value - sessionsLimit))
+    }
+
+    await loadSessions()
+    showFlash(t('common.deleted'))
+  } catch (err) {
+    deleteSessionError.value = err.response?.data?.errorMessage || t('agents_page.failed_delete_session')
+  } finally {
+    deletingSession.value = false
+    deletingSessionId.value = null
+  }
+}
+
 onMounted(loadAgent)
-watch(agentId, loadAgent)
+watch(agentId, async (newId, oldId) => {
+  if (oldId && newId !== oldId) {
+    await setSessionsPage(1)
+  }
+  await loadAgent()
+})
 </script>
 
 <style scoped>

@@ -162,6 +162,8 @@ export const sessionAPI = {
   getByExternalId: (workspaceId, agentId, externalId) => api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions`, {
     params: { id: externalId },
   }),
+  delete: (workspaceId, agentId, params) =>
+    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/by-labels`, { params }),
 }
 
 export const messageAPI = {

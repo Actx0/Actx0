@@ -241,9 +241,11 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
+import { useUrlPagination } from '@/lib/pagination'
 import { documentAPI } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
 
@@ -272,7 +274,9 @@ const LABEL_PART_PATTERN = /^[a-z0-9][a-z0-9_.-]*$/
 const POLL_INTERVAL_MS = 3000
 
 const { t } = useI18n()
+const route = useRoute()
 const { currentWorkspace } = useWorkspaceContext()
+const { offset, limit, goToOffset, goToPage: setPage } = useUrlPagination({ limit: 10 })
 
 function fmtSize(bytes) {
   if (!bytes || bytes < 1024) return `${bytes || 0} B`
@@ -387,8 +391,6 @@ function onLabelKey(event) {
 
 const documents = ref([])
 const total = ref(0)
-const limit = ref(10)
-const offset = ref(0)
 const loadingDocuments = ref(false)
 const errorMessage = ref(null)
 const dragActive = ref(false)
@@ -404,7 +406,7 @@ const deleteDoc = ref(null)
 const deleting = ref(false)
 
 const pageStart = computed(() => (total.value ? offset.value + 1 : 0))
-const pageEnd = computed(() => Math.min(offset.value + limit.value, total.value))
+const pageEnd = computed(() => Math.min(offset.value + limit, total.value))
 const hasProcessingDocuments = computed(() =>
   documents.value.some((doc) => doc.status === KNOWLEDGE_STATUS.PROCESSING),
 )
@@ -420,7 +422,7 @@ async function loadDocs({ silent = false } = {}) {
 
   try {
     const res = await documentAPI.list(currentWorkspace.id, {
-      limit: limit.value,
+      limit,
       offset: offset.value,
     })
     documents.value = (res.data.documents || []).map(normDoc)
@@ -446,9 +448,10 @@ watch(hasProcessingDocuments, (processing) => {
 
 async function goToPage(newOffset) {
   if (newOffset < 0 || newOffset >= total.value) return
-  offset.value = newOffset
-  await loadDocs()
+  goToOffset(newOffset)
 }
+
+watch(() => route.query.page, () => loadDocs())
 
 function openUpload(files) {
   const textFiles = [...files].filter(isTextFile)
@@ -508,7 +511,7 @@ async function doUpload() {
     }
 
     resetUpload()
-    offset.value = 0
+    setPage(1)
     await loadDocs()
     showFlash(t('common.created'))
   } catch (err) {
@@ -534,7 +537,7 @@ async function doDelete() {
     deleteDoc.value = null
 
     if (offset.value >= total.value - 1 && offset.value > 0) {
-      offset.value = Math.max(0, offset.value - limit.value)
+      goToOffset(Math.max(0, offset.value - limit))
     }
 
     await loadDocs()

@@ -133,18 +133,18 @@
               </div>
 
               <div>
-                <p class="form-label mb-3">{{ $t('workspace_settings_page.permissions') }}</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <p class="form-label mb-2">{{ $t('workspace_settings_page.permissions') }}</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5">
                   <label
                     v-for="perm in WORKSPACE_KEY_PERMISSIONS"
                     :key="perm.value"
-                    class="flex items-center gap-2.5 rounded-lg border border-theme-border bg-white px-3 py-2.5 text-sm text-theme-text cursor-pointer hover:bg-theme-hover/40 transition-colors has-[:checked]:border-primary-700 has-[:checked]:bg-primary-50/40"
+                    class="flex items-center gap-1.5 rounded-md border border-theme-border bg-white px-2 py-1.5 text-xs text-theme-text cursor-pointer hover:bg-theme-hover/40 transition-colors has-[:checked]:border-primary-700 has-[:checked]:bg-primary-50/40"
                   >
                     <input
                       v-model="selectedPermissions"
                       type="checkbox"
                       :value="perm.value"
-                      class="checkbox shrink-0"
+                      class="checkbox shrink-0 !size-3.5"
                       :disabled="accessKeysLoading || creatingKey"
                     >
                     <span>{{ $t(perm.labelKey) }}</span>
@@ -306,27 +306,27 @@
           aria-labelledby="access-key-permissions-title"
           @click.self="closePermissionsModal"
         >
-          <div class="w-full max-w-lg max-h-[85vh] flex flex-col rounded-xl bg-white border border-theme-border shadow-xl">
-            <div class="border-b border-theme-border px-6 py-4 shrink-0">
-              <h2 id="access-key-permissions-title" class="text-lg font-semibold text-theme-text">
+          <div class="w-full max-w-xl max-h-[85vh] flex flex-col rounded-xl bg-white border border-theme-border shadow-xl">
+            <div class="border-b border-theme-border px-4 py-3 shrink-0">
+              <h2 id="access-key-permissions-title" class="text-base font-semibold text-theme-text">
                 {{ $t('workspace_settings_page.permissions_title') }}
               </h2>
-              <p class="mt-1 text-sm text-theme-textLight">
+              <p class="mt-0.5 text-xs text-theme-textLight">
                 {{ $t('workspace_settings_page.permissions_for', { name: permissionsModalKey.name }) }}
               </p>
             </div>
-            <div class="overflow-y-auto px-6 py-4">
-              <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="overflow-y-auto px-4 py-3">
+              <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5">
                 <li
                   v-for="label in getPermissionLabels(permissionsModalKey.permissions)"
                   :key="label"
-                  class="rounded-lg border border-theme-border bg-theme-bg/40 px-3 py-2 text-sm text-theme-text"
+                  class="rounded-md border border-theme-border bg-theme-bg/40 px-2 py-1.5 text-xs text-theme-text"
                 >
                   {{ label }}
                 </li>
               </ul>
             </div>
-            <div class="border-t border-theme-border px-6 py-4 shrink-0 flex justify-end">
+            <div class="border-t border-theme-border px-4 py-3 shrink-0 flex justify-end">
               <button type="button" class="btn-secondary" @click="closePermissionsModal">
                 {{ $t('workspace_settings_page.dismiss') }}
               </button>

@@ -378,6 +378,9 @@
     "delete_message_confirm": "Supprimer ce message de la session ? Cette action est irréversible.",
     "delete_memory_title": "Supprimer la mémoire",
     "delete_memory_confirm": "Supprimer cette mémoire de la session ? Cette action est irréversible.",
+    "delete_session_title": "Supprimer la session",
+    "delete_session_confirm": "Supprimer « {name} » et tous ses messages et sa mémoire ? Cette action est irréversible.",
+    "failed_delete_session": "Échec de la suppression de la session",
     "memory_kind_summary": "Résumé",
     "memory_kind_fact": "Fait",
     "memory_kind_preference": "Préférence"

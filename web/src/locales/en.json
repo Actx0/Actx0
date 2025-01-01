@@ -378,6 +378,9 @@
     "delete_message_confirm": "Remove this message from the session? This cannot be undone.",
     "delete_memory_title": "Remove memory",
     "delete_memory_confirm": "Remove this memory from the session? This cannot be undone.",
+    "delete_session_title": "Delete session",
+    "delete_session_confirm": "Delete \"{name}\" and all its messages and memory? This cannot be undone.",
+    "failed_delete_session": "Failed to delete session",
     "memory_kind_summary": "Summary",
     "memory_kind_fact": "Fact",
     "memory_kind_preference": "Preference"

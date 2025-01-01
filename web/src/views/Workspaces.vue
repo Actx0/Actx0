@@ -334,23 +334,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
+import { useUrlPagination } from '@/lib/pagination'
 import { workspaceAPI } from '@/api'
 import { saveWorkspaceToStorage, removeWorkspaceFromStorage } from '@/utils/storage'
 import { canManageWorkspace, useWorkspaceContext } from '@/lib/permission'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const { currentUser, currentWorkspace } = useWorkspaceContext()
+const { offset, limit, goToOffset, goToPage: setPage } = useUrlPagination({ limit: 50 })
 const workspaces = ref([])
 const loading = ref(false)
 const total = ref(0)
-const limit = ref(50)
-const offset = ref(0)
 const errorMessage = ref(null)
 
 const editModalWorkspace = ref(null)
@@ -421,7 +422,7 @@ async function handleCreate() {
     await workspaceAPI.create({ name })
     showCreateModal.value = false
     newWorkspaceName.value = ''
-    offset.value = 0
+    setPage(1)
     await loadPage()
     showFlash(t('common.created'))
   } catch (err) {
@@ -486,7 +487,7 @@ async function loadPage() {
 
   try {
     const res = await workspaceAPI.list({
-      limit: limit.value,
+      limit,
       offset: offset.value
     })
     workspaces.value = res.data.workspaces
@@ -502,9 +503,10 @@ async function loadPage() {
 function goToPage(newOffset) {
   if (newOffset < 0) return
   if (newOffset >= total.value) return
-  offset.value = newOffset
-  loadPage()
+  goToOffset(newOffset)
 }
+
+watch(() => route.query.page, loadPage)
 
 function openDeleteModal(workspace) {
   deleteModalWorkspace.value = workspace
@@ -546,9 +548,5 @@ async function confirmDelete() {
   }
 }
 
-onMounted(() => {
-  errorMessage.value = null
-  offset.value = 0
-  loadPage()
-})
+onMounted(loadPage)
 </script>
