@@ -135,6 +135,11 @@ func SetupServer(Static embed.FS) http.Handler {
 			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanGetWorkspaceAudit})).Get("/{auditId}", api.GetWorkspaceAuditAction) // get audit event
 		})
 
+		r.Route("/notifications", func(r chi.Router) {
+			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanListNotifications})).Get("/", api.ListWorkspaceNotificationsAction)                             // list inbox notifications
+			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanMarkNotificationRead})).Post("/{notificationId}/read", api.MarkWorkspaceNotificationReadAction) // mark notification as read
+		})
+
 		r.Route("/prompts", func(r chi.Router) {
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanListPrompts})).Get("/", api.ListPromptsAction)                            // list prompts
 			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanCreatePrompt})).Post("/", api.CreatePromptAction)             // create prompt
