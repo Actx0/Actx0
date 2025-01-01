@@ -322,11 +322,13 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 			path,
 			status,
 		).Inc()
+
 		httpRequestDuration.WithLabelValues(
 			r.Method,
 			path,
 			status,
 		).Observe(duration)
+
 		httpResponseSize.WithLabelValues(
 			r.Method,
 			path,
