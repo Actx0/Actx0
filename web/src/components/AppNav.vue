@@ -4,7 +4,7 @@
       <div class="flex justify-between h-14">
         <div class="flex items-center">
           <div class="flex-shrink-0 flex items-center">
-            <router-link to="/">
+            <router-link to="/dashboard">
               <img src="/logo.png" alt="Ctx Logo" class="h-8 w-auto">
             </router-link>
           </div>
