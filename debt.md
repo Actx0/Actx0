@@ -14,7 +14,7 @@ Mark done: `- [x] path/to/file`
 
 - [ ] api/access.go
 - [ ] api/agent.go
-- [ ] api/api_key.go
+- [x] api/api_key.go
 - [ ] api/billing.go
 - [ ] api/customer.go
 - [x] api/health.go
@@ -117,7 +117,7 @@ Mark done: `- [x] path/to/file`
 
 - [ ] module/access.go
 - [ ] module/agent.go
-- [ ] module/api_key.go
+- [x] module/api_key.go
 - [ ] module/asession.go
 - [ ] module/async.go
 - [ ] module/auth.go
