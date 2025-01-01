@@ -335,7 +335,7 @@ func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id
 		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
 	}
 
-	messageCount, err := m.MessageRepository.CountBySessionId(sessionId)
+	count, err := m.MessageRepository.CountBySessionId(sessionId)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
 	}
@@ -345,7 +345,7 @@ func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id
 		return nil, err
 	}
 
-	return &RegenerateSessionMemoriesResponse{Queued: int(messageCount)}, nil
+	return &RegenerateSessionMemoriesResponse{Queued: int(count)}, nil
 }
 
 // EnqueueIndexTask enqueues an async task to index a session memory.
