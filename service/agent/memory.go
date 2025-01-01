@@ -405,7 +405,7 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 
 	reply, usage, err := s.liteLLM.Complete(ctx, []ai.Message{
 		{Role: "system", Content: conf.GenerateMemorySystemPrompt},
-		{Role: "user", Content: fmt.Sprintf("role=%s\n%s", message.Role, message.Content)},
+		{Role: "user", Content: message.Content},
 	}, ai.CompleteOptions{JSONObject: true})
 	if err != nil {
 		return fmt.Errorf("%w: complete: %v", ErrGenerateFailed, err)

@@ -38,14 +38,13 @@ const (
 	DefaultSearchLimit = 10
 
 	// GenerateMemorySystemPrompt instructs the lite LLM when extracting session memory.
-	GenerateMemorySystemPrompt = `You extract durable memory from one conversation message (prefixed with role=user or role=assistant) for an AI agent memory store.
+	GenerateMemorySystemPrompt = `You extract durable memory from one user message for an AI agent memory store.
 
 Rules:
 - Content must be minimal: one short third-person sentence, no filler, no restating the conversation. Keep exact names, numbers, dates, and identifiers.
 - long_lived: stable identity, preferences, lasting facts, relationships.
 - short_lived: ephemeral task state, temporary goals, context that fades after this conversation.
 - Skip greetings, chit-chat, generic instructions, and anything with no value later.
-- role=assistant: skip unless it states a concrete fact, decision, commitment, or result worth recalling. Never store explanations, generic answers, or restated user input.
 
 Your entire reply must be one JSON object. The first character must be { and the last must be }.
 No markdown, no explanation, no other text.
