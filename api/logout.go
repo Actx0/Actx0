@@ -4,7 +4,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/clivern/actx0/db"
@@ -44,27 +43,10 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 
 	err := am.Logout(r.Context(), user.Id)
 	if err != nil {
-		switch {
-		case errors.Is(err, module.ErrFailedCleanupExpiredSessions):
-			log.Error().
-				Str("userId", user.Id.String()).
-				Err(err).
-				Msg("Failed to cleanup expired sessions")
-		case errors.Is(err, module.ErrFailedRevokeSessions):
-			log.Error().
-				Str("userId", user.Id.String()).
-				Err(err).
-				Msg("Failed to revoke session")
-		default:
-			log.Error().
-				Str("userId", user.Id.String()).
-				Err(err).
-				Msg("Logout failed")
-		}
-	} else {
-		log.Info().
+		log.Error().
 			Str("userId", user.Id.String()).
-			Msg("Session successfully revoked")
+			Err(err).
+			Msg("Failed to revoke session")
 	}
 
 	util.WriteJSON(w, http.StatusOK, map[string]interface{}{

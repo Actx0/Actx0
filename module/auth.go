@@ -33,8 +33,7 @@ var (
 	ErrFailedForgotPassword   = errors.New("failed process forgot password")
 	ErrFailedResetPassword    = errors.New("failed reset password")
 
-	ErrFailedCleanupExpiredSessions = errors.New("failed cleanup expired sessions")
-	ErrFailedRevokeSessions         = errors.New("failed revoke sessions")
+	ErrFailedRevokeSessions = errors.New("failed revoke sessions")
 )
 
 const (
@@ -110,7 +109,6 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 	if db.IsBotUser(user.Id) {
 		return nil, ErrInvalidCredentials
 	}
-
 	if !user.IsActive {
 		return nil, ErrAccountNotActive
 	}
@@ -141,7 +139,7 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 		ExpiresAt: time.Now().UTC().Add(duration),
 	}
 
-	if appCtx, ok := AppCtxFrom(ctx); ok && appCtx != nil {
+	if appCtx, ok := AppCtxFrom(ctx); ok {
 		if lo.IsNotEmpty(appCtx.IPAddress) {
 			session.IPAddress = &appCtx.IPAddress
 		}
@@ -194,7 +192,7 @@ func (a *Auth) Logout(ctx context.Context, userId db.Id) error {
 }
 
 // ForgotPassword creates a password reset token and emails the reset link.
-func (a *Auth) ForgotPassword(req *ForgotPasswordRequest) error {
+func (a *Auth) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) error {
 	user, err := a.UserRepository.GetByEmail(req.Email)
 	if err != nil {
 		log.Error().
@@ -237,16 +235,13 @@ func (a *Auth) ForgotPassword(req *ForgotPasswordRequest) error {
 			Msg("Failed to send password reset email; token was created")
 	}
 
-	log.Info().
-		Str("userId", user.Id.String()).
-		Str("email", user.Email).
-		Msg("Password reset token created")
+	UserForgotPassword.Emit(ctx, UserForgotPasswordData{UserID: user.Id})
 
 	return nil
 }
 
 // ResetPassword sets a new password using a valid reset token.
-func (a *Auth) ResetPassword(req *ResetPasswordRequest) error {
+func (a *Auth) ResetPassword(ctx context.Context, req *ResetPasswordRequest) error {
 	tok, err := a.PasswordResetTokenRepository.GetByToken(req.Token)
 	if err != nil {
 		log.Error().
@@ -284,9 +279,7 @@ func (a *Auth) ResetPassword(req *ResetPasswordRequest) error {
 			Msg("Failed to delete password reset token")
 	}
 
-	log.Info().
-		Str("userId", tok.UserId.String()).
-		Msg("Password reset completed")
+	UserResetPassword.Emit(ctx, UserResetPasswordData{UserID: tok.UserId})
 
 	return nil
 }

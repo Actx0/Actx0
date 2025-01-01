@@ -22,18 +22,18 @@ Mark done: `- [x] path/to/file`
 - [ ] api/integration.go
 - [ ] api/invite.go
 - [ ] api/knowledge.go
-- [ ] api/login.go
+- [x] api/login.go
 - [x] api/logout.go
 - [x] api/me.go
 - [ ] api/member.go
 - [ ] api/memory.go
 - [ ] api/message.go
 - [ ] api/oauth.go
-- [ ] api/password.go
+- [x] api/password.go
 - [ ] api/profile.go
 - [ ] api/prompt.go
 - [x] api/ready.go
-- [ ] api/register.go
+- [x] api/register.go
 - [ ] api/session.go
 - [x] api/settings.go
 - [x] api/setup.go
@@ -120,11 +120,11 @@ Mark done: `- [x] path/to/file`
 - [x] module/api_key.go
 - [ ] module/asession.go
 - [ ] module/async.go
-- [ ] module/auth.go
+- [x] module/auth.go
 - [ ] module/billing.go
 - [x] module/ctx.go
 - [ ] module/document.go
-- [ ] module/events.go
+- [x] module/events.go
 - [ ] module/invite.go
 - [x] module/me.go
 - [ ] module/memory.go
@@ -132,7 +132,7 @@ Mark done: `- [x] path/to/file`
 - [ ] module/permission.go
 - [ ] module/profile.go
 - [ ] module/prompt.go
-- [ ] module/register.go
+- [x] module/register.go
 - [ ] module/session.go
 - [ ] module/settings.go
 - [x] module/setup.go
