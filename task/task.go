@@ -28,6 +28,7 @@ type Agent interface {
 	IndexSessionMessage(ctx context.Context, messageId db.Id) error
 	IndexSessionMemory(ctx context.Context, memoryId db.Id) error
 	GenerateMemoryFromMessage(ctx context.Context, messageId db.Id) error
+	RegenerateSessionMemories(ctx context.Context, agentId, sessionId db.Id) error
 }
 
 // Dependencies are the services required by async task handlers.
@@ -68,6 +69,7 @@ func (h *Handlers) Register(am *module.Async) {
 	am.RegisterHandler("task.agent.session.message.index", h.HandleAgentSessionMessageIndex)
 	am.RegisterHandler("task.agent.session.memory.index", h.HandleAgentSessionMemoryIndex)
 	am.RegisterHandler("task.agent.session.memory.generate", h.HandleAgentSessionMemoryGenerate)
+	am.RegisterHandler("task.agent.session.memories.regenerate", h.HandleAgentSessionMemoriesRegenerate)
 }
 
 // Run executes a handler synchronously without HTTP or the worker pool.
@@ -95,6 +97,8 @@ func (h *Handlers) Run(ctx context.Context, taskType string, task *db.AsyncTask)
 		return h.HandleAgentSessionMemoryIndex(ctx, task)
 	case "task.agent.session.memory.generate":
 		return h.HandleAgentSessionMemoryGenerate(ctx, task)
+	case "task.agent.session.memories.regenerate":
+		return h.HandleAgentSessionMemoriesRegenerate(ctx, task)
 	default:
 		return "", fmt.Errorf("unknown task type: %s", taskType)
 	}

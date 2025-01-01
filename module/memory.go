@@ -323,35 +323,11 @@ func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limi
 	return &ListSessionMemoriesResponse{Memories: list, Total: total}, nil
 }
 
-// RegenerateSessionMemories deletes all session memories and queues generation from user messages.
+// RegenerateSessionMemories queues a task that clears and rebuilds session memories.
 func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id) (*RegenerateSessionMemoriesResponse, error) {
 	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
-	}
-
-	count, err := m.MemoryRepository.CountBySessionId(sessionId)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
-	}
-
-	if count > 0 {
-		memories, err := m.MemoryRepository.ListBySessionId(sessionId, int(count), 0)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
-		}
-
-		err = m.MemoryRepository.DeleteBySessionId(sessionId)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
-		}
-
-		for _, memory := range memories {
-			err = m.EnqueueDeleteTask(workspaceId, memory.Id)
-			if err != nil {
-				return nil, err
-			}
-		}
 	}
 
 	messageCount, err := m.MessageRepository.CountBySessionId(sessionId)
@@ -367,16 +343,15 @@ func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id
 		}
 
 		for _, message := range messages {
-			if message.Role != "user" {
-				continue
+			if message.Role == "user" {
+				queued++
 			}
-
-			err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
-			if err != nil {
-				return nil, err
-			}
-			queued++
 		}
+	}
+
+	err = m.EnqueueRegenerateMemoriesTask(workspaceId, agentId, sessionId)
+	if err != nil {
+		return nil, err
 	}
 
 	return &RegenerateSessionMemoriesResponse{Queued: queued}, nil
@@ -410,14 +385,15 @@ func (m *Memory) EnqueueDeleteTask(workspaceId, memoryId db.Id) error {
 	return err
 }
 
-// EnqueueGenerateMemoryTask enqueues an async task to generate memory from a message.
-func (m *Memory) EnqueueGenerateMemoryTask(workspaceId, messageId db.Id) error {
+// EnqueueRegenerateMemoriesTask enqueues an async task to regenerate session memories.
+func (m *Memory) EnqueueRegenerateMemoriesTask(workspaceId, agentId, sessionId db.Id) error {
 	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
 		WorkspaceId: workspaceId,
-		Type:        "task.agent.session.memory.generate",
+		Type:        "task.agent.session.memories.regenerate",
 		Priority:    AsyncPriorityLow,
 		Payload: map[string]string{
-			"messageId": messageId.String(),
+			"agentId":   agentId.String(),
+			"sessionId": sessionId.String(),
 		},
 	})
 

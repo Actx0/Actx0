@@ -33,7 +33,7 @@ func New() (*Client, error) {
 	return &Client{api: api}, nil
 }
 
-// EnsureCollection creates the collection when it does not exist.
+// EnsureCollection creates the collection when it does not exist and ensures payload indexes.
 func (c *Client) EnsureCollection(ctx context.Context, collection string, indexes ...Index) error {
 	exists, err := c.api.CollectionExists(ctx, collection)
 
@@ -41,11 +41,14 @@ func (c *Client) EnsureCollection(ctx context.Context, collection string, indexe
 		return fmt.Errorf("qdrant collection exists: %w", err)
 	}
 
-	if exists {
-		return nil
+	if !exists {
+		err = c.CreateCollection(ctx, collection, indexes...)
+		if err != nil {
+			return err
+		}
 	}
 
-	return c.CreateCollection(ctx, collection, indexes...)
+	return c.EnsureIndexes(ctx, collection, indexes...)
 }
 
 // CreateCollection creates a collection and its payload indexes.
@@ -68,6 +71,11 @@ func (c *Client) CreateCollection(ctx context.Context, collection string, indexe
 		return fmt.Errorf("qdrant create collection: %w", err)
 	}
 
+	return c.EnsureIndexes(ctx, collection, indexes...)
+}
+
+// EnsureIndexes creates missing payload field indexes on an existing collection.
+func (c *Client) EnsureIndexes(ctx context.Context, collection string, indexes ...Index) error {
 	for _, index := range indexes {
 		_, err := c.api.CreateFieldIndex(ctx, &qdrantsdk.CreateFieldIndexCollection{
 			CollectionName: collection,

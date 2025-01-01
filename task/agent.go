@@ -161,3 +161,20 @@ func (h *Handlers) HandleAgentSessionMemoryGenerate(ctx context.Context, task *d
 		"status": "generated",
 	})
 }
+
+// HandleAgentSessionMemoriesRegenerate clears and rebuilds session memories from user messages.
+func (h *Handlers) HandleAgentSessionMemoriesRegenerate(ctx context.Context, task *db.AsyncTask) (string, error) {
+	payload, err := DecodePayload(task.Payload)
+	if err != nil {
+		return "", err
+	}
+
+	err = h.agent.RegenerateSessionMemories(ctx, db.Id(payload["agentId"]), db.Id(payload["sessionId"]))
+	if err != nil {
+		return "", err
+	}
+
+	return EncodeResult(map[string]string{
+		"status": "regenerated",
+	})
+}

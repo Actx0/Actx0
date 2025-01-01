@@ -18,4 +18,5 @@ var (
 	ErrIndexFailed       = errors.New("agent index failed")
 	ErrGenerateFailed    = errors.New("session memory generate failed")
 	ErrConsolidateFailed = errors.New("session memory consolidate failed")
+	ErrRegenerateFailed  = errors.New("session memory regenerate failed")
 )
