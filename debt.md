@@ -4,13 +4,13 @@ Manually validate each file for AI slop, unnecessary defensive code, and style d
 
 Mark done: `- [x] path/to/file.go`
 
-**Progress:** 3 / 171
+**Progress:** 10 / 171
 
 ---
 
 ## Root
 
-- [ ] actx0.go
+- [x] actx0.go
 
 ## api/
 
@@ -46,12 +46,12 @@ Mark done: `- [x] path/to/file.go`
 
 ## cli/
 
-- [ ] cli/license.go
-- [ ] cli/mcp.go
-- [ ] cli/migrate.go
-- [ ] cli/root.go
-- [ ] cli/server.go
-- [ ] cli/version.go
+- [x] cli/license.go
+- [x] cli/mcp.go
+- [x] cli/migrate.go
+- [x] cli/root.go
+- [x] cli/server.go
+- [x] cli/version.go
 
 ## core/
 

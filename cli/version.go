@@ -27,7 +27,13 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number",
 	Run: func(_ *cobra.Command, _ []string) {
-		fmt.Printf("Current actx0 version %v commit %v, built @%v by %v.\n", Version, Commit, Date, BuiltBy)
+		fmt.Printf(
+			"Current Actx0 version %v commit %v, built @%v by %v.\n",
+			Version,
+			Commit,
+			Date,
+			BuiltBy,
+		)
 	},
 }
 

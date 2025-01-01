@@ -13,7 +13,7 @@ import (
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
-	Short: "Start the actx0 management server",
+	Short: "Start the Actx0 management server",
 	Run: func(_ *cobra.Command, _ []string) {
 		err := core.Load(config)
 		if err != nil {
