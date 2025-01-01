@@ -74,26 +74,19 @@ func (p *Profile) UpdateProfile(userId db.Id, req *UpdateProfileRequest) (*db.Us
 		}
 	}
 
-	name := user.Name
-	if lo.IsNotEmpty(req.Name) {
-		name = req.Name
-	}
-	email := user.Email
-	if lo.IsNotEmpty(req.Email) {
-		email = req.Email
-	}
+	user.Name = lo.Ternary(lo.IsNotEmpty(req.Name), req.Name, user.Name)
+	email := lo.Ternary(lo.IsNotEmpty(req.Email), req.Email, user.Email)
 
 	if email != user.Email {
 		existingUser, err := p.UserRepository.GetByEmail(email)
 		if err != nil {
 			return nil, fmt.Errorf("%w: check existing user: %v", ErrFailedUpdateProfile, err)
 		}
-		if existingUser != nil && existingUser.Id.String() != user.Id.String() {
+		if existingUser != nil && existingUser.Id != user.Id {
 			return nil, ErrUserEmailAlreadyExists
 		}
 	}
 
-	user.Name = name
 	user.Email = email
 	user.Language = req.Language
 	user.Theme = req.Theme
