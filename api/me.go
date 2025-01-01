@@ -34,8 +34,10 @@ func GetMeAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceAccessKeyRepository(db.GetDB()),
 	)
 
+	// Check if the request is for an API key
 	if lo.IsNotEmpty(apiKey) {
 		me, err := mm.GetByAPIKey(apiKey)
+
 		if err != nil {
 			switch {
 			case errors.Is(err, module.ErrAPIKeyNotFound):
@@ -55,6 +57,7 @@ func GetMeAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the request is for an access key
 	me, err := mm.GetByAccessKey(accessKey)
 	if err != nil {
 		switch {

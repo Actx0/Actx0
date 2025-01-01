@@ -4,6 +4,7 @@
 package module
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/clivern/actx0/db"
@@ -106,7 +107,8 @@ func (m *Me) GetByAccessKey(key string) (*MeAccessKeyResponse, error) {
 		return nil, ErrAccessKeyNotFound
 	}
 
-	permissions, err := ParseAccessKeyPermissions(accessKey)
+	var meta AccessKeyMeta
+	err = json.Unmarshal([]byte(*accessKey.Meta), &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +117,7 @@ func (m *Me) GetByAccessKey(key string) (*MeAccessKeyResponse, error) {
 		Id:          accessKey.Id,
 		WorkspaceId: accessKey.WorkspaceId,
 		Name:        accessKey.Name,
-		Permissions: permissions,
+		Permissions: meta.Permissions,
 		CreatedAt:   accessKey.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:   accessKey.UpdatedAt.UTC().Format(time.RFC3339),
 	}

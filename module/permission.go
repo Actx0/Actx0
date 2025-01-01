@@ -248,25 +248,11 @@ func (p *Perm) CanAsAccessKey(permission string) (bool, error) {
 		return false, nil
 	}
 
-	perms, err := ParseAccessKeyPermissions(p.accessKey)
+	var meta AccessKeyMeta
+	err := json.Unmarshal([]byte(*p.accessKey.Meta), &meta)
 	if err != nil {
 		return false, err
 	}
 
-	return lo.Contains(perms, permission), nil
-}
-
-// ParseAccessKeyPermissions decodes the permission list stored on a workspace access key.
-func ParseAccessKeyPermissions(accessKey *db.WorkspaceAccessKey) ([]string, error) {
-	if accessKey == nil || accessKey.Meta == nil || lo.IsEmpty(*accessKey.Meta) {
-		return nil, nil
-	}
-
-	var perms []string
-	err := json.Unmarshal([]byte(*accessKey.Meta), &perms)
-	if err != nil {
-		return nil, err
-	}
-
-	return perms, nil
+	return lo.Contains(meta.Permissions, permission), nil
 }

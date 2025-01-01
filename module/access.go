@@ -64,6 +64,11 @@ type AccessKeyResponse struct {
 	Key         string   `json:"key,omitempty"`
 }
 
+// AccessKeyMeta is the JSON shape stored in workspace_access_keys.meta.
+type AccessKeyMeta struct {
+	Permissions []string `json:"permissions"`
+}
+
 // CreateAccessKey creates an access key; the raw key is returned once.
 func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest) (*AccessKeyResponse, error) {
 	workspace, err := a.WorkspaceRepository.GetById(workspaceId)
@@ -86,7 +91,7 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 	if !ValidAccessKeyPermissions(req.Permissions) {
 		return nil, ErrInvalidAccessKeyPermissions
 	}
-	metaRaw, err := json.Marshal(req.Permissions)
+	metaRaw, err := json.Marshal(AccessKeyMeta{Permissions: req.Permissions})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidAccessKeyPermissions, err)
 	}
@@ -152,18 +157,16 @@ func (a *Access) ListAccessKeys(workspaceId db.Id, limit, offset int) (*ListAcce
 
 	list := make([]*AccessKeyResponse, 0, len(keys))
 	for _, item := range keys {
-		var permissions []string
-		if item.Meta != nil && lo.IsNotEmpty(*item.Meta) {
-			if err := json.Unmarshal([]byte(*item.Meta), &permissions); err != nil {
-				return nil, fmt.Errorf("%w: %v", ErrFailedListAccessKeys, err)
-			}
+		var meta AccessKeyMeta
+		if err := json.Unmarshal([]byte(*item.Meta), &meta); err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFailedListAccessKeys, err)
 		}
 
 		resp := &AccessKeyResponse{
 			Id:          item.Id,
 			WorkspaceId: item.WorkspaceId,
 			Name:        item.Name,
-			Permissions: permissions,
+			Permissions: meta.Permissions,
 			CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
 			UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
 		}
@@ -199,18 +202,16 @@ func (a *Access) GetAccessKey(workspaceId, id db.Id) (*AccessKeyResponse, error)
 		return nil, ErrAccessKeyNotFound
 	}
 
-	var permissions []string
-	if item.Meta != nil && lo.IsNotEmpty(*item.Meta) {
-		if err := json.Unmarshal([]byte(*item.Meta), &permissions); err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrFailedGetAccessKey, err)
-		}
+	var meta AccessKeyMeta
+	if err := json.Unmarshal([]byte(*item.Meta), &meta); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedGetAccessKey, err)
 	}
 
 	resp := &AccessKeyResponse{
 		Id:          item.Id,
 		WorkspaceId: item.WorkspaceId,
 		Name:        item.Name,
-		Permissions: permissions,
+		Permissions: meta.Permissions,
 		CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
 	}
