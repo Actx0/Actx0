@@ -34,6 +34,7 @@ Keep entries short. Remove obsolete notes. Never store secrets.
 | `for x := range strings.SplitSeq(s, ",")` | `strings.Split` then range when you only iterate once |
 | Reflect call to `gotext.Po.Get` for msgid lookup | direct `po.Get(key)` (vet: printf / non-constant format) |
 | Stripe metadata camelCase (`workspaceId`, …) | snake_case metadata keys |
+| `subscriptions_meta.value` as `to_jsonb($::text)` / read `value #>> '{}'` | treating that column as plain text SQL |
 | vue-i18n literal `@` as `{'@'}` (e.g. `maya{'@'}example.com`) | raw `@` in locale strings (linked-message syntax; can blank the UI) |
 
 ## Locale
