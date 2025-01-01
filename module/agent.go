@@ -81,7 +81,7 @@ func (a *Agent) CreateAgent(workspaceId db.Id, req *CreateAgentRequest) (*AgentR
 		return nil, ErrWorkspaceNotFound
 	}
 
-	handle, err := a.CreateAgentHandle(10, 20)
+	handle, err := a.CreateAgentHandle()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateAgent, err)
 	}
@@ -281,23 +281,36 @@ func (a *Agent) EnqueueDeleteTask(workspaceId, agentId db.Id) error {
 	return err
 }
 
-// CreateAgentHandle creates a unique random alphanumeric agent handle.
-func (a *Agent) CreateAgentHandle(min, max int) (string, error) {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+// CreateAgentHandle creates a unique handle like abcd-1234 (4–8 letters, dash, 4–8 digits).
+func (a *Agent) CreateAgentHandle() (string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyz"
+	const digits = "0123456789"
 
 	for {
-		length, err := util.RandInt(min, max)
+		letterLen, err := util.RandInt(4, 8)
+		if err != nil {
+			return "", err
+		}
+		digitLen, err := util.RandInt(4, 8)
 		if err != nil {
 			return "", err
 		}
 
-		handle := make([]byte, length)
-		for i := range handle {
-			idx, err := util.RandInt(0, len(chars)-1)
+		handle := make([]byte, letterLen+1+digitLen)
+		for i := 0; i < letterLen; i++ {
+			idx, err := util.RandInt(0, len(letters)-1)
 			if err != nil {
 				return "", err
 			}
-			handle[i] = chars[idx]
+			handle[i] = letters[idx]
+		}
+		handle[letterLen] = '-'
+		for i := 0; i < digitLen; i++ {
+			idx, err := util.RandInt(0, len(digits)-1)
+			if err != nil {
+				return "", err
+			}
+			handle[letterLen+1+i] = digits[idx]
 		}
 
 		existing, err := a.AgentRepository.GetByHandle(string(handle))

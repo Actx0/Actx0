@@ -132,7 +132,7 @@ Mark done: `- [x] path/to/file`
 - [x] module/setup.go
 - [x] module/stats.go
 - [x] module/tools.go
-- [ ] module/usage.go
+- [x] module/usage.go
 - [ ] module/workspace.go
 - [x] module/member.go
 
