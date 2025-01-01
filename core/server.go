@@ -286,14 +286,16 @@ func RunServer(handler http.Handler) error {
 	})
 
 	asvc := agent.New(agent.Dependencies{
-		Embed:    ai.NewEmbedClient(),
-		Vectors:  vdb,
-		LiteLLM:  ai.NewLiteClient(),
-		LargeLLM: ai.NewLargeClient(),
-		Agents:   db.NewAgentRepository(db.GetDB(true)),
-		Sessions: db.NewAgentSessionRepository(db.GetDB(true)),
-		Messages: db.NewSessionMessageRepository(db.GetDB(true)),
-		Memories: db.NewSessionMemoryRepository(db.GetDB(true)),
+		Embed:         ai.NewEmbedClient(),
+		Vectors:       vdb,
+		LiteLLM:       ai.NewLiteClient(),
+		LargeLLM:      ai.NewLargeClient(),
+		Agents:        db.NewAgentRepository(db.GetDB(true)),
+		Sessions:      db.NewAgentSessionRepository(db.GetDB(true)),
+		Messages:      db.NewSessionMessageRepository(db.GetDB(true)),
+		Memories:      db.NewSessionMemoryRepository(db.GetDB(true)),
+		Usage:         db.NewUsageRepository(db.GetDB(false)),
+		Subscriptions: db.NewSubscriptionRepository(db.GetDB(false)),
 	})
 
 	task.Register(asyr, task.Dependencies{
