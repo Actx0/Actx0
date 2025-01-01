@@ -278,7 +278,7 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { agent_api, session_api } from '@/api'
-import { buildUpdatePayload, sessionPath, formatLabels } from '@/lib/agent'
+import { sessionPath, formatLabels } from '@/lib/agent'
 import { formatDate, formatDateTime } from '@/utils/dt'
 
 const { t } = useI18n()
@@ -441,7 +441,7 @@ async function handleSave() {
   saveLoading.value = true
   editError.value = null
   try {
-    const res = await agent_api.update(currentWorkspace.id, agentId.value, buildUpdatePayload(editForm))
+    const res = await agent_api.update(currentWorkspace.id, agentId.value, { name, description })
     agent.value = res.data
     showEditModal.value = false
     showFlash(t('common.saved'))

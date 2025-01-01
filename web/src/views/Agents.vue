@@ -168,7 +168,7 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { agent_api } from '@/api'
-import { agentPath, buildCreatePayload } from '@/lib/agent'
+import { agentPath } from '@/lib/agent'
 import { formatDate } from '@/utils/dt'
 
 const { t } = useI18n()
@@ -242,7 +242,7 @@ async function handleCreate() {
   createLoading.value = true
   createError.value = null
   try {
-    const created = await agent_api.create(currentWorkspace.id, buildCreatePayload(form))
+    const created = await agent_api.create(currentWorkspace.id, { name, description })
     showCreateModal.value = false
     showFlash(t('common.created'))
     router.push(agentPath(created.data.id))
