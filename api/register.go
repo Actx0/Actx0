@@ -29,10 +29,7 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 		Str("email", req.Email).
 		Msg("New registration request")
 
-	rm := module.NewRegister(
-		db.NewConfigRepository(db.GetDB()),
-		db.NewUserRepository(db.GetDB()),
-	)
+	rm := module.NewRegister(db.NewUserRepository(db.GetDB()))
 
 	result, err := rm.Register(&req)
 	if err != nil {

@@ -36,16 +36,12 @@ type RegisterResult struct {
 
 // Register handles direct account registration.
 type Register struct {
-	ConfigRepository db.ConfigRepository
-	UserRepository   db.UserRepository
+	UserRepository db.UserRepository
 }
 
 // NewRegister creates a Register module with the given repositories.
-func NewRegister(cr db.ConfigRepository, ur db.UserRepository) *Register {
-	return &Register{
-		ConfigRepository: cr,
-		UserRepository:   ur,
-	}
+func NewRegister(ur db.UserRepository) *Register {
+	return &Register{UserRepository: ur}
 }
 
 // Register creates a regular user account.
@@ -56,7 +52,6 @@ func (r *Register) Register(req *RegisterRequest) (*RegisterResult, error) {
 	}
 
 	existing, err := r.UserRepository.GetByEmail(email)
-
 	if err != nil {
 		return nil, fmt.Errorf("%w: check existing user: %v", ErrFailedCompleteRegistration, err)
 	}

@@ -37,7 +37,7 @@ func ForgotPasswordAction(w http.ResponseWriter, r *http.Request) {
 		resend.NewMailer(),
 	)
 
-	err = au.ForgotPassword(&req)
+	err = au.ForgotPassword(r.Context(), &req)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -73,7 +73,7 @@ func ResetPasswordAction(w http.ResponseWriter, r *http.Request) {
 		resend.NewMailer(),
 	)
 
-	err = au.ResetPassword(&req)
+	err = au.ResetPassword(r.Context(), &req)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrResetTokenInvalid):
