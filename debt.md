@@ -108,9 +108,9 @@ Mark done: `- [x] path/to/file.go`
 
 ## migration/
 
-- [ ] migration/migration.go
-- [ ] migration/qdb.go
-- [ ] migration/registry.go
+- [x] migration/migration.go
+- [x] migration/qdb.go
+- [x] migration/registry.go
 
 ## module/
 
