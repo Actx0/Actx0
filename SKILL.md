@@ -44,6 +44,7 @@ Keep entries short. Remove obsolete notes. Never store secrets.
 - Domain: `api` → `module` → `db` / `pkg/*` / `service/*`
 - Config: viper (`app.*` keys)
 - Common pkgs: `pkg/storage`, `pkg/qdrant`, `pkg/cache`, `pkg/stripe`, `pkg/resend`, `pkg/meteo`
+- `pkg/chunk`: splitters are `recursive` and `markdown` only (no token splitter)
 
 ## Open notes
 
