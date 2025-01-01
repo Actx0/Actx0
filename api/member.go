@@ -160,6 +160,14 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  db.Id(wid),
+		Action:       "member.update",
+		ResourceType: "member",
+		ResourceId:   db.Id(memberUserId),
+		Meta:         map[string]any{"email": member.Email, "role": member.Role},
+	})
+
 	util.WriteJSON(w, http.StatusOK, member)
 }
 
@@ -229,6 +237,13 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  db.Id(wid),
+		Action:       "member.remove",
+		ResourceType: "member",
+		ResourceId:   db.Id(memberUserId),
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }

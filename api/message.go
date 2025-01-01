@@ -84,6 +84,14 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "message.create",
+		ResourceType: "message",
+		ResourceId:   message.Id,
+		Meta:         map[string]any{"sessionId": sessionId},
+	})
+
 	util.WriteJSON(w, http.StatusCreated, message)
 }
 
@@ -153,6 +161,14 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "message.batch_create",
+		ResourceType: "session",
+		ResourceId:   db.Id(sessionId),
+		Meta:         map[string]any{"count": len(messages)},
+	})
 
 	util.WriteJSON(w, http.StatusCreated, map[string]any{
 		"messages": messages,
@@ -389,6 +405,14 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "message.update",
+		ResourceType: "message",
+		ResourceId:   message.Id,
+		Meta:         map[string]any{"sessionId": sessionId},
+	})
+
 	util.WriteJSON(w, http.StatusOK, message)
 }
 
@@ -465,6 +489,14 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "message.delete",
+		ResourceType: "message",
+		ResourceId:   db.Id(messageId),
+		Meta:         map[string]any{"sessionId": sessionId},
+	})
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -538,6 +570,14 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "message.batch_delete",
+		ResourceType: "session",
+		ResourceId:   db.Id(sessionId),
+		Meta:         map[string]any{"count": len(req.IDs)},
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }

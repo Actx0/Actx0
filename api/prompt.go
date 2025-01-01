@@ -63,6 +63,14 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "prompt.create",
+		ResourceType: "prompt",
+		ResourceId:   db.Id(version.PromptId),
+		Meta:         map[string]any{"name": version.Name, "handle": version.Handle},
+	})
+
 	util.WriteJSON(w, http.StatusCreated, version)
 }
 
@@ -115,6 +123,14 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "prompt.version.create",
+		ResourceType: "prompt_version",
+		ResourceId:   version.Id,
+		Meta:         map[string]any{"handle": version.Handle, "version": version.Version},
+	})
 
 	util.WriteJSON(w, http.StatusCreated, version)
 }
@@ -384,6 +400,14 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "prompt.version.update",
+		ResourceType: "prompt_version",
+		ResourceId:   version.Id,
+		Meta:         map[string]any{"handle": version.Handle, "version": version.Version},
+	})
+
 	util.WriteJSON(w, http.StatusOK, version)
 }
 
@@ -438,6 +462,13 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "prompt.version.delete",
+		ResourceType: "prompt_version",
+		ResourceId:   db.Id(promptVersionId),
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -541,6 +572,13 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "prompt.delete",
+		ResourceType: "prompt",
+		ResourceId:   db.Id(promptId),
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }
