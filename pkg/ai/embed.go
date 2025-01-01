@@ -99,8 +99,10 @@ func (c *EmbedClient) EmbedDocuments(ctx context.Context, texts []string, opts E
 func (c *EmbedClient) EmbedQuery(ctx context.Context, text string, opts EmbedOptions) ([]float64, Usage, error) {
 	opts.InputType = InputTypeSearchQuery
 	res, u, err := c.Generate(ctx, []string{text}, opts)
+
 	if err != nil {
 		return nil, Usage{}, err
 	}
+
 	return res[0], u, err
 }
