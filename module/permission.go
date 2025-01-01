@@ -172,6 +172,7 @@ func (p *Perm) Can(permission string) (bool, error) {
 	}
 }
 
+// CanAsUser checks if the user has the given permission.
 func (p *Perm) CanAsUser(permission string) (bool, error) {
 	membership, err := p.WorkspaceRepository.GetWorkspaceMembership(p.workspace.Id, p.user.Id)
 	if err != nil {
@@ -234,6 +235,7 @@ func (p *Perm) CanAsUser(permission string) (bool, error) {
 	}
 }
 
+// CanAsAccessKey checks if the access key has the given permission.
 func (p *Perm) CanAsAccessKey(permission string) (bool, error) {
 	if p.accessKey.WorkspaceId != p.workspace.Id {
 		return false, nil
