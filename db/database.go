@@ -18,8 +18,8 @@ type Connection struct {
 	Driver string
 }
 
-// Config holds database configuration
-type Config struct {
+// DatabaseConfig holds database connection configuration.
+type DatabaseConfig struct {
 	Driver          string
 	Host            string
 	Port            int
@@ -32,13 +32,7 @@ type Config struct {
 }
 
 // NewConnection creates a new database connection based on the driver
-func NewConnection(config Config) (*Connection, error) {
-	switch config.Driver {
-	case "postgres", "postgresql":
-	default:
-		return nil, fmt.Errorf("unsupported database driver: %s (supported: postgres, postgresql)", config.Driver)
-	}
-
+func NewConnection(config DatabaseConfig) (*Connection, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.Host,

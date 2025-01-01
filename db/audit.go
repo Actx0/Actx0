@@ -69,7 +69,7 @@ func (r *AuditEventRepositoryPostgres) Create(event *AuditEvent) error {
 
 // GetById returns an audit event by id.
 func (r *AuditEventRepositoryPostgres) GetById(id Id) (*AuditEvent, error) {
-	item := &AuditEvent{}
+	event := &AuditEvent{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, workspace_id, user_id, action, resource_type, resource_id,
@@ -78,21 +78,22 @@ func (r *AuditEventRepositoryPostgres) GetById(id Id) (*AuditEvent, error) {
 		WHERE id = $1`,
 		id.String(),
 	).Scan(
-		&item.Id,
-		&item.WorkspaceId,
-		&item.UserId,
-		&item.Action,
-		&item.ResourceType,
-		&item.ResourceId,
-		&item.IPAddress,
-		&item.UserAgent,
-		&item.Meta,
-		&item.CreatedAt,
+		&event.Id,
+		&event.WorkspaceId,
+		&event.UserId,
+		&event.Action,
+		&event.ResourceType,
+		&event.ResourceId,
+		&event.IPAddress,
+		&event.UserAgent,
+		&event.Meta,
+		&event.CreatedAt,
 	)
+
 	if isNotFound(err) {
 		return nil, nil
 	}
-	return item, err
+	return event, err
 }
 
 // ListByWorkspaceId lists audit event rows by workspace id.
@@ -114,26 +115,27 @@ func (r *AuditEventRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, 
 	}
 	defer rows.Close()
 
-	var list []*AuditEvent
+	var events []*AuditEvent
 	for rows.Next() {
-		item := &AuditEvent{}
+		event := &AuditEvent{}
 		if err := rows.Scan(
-			&item.Id,
-			&item.WorkspaceId,
-			&item.UserId,
-			&item.Action,
-			&item.ResourceType,
-			&item.ResourceId,
-			&item.IPAddress,
-			&item.UserAgent,
-			&item.Meta,
-			&item.CreatedAt,
+			&event.Id,
+			&event.WorkspaceId,
+			&event.UserId,
+			&event.Action,
+			&event.ResourceType,
+			&event.ResourceId,
+			&event.IPAddress,
+			&event.UserAgent,
+			&event.Meta,
+			&event.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
-		list = append(list, item)
+		events = append(events, event)
 	}
-	return list, rows.Err()
+
+	return events, rows.Err()
 }
 
 // CountByWorkspaceId counts audit event rows by workspace id.

@@ -29,7 +29,7 @@ var (
 )
 
 // InitDB initializes the global database connections.
-func InitDB(rwConfig Config, roConfigs ...Config) error {
+func InitDB(rwConfig DatabaseConfig, roConfigs ...DatabaseConfig) error {
 	mu.Lock()
 	defer mu.Unlock()
 

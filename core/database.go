@@ -23,14 +23,14 @@ type Database struct {
 }
 
 // DatabaseConfig returns the primary read-write database configuration.
-func DatabaseConfig() db.Config {
+func DatabaseConfig() db.DatabaseConfig {
 	return databaseConfig("app.database.rw")
 }
 
 // DatabaseConfigs returns read-write and read-only database configurations.
-func DatabaseConfigs() (db.Config, []db.Config) {
+func DatabaseConfigs() (db.DatabaseConfig, []db.DatabaseConfig) {
 	var databases []Database
-	roConfigs := []db.Config{}
+	roConfigs := []db.DatabaseConfig{}
 
 	_ = viper.UnmarshalKey("app.database.ro", &databases)
 
@@ -42,8 +42,8 @@ func DatabaseConfigs() (db.Config, []db.Config) {
 }
 
 // DBConfig converts a core database config to a db package config.
-func (d Database) DBConfig() db.Config {
-	return db.Config{
+func (d Database) DBConfig() db.DatabaseConfig {
+	return db.DatabaseConfig{
 		Driver:          d.Driver,
 		Host:            d.Host,
 		Port:            d.Port,
@@ -57,8 +57,8 @@ func (d Database) DBConfig() db.Config {
 }
 
 // databaseConfig loads database settings from configuration.
-func databaseConfig(prefix string) db.Config {
-	return db.Config{
+func databaseConfig(prefix string) db.DatabaseConfig {
+	return db.DatabaseConfig{
 		Driver:          viper.GetString(prefix + ".driver"),
 		Host:            viper.GetString(prefix + ".host"),
 		Port:            viper.GetInt(prefix + ".port"),

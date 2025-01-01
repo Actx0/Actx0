@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// ConfigEntry is a key-value configuration setting in the DB.
-type ConfigEntry struct {
+// Config is a key-value configuration setting in the DB.
+type Config struct {
 	Id        Id
 	Key       string
 	Value     string
@@ -20,10 +20,10 @@ type ConfigEntry struct {
 // ConfigRepository is the interface for config CRUD.
 type ConfigRepository interface {
 	Create(key, value string) error
-	Get(key string) (*ConfigEntry, error)
+	Get(key string) (*Config, error)
 	Update(key, value string) error
 	Delete(key string) error
-	List() ([]*ConfigEntry, error)
+	List() ([]*Config, error)
 }
 
 // ConfigRepositoryPostgres implements ConfigRepository for PostgreSQL.
@@ -52,14 +52,15 @@ func (r *ConfigRepositoryPostgres) Create(key, value string) error {
 }
 
 // Get returns a config by key
-func (r *ConfigRepositoryPostgres) Get(key string) (*ConfigEntry, error) {
-	o := &ConfigEntry{}
+func (r *ConfigRepositoryPostgres) Get(key string) (*Config, error) {
+	o := &Config{}
 	err := r.db.QueryRow(
 		`SELECT id, key, value #>> '{}', created_at, updated_at
 		FROM configs
 		WHERE key = $1`,
 		key,
 	).Scan(&o.Id, &o.Key, &o.Value, &o.CreatedAt, &o.UpdatedAt)
+
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -89,7 +90,7 @@ func (r *ConfigRepositoryPostgres) Delete(key string) error {
 }
 
 // List returns a list of configs
-func (r *ConfigRepositoryPostgres) List() ([]*ConfigEntry, error) {
+func (r *ConfigRepositoryPostgres) List() ([]*Config, error) {
 	rows, err := r.db.Query(
 		`SELECT id, key, value #>> '{}', created_at, updated_at
 		FROM configs
@@ -99,14 +100,16 @@ func (r *ConfigRepositoryPostgres) List() ([]*ConfigEntry, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var list []*ConfigEntry
+
+	var options []*Config
 	for rows.Next() {
-		o := &ConfigEntry{}
+		o := &Config{}
 		err := rows.Scan(&o.Id, &o.Key, &o.Value, &o.CreatedAt, &o.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		list = append(list, o)
+		options = append(options, o)
 	}
-	return list, rows.Err()
+
+	return options, rows.Err()
 }
