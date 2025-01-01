@@ -6,12 +6,9 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/clivern/actx0/pkg/util"
-
-	"github.com/samber/lo"
 )
 
 // PromptVersion is a single row in the prompt_versions table.
@@ -58,10 +55,6 @@ func NewPromptVersionRepository(db *sql.DB) PromptVersionRepository {
 
 // Create inserts a prompt version row for an existing prompt.
 func (r *PromptVersionRepositoryPostgres) Create(version *PromptVersion) error {
-	if lo.IsEmpty(version.PromptId) {
-		return fmt.Errorf("prompt id required")
-	}
-
 	id, err := NewId()
 	if err != nil {
 		return err
