@@ -57,6 +57,14 @@ func CreateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer RecordAudit(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspace.Id,
+		Action:       "workspace.create",
+		ResourceType: "workspace",
+		ResourceId:   workspace.Id,
+		Meta:         map[string]any{"name": workspace.Name},
+	})
+
 	log.Info().
 		Str("workspaceId", workspace.Id.String()).
 		Str("userId", user.Id.String()).
@@ -221,6 +229,14 @@ func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	defer RecordAudit(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspace.Id,
+		Action:       "workspace.update",
+		ResourceType: "workspace",
+		ResourceId:   workspace.Id,
+		Meta:         map[string]any{"name": workspace.Name},
+	})
 
 	log.Info().
 		Str("workspaceId", workspace.Id.String()).
