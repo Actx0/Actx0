@@ -30,6 +30,7 @@ Keep entries short. Remove obsolete notes. Never store secrets.
 | `r.URL.Query().Get("id")` at call site | tiny util wrappers around one query get |
 | `for x := range strings.SplitSeq(s, ",")` | `strings.Split` then range when you only iterate once |
 | Reflect call to `gotext.Po.Get` for msgid lookup | direct `po.Get(key)` (vet: printf / non-constant format) |
+| Stripe metadata camelCase (`workspaceId`, …) | snake_case metadata keys |
 
 ## Locale
 

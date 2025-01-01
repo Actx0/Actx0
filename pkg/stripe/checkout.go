@@ -39,13 +39,17 @@ func (c *Client) CreateCheckoutSession(ctx context.Context, opts CheckoutOptions
 			},
 		},
 		Metadata: map[string]string{
-			"workspace_id": opts.WorkspaceId,
-			"plan":         opts.Plan,
+			"plan":          opts.Plan,
+			"workspaceId":   opts.WorkspaceId,
+			"customerId":    opts.CustomerId,
+			"customerEmail": opts.CustomerEmail,
 		},
 		SubscriptionData: &stripesdk.CheckoutSessionCreateSubscriptionDataParams{
 			Metadata: map[string]string{
-				"workspace_id": opts.WorkspaceId,
-				"plan":         opts.Plan,
+				"plan":          opts.Plan,
+				"workspaceId":   opts.WorkspaceId,
+				"customerId":    opts.CustomerId,
+				"customerEmail": opts.CustomerEmail,
 			},
 		},
 	}

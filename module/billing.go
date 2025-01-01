@@ -324,7 +324,7 @@ func (b *Billing) SyncStripeSubscription(client *stripe.Client, payload *stripes
 		return nil
 	}
 
-	workspaceId := db.Id(payload.Metadata["workspace_id"])
+	workspaceId := db.Id(payload.Metadata["workspaceId"])
 	plan := payload.Metadata["plan"]
 
 	if lo.IsEmpty(workspaceId) {

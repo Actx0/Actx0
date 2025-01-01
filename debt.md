@@ -196,13 +196,13 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/stripe/
 
-- [ ] pkg/stripe/checkout.go
-- [ ] pkg/stripe/client.go
-- [ ] pkg/stripe/config.go
-- [ ] pkg/stripe/errors.go
-- [ ] pkg/stripe/portal.go
-- [ ] pkg/stripe/subscription.go
-- [ ] pkg/stripe/webhook.go
+- [x] pkg/stripe/checkout.go
+- [x] pkg/stripe/client.go
+- [x] pkg/stripe/config.go
+- [x] pkg/stripe/errors.go
+- [x] pkg/stripe/portal.go
+- [x] pkg/stripe/subscription.go
+- [x] pkg/stripe/webhook.go
 
 ## pkg/util/
 
