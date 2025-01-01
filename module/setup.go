@@ -113,7 +113,7 @@ func (s *Setup) Install(req *SetupRequest) error {
 
 	err = s.ConfigRepository.Create(
 		"platform_description",
-		"A Platform to Run, Schedule, and Automate Ansible and Terraform Workflows.",
+		"A Zero Latency Memory Platform for AI Agents",
 	)
 	if err != nil {
 		return fmt.Errorf("%w: create platform_description config: %v", ErrFailedCompleteSetup, err)
