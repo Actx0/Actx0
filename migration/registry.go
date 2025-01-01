@@ -403,7 +403,7 @@ func createIntegrationsTable(db *sql.DB) error {
 	return exec(db, `
 		CREATE TABLE integrations (
 			id UUID PRIMARY KEY,
-			workspace_id UUID NOT NULL REFERENCES workspaces(id),
+			workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
 			type VARCHAR(20) NOT NULL,
 			name VARCHAR(60) NOT NULL,
 			config JSONB,
@@ -422,7 +422,7 @@ func createIntegrationsMetaTable(db *sql.DB) error {
 	return exec(db, `
 		CREATE TABLE integrations_meta (
 			id UUID PRIMARY KEY,
-			integration_id UUID NOT NULL REFERENCES integrations(id),
+			integration_id UUID NOT NULL REFERENCES integrations(id) ON DELETE CASCADE,
 			key VARCHAR(60) NOT NULL,
 			value JSONB,
 			created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
@@ -441,7 +441,7 @@ func createSubscriptionsTable(db *sql.DB) error {
 	return exec(db, `
 		CREATE TABLE subscriptions (
 			id UUID PRIMARY KEY,
-			workspace_id UUID NOT NULL REFERENCES workspaces(id),
+			workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
 			plan VARCHAR(20) NOT NULL,
 			status VARCHAR(20) NOT NULL DEFAULT 'active',
 			provider VARCHAR(20),
@@ -465,7 +465,7 @@ func createSubscriptionsMetaTable(db *sql.DB) error {
 	return exec(db, `
 		CREATE TABLE subscriptions_meta (
 			id UUID PRIMARY KEY,
-			subscription_id UUID NOT NULL REFERENCES subscriptions(id),
+			subscription_id UUID NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
 			key VARCHAR(60) NOT NULL,
 			value JSONB,
 			created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
