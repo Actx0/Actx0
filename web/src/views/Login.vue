@@ -163,9 +163,34 @@ const redirectQuery = computed(() => {
 })
 
 const handleOAuth = (provider) => {
+  if (provider === 'github') {
+    loading.value = true
+    window.location.href = '/api/v1/public/action/oauth/github'
+    return
+  }
   error.value = t('login.oauth_coming_soon', {
     provider: provider === 'google' ? t('login.provider_google') : t('login.provider_github')
   })
+}
+
+const finishOAuthLogin = async () => {
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await auth_api.getProfile()
+    saveUser(response.data?.user)
+    applyUserPreferences(response.data?.user)
+
+    const redirect = route.query.redirect
+    const target = typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')
+      ? redirect
+      : '/select-workspace'
+    router.replace(target)
+  } catch (err) {
+    error.value = err.response?.data?.errorMessage || t('login.oauth_failed')
+    loading.value = false
+  }
 }
 
 const handleLogin = async () => {
@@ -198,6 +223,16 @@ onMounted(async () => {
   const response = await setup_api.checkInstalled()
   if (!response.data.installed) {
     router.push('/setup')
+    return
+  }
+
+  if (route.query.oauth_error) {
+    error.value = t('login.oauth_failed')
+    return
+  }
+
+  if (route.query.oauth === 'github') {
+    await finishOAuthLogin()
   }
 })
 </script>
