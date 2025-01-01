@@ -80,11 +80,6 @@ func ParseQueryLabels(r *http.Request) map[string]string {
 	return labels
 }
 
-// ParseSessionExternalId returns the caller-provided session id from the query string.
-func ParseSessionExternalId(r *http.Request) string {
-	return r.URL.Query().Get("id")
-}
-
 // ParsePagination parses limit and offset from query parameters.
 func ParsePagination(r *http.Request) (limit, offset int) {
 	limit = 50
@@ -102,14 +97,6 @@ func ParsePagination(r *http.Request) (limit, offset int) {
 	}
 
 	return limit, offset
-}
-
-// StringValue safely dereferences a string pointer.
-func StringValue(value *string) string {
-	if value == nil {
-		return ""
-	}
-	return *value
 }
 
 // HandleFromName derives a dash-separated lowercase handle from a display name.

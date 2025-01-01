@@ -57,7 +57,6 @@ func SetCookie(w http.ResponseWriter, name, value string, options *CookieOptions
 	if options == nil {
 		options = DefaultCookieOptions()
 	}
-
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
@@ -68,22 +67,18 @@ func SetCookie(w http.ResponseWriter, name, value string, options *CookieOptions
 		HttpOnly: options.HTTPOnly,
 		SameSite: options.SameSite,
 	}
-
 	if options.MaxAge > 0 {
 		cookie.Expires = time.Now().UTC().Add(time.Duration(options.MaxAge) * time.Second)
 	}
-
 	http.SetCookie(w, cookie)
 }
 
 // GetCookie retrieves a cookie value by name.
 func GetCookie(r *http.Request, name string) string {
 	cookie, err := r.Cookie(name)
-
 	if err != nil {
 		return ""
 	}
-
 	return cookie.Value
 }
 
@@ -101,6 +96,5 @@ func DeleteCookie(w http.ResponseWriter, name string) {
 		Path:   "/",
 		MaxAge: -1,
 	}
-
 	http.SetCookie(w, cookie)
 }

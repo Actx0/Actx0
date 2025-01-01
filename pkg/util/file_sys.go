@@ -14,7 +14,6 @@ func FileExists(path string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -25,28 +24,23 @@ func DirExists(path string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
 // EnsureDir ensures that directory exists
 func EnsureDir(dirName string, mode int) error {
 	err := os.MkdirAll(dirName, os.FileMode(mode))
-
 	if err == nil || os.IsExist(err) {
 		return nil
 	}
-
 	return err
 }
 
 // DeleteDir deletes a dir
 func DeleteDir(dir string) error {
 	err := os.RemoveAll(dir)
-
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

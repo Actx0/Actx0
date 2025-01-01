@@ -36,7 +36,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	externalId := util.ParseSessionExternalId(r)
+	externalId := r.URL.Query().Get("id")
 	labels := util.ParseQueryLabels(r)
 	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
@@ -120,7 +120,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	limit, offset := util.ParsePagination(r)
-	externalId := util.ParseSessionExternalId(r)
+	externalId := r.URL.Query().Get("id")
 	labels := util.ParseQueryLabels(r)
 
 	sm := module.NewAgentSession(
@@ -253,7 +253,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	externalId := util.ParseSessionExternalId(r)
+	externalId := r.URL.Query().Get("id")
 	labels := util.ParseQueryLabels(r)
 	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
@@ -327,7 +327,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	externalId := util.ParseSessionExternalId(r)
+	externalId := r.URL.Query().Get("id")
 	labels := util.ParseQueryLabels(r)
 	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
@@ -412,7 +412,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	externalId := util.ParseSessionExternalId(r)
+	externalId := r.URL.Query().Get("id")
 	labels := util.ParseQueryLabels(r)
 	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{

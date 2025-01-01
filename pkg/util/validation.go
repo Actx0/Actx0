@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -70,6 +71,7 @@ func FormatValidationErrors(err error) string {
 			return getErrorMessage(validationErrs[0])
 		}
 	}
+
 	return ""
 }
 
@@ -131,6 +133,7 @@ func validateJSONString(fl validator.FieldLevel) bool {
 	if !ok {
 		return false
 	}
+
 	s = strings.TrimSpace(s)
 	if lo.IsEmpty(s) {
 		return true
@@ -146,6 +149,7 @@ func validateJSONObjectString(fl validator.FieldLevel) bool {
 	if !ok {
 		return false
 	}
+
 	s = strings.TrimSpace(s)
 	if lo.IsEmpty(s) {
 		return true
@@ -155,12 +159,32 @@ func validateJSONObjectString(fl validator.FieldLevel) bool {
 	return json.Unmarshal([]byte(s), &tmp) == nil
 }
 
+// validateStrongPassword validates that a password meets security requirements
+func validateStrongPassword(fl validator.FieldLevel) bool {
+	password := fl.Field().String()
+
+	if len(password) < 8 {
+		return false
+	}
+	// Has uppercase letter
+	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(password)
+	// Has lowercase letter
+	hasLower := regexp.MustCompile(`[a-z]`).MatchString(password)
+	// Has digit
+	hasDigit := regexp.MustCompile(`[0-9]`).MatchString(password)
+	// Has special character
+	hasSpecial := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]`).MatchString(password)
+
+	return hasUpper && hasLower && hasDigit && hasSpecial
+}
+
 // DecodeJSON reads and decodes JSON from the request body.
 func DecodeJSON(r *http.Request, v interface{}) error {
 	err := json.NewDecoder(r.Body).Decode(v)
 	if err != nil {
 		return fmt.Errorf("Invalid JSON format: %w", err)
 	}
+
 	return nil
 }
 
@@ -170,6 +194,7 @@ func DecodeAndValidate(r *http.Request, v interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	return ValidateStruct(v)
 }
 

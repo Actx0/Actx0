@@ -12,7 +12,6 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/stripe"
-	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
@@ -164,7 +163,7 @@ func (b *Billing) GetBillingStatus(workspaceId db.Id) (*BillingStatusResponse, e
 		Plan:               subscription.Plan,
 		Status:             subscription.Status,
 		Provider:           subscription.Provider,
-		ProviderCustomerId: util.StringValue(subscription.ProviderCustomerId),
+		ProviderCustomerId: lo.FromPtr(subscription.ProviderCustomerId),
 		CreatedAt:          subscription.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:          subscription.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
@@ -245,7 +244,7 @@ func (b *Billing) CreateCheckoutSession(ctx context.Context, workspaceId db.Id, 
 	session, err := client.CreateCheckoutSession(ctx, stripe.CheckoutOptions{
 		WorkspaceId:   workspaceId.String(),
 		Plan:          req.Plan,
-		CustomerId:    util.StringValue(subscription.ProviderCustomerId),
+		CustomerId:    lo.FromPtr(subscription.ProviderCustomerId),
 		CustomerEmail: user.Email,
 		SuccessURL:    successURL,
 		CancelURL:     cancelURL,
@@ -278,7 +277,7 @@ func (b *Billing) CreatePortalSession(ctx context.Context, workspaceId db.Id, re
 	if subscription == nil {
 		return nil, ErrBillingSubscriptionNotFound
 	}
-	customerId := util.StringValue(subscription.ProviderCustomerId)
+	customerId := lo.FromPtr(subscription.ProviderCustomerId)
 	if lo.IsEmpty(customerId) {
 		return nil, ErrBillingPortalUnavailable
 	}
