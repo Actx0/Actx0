@@ -1,4 +1,4 @@
-# actx0 MCP
+# Actx0 MCP
 
 Streamable HTTP MCP proxy for the actx0 management API (session memories).
 
@@ -55,16 +55,16 @@ Do not commit real access keys. Prefer placeholders in shared configs, or keep s
 
 ### Access key permissions
 
-The access key must include:
+The `access key` must include:
 
-- Get session memories
-- List session memories
-- Delete session memories
-- Update session memories
-- Create session memories
-- Query session memories
-- Create agent sessions
-- Update agent sessions
-- Delete agent sessions
-- List agent sessions
-- Get agent sessions
+- `Get session memories`
+- `List session memories`
+- `Delete session memories`
+- `Update session memories`
+- `Create session memories`
+- `Query session memories`
+- `Create agent sessions`
+- `Update agent sessions`
+- `Delete agent sessions`
+- `List agent sessions`
+- `Get agent sessions`
