@@ -121,16 +121,21 @@ const redirectQuery = computed(() => {
 })
 
 const handleRegister = async () => {
-  if (form.password !== form.confirmPassword) {
-    error.value = t('register.error_passwords_match')
-    return
-  }
-  if (form.password.length < 8) {
-    error.value = t('register.error_password_length')
-    return
-  }
   loading.value = true
   error.value = null
+
+  if (form.password !== form.confirmPassword) {
+    error.value = t('register.error_passwords_match')
+    loading.value = false
+    return
+  }
+
+  if (form.password.length < 8) {
+    error.value = t('register.error_password_length')
+    loading.value = false
+    return
+  }
+
   try {
     await authAPI.register({
       email: form.email.trim(),
