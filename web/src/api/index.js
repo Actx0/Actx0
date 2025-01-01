@@ -191,8 +191,12 @@ export const memoryAPI = {
     api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`),
   create: (workspaceId, agentId, sessionId, data) =>
     api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories`, data),
+  createBatch: (workspaceId, agentId, sessionId, data) =>
+    api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/batch`, data),
   update: (workspaceId, agentId, sessionId, memoryId, data) =>
     api.put(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`, data),
   delete: (workspaceId, agentId, sessionId, memoryId) =>
     api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/${memoryId}`),
+  deleteBatch: (workspaceId, agentId, sessionId, data) =>
+    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/memories/batch`, { data }),
 }

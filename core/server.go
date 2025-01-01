@@ -185,6 +185,8 @@ func SetupServer(Static embed.FS) http.Handler {
 				r.Route("/{sessionId}/memories", func(r chi.Router) {
 					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMemories)).Get("/", api.ListSessionMemoriesAction)              // list session memories
 					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMemory)).Post("/", api.CreateSessionMemoryAction)             // create session memory
+					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMemory)).Post("/batch", api.BatchCreateSessionMemoriesAction)  // batch create session memories
+					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMemory)).Delete("/batch", api.BatchDeleteSessionMemoriesAction) // batch delete session memories
 					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMemory)).Get("/{memoryId}", api.GetSessionMemoryAction)          // get session memory
 					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMemory)).Put("/{memoryId}", api.UpdateSessionMemoryAction)    // update session memory
 					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMemory)).Delete("/{memoryId}", api.DeleteSessionMemoryAction) // delete session memory

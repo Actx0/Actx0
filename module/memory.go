@@ -29,6 +29,16 @@ type CreateSessionMemoryRequest struct {
 	Meta    *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 }
 
+// BatchCreateSessionMemoriesRequest is the body for batch creating session memories.
+type BatchCreateSessionMemoriesRequest struct {
+	Memories []CreateSessionMemoryRequest `json:"memories" validate:"required,min=1,max=100,dive" label:"Memories"`
+}
+
+// BatchDeleteSessionMemoriesRequest is the body for batch deleting session memories.
+type BatchDeleteSessionMemoriesRequest struct {
+	IDs []string `json:"ids" validate:"required,min=1,max=100,dive,required" label:"IDs"`
+}
+
 // UpdateSessionMemoryRequest is the body for updating a session memory.
 type UpdateSessionMemoryRequest struct {
 	Kind    string  `json:"kind" validate:"omitempty,oneof=summary fact preference" label:"Kind"`
@@ -86,15 +96,34 @@ func (m *Memory) CreateSessionMemory(workspaceId, agentId, sessionId db.Id, req 
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
 	}
 
-	return &SessionMemoryResponse{
-		Id:        memory.Id,
-		SessionId: memory.SessionId,
-		Kind:      memory.Kind,
-		Content:   memory.Content,
-		Meta:      util.JSONRawFromString(memory.Meta),
-		CreatedAt: memory.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt: memory.UpdatedAt.UTC().Format(time.RFC3339),
-	}, nil
+	return sessionMemoryResponse(memory), nil
+}
+
+// BatchCreateSessionMemories creates multiple memories in a session.
+func (m *Memory) BatchCreateSessionMemories(workspaceId, agentId, sessionId db.Id, req *BatchCreateSessionMemoriesRequest) ([]*SessionMemoryResponse, error) {
+	session, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]*SessionMemoryResponse, 0, len(req.Memories))
+	for _, item := range req.Memories {
+		memory := &db.SessionMemory{
+			SessionId: session.Id,
+			Kind:      item.Kind,
+			Content:   item.Content,
+			Meta:      item.Meta,
+		}
+
+		err = m.MemoryRepository.Create(memory)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
+		}
+
+		responses = append(responses, sessionMemoryResponse(memory))
+	}
+
+	return responses, nil
 }
 
 // GetSessionMemory returns one memory by id.
@@ -192,6 +221,45 @@ func (m *Memory) DeleteSessionMemory(workspaceId, agentId, sessionId, memoryId d
 	return err
 }
 
+// BatchDeleteSessionMemories deletes multiple memories by id.
+func (m *Memory) BatchDeleteSessionMemories(workspaceId, agentId, sessionId db.Id, req *BatchDeleteSessionMemoriesRequest) error {
+	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range req.IDs {
+		memoryId := db.Id(id)
+
+		memory, err := m.MemoryRepository.GetById(memoryId)
+		if err != nil {
+			return fmt.Errorf("%w: %v", ErrFailedDeleteSessionMemory, err)
+		}
+		if memory == nil || memory.SessionId != sessionId {
+			return ErrSessionMemoryNotFound
+		}
+
+		err = m.MemoryRepository.Delete(memoryId)
+		if err != nil {
+			return fmt.Errorf("%w: %v", ErrFailedDeleteSessionMemory, err)
+		}
+
+		_, err = GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+			WorkspaceId: workspaceId,
+			Type:        "task.agent.session.memory.delete",
+			Priority:    AsyncPriorityLow,
+			Payload: map[string]string{
+				"memoryId": id,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ListSessionMemories returns paginated memories for a session.
 func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limit, offset int) (*ListSessionMemoriesResponse, error) {
 	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
@@ -223,4 +291,16 @@ func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limi
 	}
 
 	return &ListSessionMemoriesResponse{Memories: list, Total: total}, nil
+}
+
+func sessionMemoryResponse(memory *db.SessionMemory) *SessionMemoryResponse {
+	return &SessionMemoryResponse{
+		Id:        memory.Id,
+		SessionId: memory.SessionId,
+		Kind:      memory.Kind,
+		Content:   memory.Content,
+		Meta:      util.JSONRawFromString(memory.Meta),
+		CreatedAt: memory.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt: memory.UpdatedAt.UTC().Format(time.RFC3339),
+	}
 }
