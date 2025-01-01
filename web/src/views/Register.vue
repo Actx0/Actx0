@@ -3,7 +3,9 @@
     <div class="max-w-md w-full">
       <div class="text-center mb-10">
         <div class="flex justify-center mb-8">
-          <img src="/logo.png" :alt="$t('common.logo_alt')" class="h-24 w-auto">
+          <router-link to="/">
+            <img src="/logo.png" :alt="$t('common.logo_alt')" class="h-24 w-auto">
+          </router-link>
         </div>
       </div>
 

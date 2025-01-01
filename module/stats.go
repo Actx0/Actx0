@@ -23,10 +23,20 @@ func NewStats(workspaces db.WorkspaceRepository, stats db.WorkspaceStatsReposito
 
 // WorkspaceStatsResponse is workspace metrics shaped for API responses.
 type WorkspaceStatsResponse struct {
-	MemoriesStored int64 `json:"memoriesStored"`
-	APICallsMonth  int64 `json:"apiCallsMonth"`
-	ActiveAgents   int64 `json:"activeAgents"`
-	Prompts        int64 `json:"prompts"`
+	MemoriesStored int64               `json:"memoriesStored"`
+	APICallsMonth  int64               `json:"apiCallsMonth"`
+	ActiveAgents   int64               `json:"activeAgents"`
+	Prompts        int64               `json:"prompts"`
+	TopAgents      []*TopAgentResponse `json:"topAgents"`
+}
+
+// TopAgentResponse is a top agent ranked by activity.
+type TopAgentResponse struct {
+	Id       db.Id  `json:"id"`
+	Name     string `json:"name"`
+	Handle   string `json:"handle"`
+	Sessions int64  `json:"sessions"`
+	Memories int64  `json:"memories"`
 }
 
 // GetWorkspaceStats returns dashboard metrics for a workspace.
@@ -44,10 +54,22 @@ func (s *Stats) GetWorkspaceStats(workspaceId db.Id) (*WorkspaceStatsResponse, e
 		return nil, err
 	}
 
+	topAgents := make([]*TopAgentResponse, 0, len(stats.TopAgents))
+	for _, agent := range stats.TopAgents {
+		topAgents = append(topAgents, &TopAgentResponse{
+			Id:       agent.Id,
+			Name:     agent.Name,
+			Handle:   agent.Handle,
+			Sessions: agent.Sessions,
+			Memories: agent.Memories,
+		})
+	}
+
 	return &WorkspaceStatsResponse{
 		MemoriesStored: stats.MemoriesStored,
 		APICallsMonth:  stats.APICallsMonth,
 		ActiveAgents:   stats.ActiveAgents,
 		Prompts:        stats.Prompts,
+		TopAgents:      topAgents,
 	}, nil
 }

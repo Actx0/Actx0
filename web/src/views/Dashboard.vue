@@ -168,18 +168,17 @@
 
           <div class="section overflow-hidden !p-0">
             <div class="border-b border-theme-border px-6 py-4">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.top_agents_title') }}</h2>
-                  <p class="mt-0.5 text-sm text-theme-textLight">{{ $t('dashboard.top_agents_subtitle') }}</p>
-                </div>
-                <span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                  {{ $t('dashboard.mock_badge') }}
-                </span>
+              <div>
+                <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.top_agents_title') }}</h2>
+                <p class="mt-0.5 text-sm text-theme-textLight">{{ $t('dashboard.top_agents_subtitle') }}</p>
               </div>
             </div>
 
-            <ul class="divide-y divide-theme-border">
+            <p v-if="loading" class="px-6 py-8 text-sm text-theme-textLight">{{ $t('common.loading') }}</p>
+            <p v-else-if="topAgents.length === 0" class="px-6 py-8 text-sm text-theme-textLight">
+              {{ $t('dashboard.top_agents_empty') }}
+            </p>
+            <ul v-else class="divide-y divide-theme-border">
               <li
                 v-for="(agent, index) in topAgents"
                 :key="agent.id"
@@ -320,13 +319,7 @@ const showWhatsNew = ref(localStorage.getItem(WHATS_NEW_KEY) !== '1')
 const audits = ref([])
 const notifications = ref([])
 
-const topAgents = [
-  { id: 'agt_support', name: 'Support bot', handle: 'support-bot', sessions: 1842, memories: 9210 },
-  { id: 'agt_sales', name: 'Sales assistant', handle: 'sales-assistant', sessions: 963, memories: 4104 },
-  { id: 'agt_onboard', name: 'Onboarding guide', handle: 'onboarding-guide', sessions: 511, memories: 1880 },
-  { id: 'agt_docs', name: 'Docs helper', handle: 'docs-helper', sessions: 287, memories: 940 },
-  { id: 'agt_billing', name: 'Billing FAQ', handle: 'billing-faq', sessions: 124, memories: 356 },
-]
+const topAgents = ref([])
 
 const stats = ref({
   memoriesStored: 0,
@@ -435,6 +428,7 @@ async function loadDashboard() {
           activeAgents: res.data.activeAgents,
           prompts: res.data.prompts,
         }
+        topAgents.value = res.data.topAgents
       })
       .catch(() => {}),
 
