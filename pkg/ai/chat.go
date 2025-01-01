@@ -85,7 +85,7 @@ func (c *ChatClient) Complete(ctx context.Context, messages []Message, opts ...C
 		Messages: items,
 	}
 	if len(opts) > 0 && opts[0].JSONObject {
-		format := components.CreateResponseFormatJSONObject(components.FormatJSONObjectConfig{})
+		format := components.CreateResponseFormatJSONObject(components.ChatFormatJSONObjectConfig{})
 		req.ResponseFormat = &format
 	}
 
