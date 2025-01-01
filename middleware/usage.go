@@ -12,6 +12,7 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // StatusRecorder wraps the response writer to capture the HTTP status code.
@@ -26,12 +27,19 @@ func (s *StatusRecorder) WriteHeader(code int) {
 	s.ResponseWriter.WriteHeader(code)
 }
 
+// isMeteredAPICall reports whether the request is authenticated with an API or
+// access key (not a browser session from the web UI).
+func isMeteredAPICall(r *http.Request) bool {
+	return lo.IsNotEmpty(r.Header.Get("X-API-Key")) || lo.IsNotEmpty(r.Header.Get("X-Access-Key"))
+}
+
 // TrackWorkspaceAPICall increments workspace API usage after authenticated, authorized
+// key-based requests. Browser session (web UI) calls are excluded.
 func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			workspace, hasWorkspace := GetWorkspaceFromContext(r.Context())
-			if hasWorkspace {
+			if hasWorkspace && isMeteredAPICall(r) {
 				if _, _, ok := GetPrincipal(r); ok {
 					usageRepo := db.NewUsageRepository(db.GetDB(false))
 					subscriptions := db.NewSubscriptionRepository(db.GetDB(false))
@@ -45,7 +53,7 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 							Msg("Failed to check workspace API call capacity")
 					} else if reached {
 						util.WriteJSON(w, http.StatusForbidden, map[string]any{
-							"errorMessage": locale.TR(r, "workspace_capacity_reached"),
+							"errorMessage": locale.TR(r, "api_calls_capacity_reached"),
 						})
 						return
 					}
@@ -56,6 +64,10 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 			next.ServeHTTP(recorder, r)
 
 			if recorder.status < http.StatusOK || recorder.status >= http.StatusMultipleChoices {
+				return
+			}
+
+			if !isMeteredAPICall(r) {
 				return
 			}
 

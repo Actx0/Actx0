@@ -540,5 +540,8 @@ msgstr "Abonnement de l'espace de travail introuvable."
 msgid "workspace_capacity_reached"
 msgstr "Capacité de l'espace de travail atteinte pour le forfait actuel."
 
+msgid "api_calls_capacity_reached"
+msgstr "Capacité d'appels API atteinte pour le forfait actuel."
+
 msgid "workspace_member_not_found"
 msgstr "Membre de l'espace de travail introuvable."
