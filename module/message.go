@@ -114,7 +114,24 @@ func (m *Message) CreateSessionMessage(workspaceId, agentId, sessionId db.Id, re
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMessage, err)
 	}
 
-	return sessionMessageResponse(message), nil
+	err = m.EnqueueIndexTask(workspaceId, message.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SessionMessageResponse{
+		Id:        message.Id,
+		SessionId: message.SessionId,
+		Role:      message.Role,
+		Content:   message.Content,
+		Meta:      util.JSONRawFromString(message.Meta),
+		CreatedAt: message.CreatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // BatchCreateSessionMessages creates multiple messages in a session.
@@ -140,7 +157,24 @@ func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.
 		}
 
 		lastCreatedAt = message.CreatedAt
-		responses = append(responses, sessionMessageResponse(message))
+		responses = append(responses, &SessionMessageResponse{
+			Id:        message.Id,
+			SessionId: message.SessionId,
+			Role:      message.Role,
+			Content:   message.Content,
+			Meta:      util.JSONRawFromString(message.Meta),
+			CreatedAt: message.CreatedAt.UTC().Format(time.RFC3339),
+		})
+
+		err = m.EnqueueIndexTask(workspaceId, message.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = m.SessionRepository.TouchLastActivityAt(session.Id, lastCreatedAt)
@@ -166,7 +200,14 @@ func (m *Message) GetSessionMessage(workspaceId, agentId, sessionId, messageId d
 		return nil, ErrSessionMessageNotFound
 	}
 
-	return sessionMessageResponse(message), nil
+	return &SessionMessageResponse{
+		Id:        message.Id,
+		SessionId: message.SessionId,
+		Role:      message.Role,
+		Content:   message.Content,
+		Meta:      util.JSONRawFromString(message.Meta),
+		CreatedAt: message.CreatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // UpdateSessionMessage updates a message by id.
@@ -195,7 +236,14 @@ func (m *Message) UpdateSessionMessage(workspaceId, agentId, sessionId, messageI
 		return nil, fmt.Errorf("%w: %v", ErrFailedUpdateSessionMessage, err)
 	}
 
-	return sessionMessageResponse(message), nil
+	return &SessionMessageResponse{
+		Id:        message.Id,
+		SessionId: message.SessionId,
+		Role:      message.Role,
+		Content:   message.Content,
+		Meta:      util.JSONRawFromString(message.Meta),
+		CreatedAt: message.CreatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // DeleteSessionMessage deletes a message by id.
@@ -218,16 +266,7 @@ func (m *Message) DeleteSessionMessage(workspaceId, agentId, sessionId, messageI
 		return fmt.Errorf("%w: %v", ErrFailedDeleteSessionMessage, err)
 	}
 
-	_, err = GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
-		WorkspaceId: workspaceId,
-		Type:        "task.agent.session.message.delete",
-		Priority:    AsyncPriorityLow,
-		Payload: map[string]string{
-			"messageId": messageId.String(),
-		},
-	})
-
-	return err
+	return m.EnqueueDeleteTask(workspaceId, messageId)
 }
 
 // BatchDeleteSessionMessages deletes multiple messages by id.
@@ -251,14 +290,7 @@ func (m *Message) BatchDeleteSessionMessages(workspaceId, agentId, sessionId db.
 			return fmt.Errorf("%w: %v", ErrFailedDeleteSessionMessage, err)
 		}
 
-		_, err = GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
-			WorkspaceId: workspaceId,
-			Type:        "task.agent.session.message.delete",
-			Priority:    AsyncPriorityLow,
-			Payload: map[string]string{
-				"messageId": id,
-			},
-		})
+		err = m.EnqueueDeleteTask(workspaceId, db.Id(id))
 		if err != nil {
 			return err
 		}
@@ -286,19 +318,57 @@ func (m *Message) ListSessionMessages(workspaceId, agentId, sessionId db.Id, lim
 
 	list := make([]*SessionMessageResponse, 0, len(messages))
 	for _, item := range messages {
-		list = append(list, sessionMessageResponse(item))
+		list = append(list, &SessionMessageResponse{
+			Id:        item.Id,
+			SessionId: item.SessionId,
+			Role:      item.Role,
+			Content:   item.Content,
+			Meta:      util.JSONRawFromString(item.Meta),
+			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339),
+		})
 	}
 
 	return &ListSessionMessagesResponse{Messages: list, Total: total}, nil
 }
 
-func sessionMessageResponse(message *db.SessionMessage) *SessionMessageResponse {
-	return &SessionMessageResponse{
-		Id:        message.Id,
-		SessionId: message.SessionId,
-		Role:      message.Role,
-		Content:   message.Content,
-		Meta:      util.JSONRawFromString(message.Meta),
-		CreatedAt: message.CreatedAt.UTC().Format(time.RFC3339),
-	}
+// EnqueueIndexTask enqueues an async task to index a session message.
+func (m *Message) EnqueueIndexTask(workspaceId, messageId db.Id) error {
+	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+		WorkspaceId: workspaceId,
+		Type:        "task.agent.session.message.index",
+		Priority:    AsyncPriorityLow,
+		Payload: map[string]string{
+			"messageId": messageId.String(),
+		},
+	})
+
+	return err
+}
+
+// EnqueueDeleteTask enqueues an async task to delete session message vectors.
+func (m *Message) EnqueueDeleteTask(workspaceId, messageId db.Id) error {
+	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+		WorkspaceId: workspaceId,
+		Type:        "task.agent.session.message.delete",
+		Priority:    AsyncPriorityLow,
+		Payload: map[string]string{
+			"messageId": messageId.String(),
+		},
+	})
+
+	return err
+}
+
+// EnqueueGenerateMemoryTask enqueues an async task to generate memory from a message.
+func (m *Message) EnqueueGenerateMemoryTask(workspaceId, messageId db.Id) error {
+	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+		WorkspaceId: workspaceId,
+		Type:        "task.agent.session.memory.generate",
+		Priority:    AsyncPriorityLow,
+		Payload: map[string]string{
+			"messageId": messageId.String(),
+		},
+	})
+
+	return err
 }
