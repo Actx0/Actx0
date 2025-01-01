@@ -4,9 +4,8 @@
 package middleware
 
 import (
-	"context"
+	"crypto/subtle"
 	"net/http"
-	"strings"
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/module"
@@ -16,18 +15,11 @@ import (
 	"github.com/samber/lo"
 )
 
-const (
-	// ContextKeyUser is the key for storing user in context
-	ContextKeyUser contextKey = "user"
-	// ContextKeyAccessKey is the key for storing workspace access key in context
-	ContextKeyAccessKey contextKey = "access_key"
-)
-
-// SessionAuth creates a session-based authentication middleware
-func SessionAuth() func(http.Handler) http.Handler {
+// Auth authenticates the request via API key, access key, or session cookie.
+func Auth() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if shouldSkipAuth(r.URL.Path) {
+			if ShouldSkipAuth(r.URL.Path) {
 				if !IsAssetPath(r.URL.Path) {
 					log.Info().
 						Str("path", r.URL.Path).
@@ -137,33 +129,22 @@ func SessionAuth() func(http.Handler) http.Handler {
 	}
 }
 
-// shouldSkipAuth determines if authentication should be skipped for a given path
-func shouldSkipAuth(path string) bool {
-	if strings.HasPrefix(path, "/api/v1/public/") || !strings.HasPrefix(path, "/api/v1/") {
-		return true
+// BasicAuth creates a basic authentication middleware
+func BasicAuth(username, password string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user, pass, ok := r.BasicAuth()
+
+			userMatch := subtle.ConstantTimeCompare([]byte(user), []byte(username)) == 1
+			passMatch := subtle.ConstantTimeCompare([]byte(pass), []byte(password)) == 1
+
+			if !ok || !userMatch || !passMatch {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
 	}
-
-	return false
-}
-
-// GetUserFromContext retrieves the user from the request context
-func GetUserFromContext(ctx context.Context) (*db.User, bool) {
-	return module.UserFrom(ctx)
-}
-
-// GetAccessKeyFromContext retrieves the workspace access key from the request context
-func GetAccessKeyFromContext(ctx context.Context) (*db.WorkspaceAccessKey, bool) {
-	return module.AccessKeyFrom(ctx)
-}
-
-// WithUserContext sets the user in the request context
-func WithUserContext(ctx context.Context, user *db.User) context.Context {
-	ctx = module.WithPrincipal(ctx, &module.Principal{User: user})
-	return context.WithValue(ctx, ContextKeyUser, user)
-}
-
-// WithAccessKeyContext sets the workspace access key in the request context
-func WithAccessKeyContext(ctx context.Context, key *db.WorkspaceAccessKey) context.Context {
-	ctx = module.WithPrincipal(ctx, &module.Principal{AccessKey: key})
-	return context.WithValue(ctx, ContextKeyAccessKey, key)
 }

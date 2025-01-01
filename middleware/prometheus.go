@@ -263,18 +263,18 @@ type MetricsResponseWriter struct {
 }
 
 // WriteHeader captures the HTTP status code for logging.
-func (mrw *MetricsResponseWriter) WriteHeader(code int) {
-	if !mrw.wroteHeader {
-		mrw.statusCode = code
-		mrw.ResponseWriter.WriteHeader(code)
-		mrw.wroteHeader = true
+func (m *MetricsResponseWriter) WriteHeader(code int) {
+	if !m.wroteHeader {
+		m.statusCode = code
+		m.ResponseWriter.WriteHeader(code)
+		m.wroteHeader = true
 	}
 }
 
 // Write captures the response body size for logging.
-func (mrw *MetricsResponseWriter) Write(b []byte) (int, error) {
-	n, err := mrw.ResponseWriter.Write(b)
-	mrw.size += n
+func (m *MetricsResponseWriter) Write(b []byte) (int, error) {
+	n, err := m.ResponseWriter.Write(b)
+	m.size += n
 	return n, err
 }
 

@@ -10,21 +10,29 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// responseWriter wraps the response so we can capture status code and size.
-type responseWriter struct {
+// ResponseWriter wraps the response so we can capture status code and size.
+type ResponseWriter struct {
 	http.ResponseWriter
 	statusCode int
 	written    int
 }
 
+// NewResponseWriter creates a new ResponseWriter.
+func NewResponseWriter(w http.ResponseWriter) *ResponseWriter {
+	return &ResponseWriter{
+		ResponseWriter: w,
+		statusCode:     http.StatusOK,
+	}
+}
+
 // WriteHeader captures the HTTP status code for logging.
-func (rw *responseWriter) WriteHeader(code int) {
+func (rw *ResponseWriter) WriteHeader(code int) {
 	rw.statusCode = code
 	rw.ResponseWriter.WriteHeader(code)
 }
 
 // Write captures the response body size for logging.
-func (rw *responseWriter) Write(b []byte) (int, error) {
+func (rw *ResponseWriter) Write(b []byte) (int, error) {
 	n, err := rw.ResponseWriter.Write(b)
 	rw.written += n
 	return n, err
@@ -35,10 +43,7 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now().UTC()
 
-		wrapped := &responseWriter{
-			ResponseWriter: w,
-			statusCode:     http.StatusOK,
-		}
+		wrapped := NewResponseWriter(w)
 
 		next.ServeHTTP(wrapped, r)
 

@@ -20,8 +20,8 @@ func AppContext(next http.Handler) http.Handler {
 		ac := module.NewAppCtx(
 			GetRequestId(r.Context()),
 			r.UserAgent(),
-			clientIP(r),
-			parseFeatures(r.Header.Get("X-Features")),
+			GetClientIP(r),
+			ParseFeatures(r.Header.Get("X-Features")),
 		)
 
 		ctx := module.WithAppCtx(r.Context(), ac)
@@ -34,7 +34,9 @@ func GetAppCtx(ctx context.Context) (*module.AppCtx, bool) {
 	return module.AppCtxFrom(ctx)
 }
 
-func clientIP(r *http.Request) string {
+// GetClientIP retrieves the client IP from the request.
+func GetClientIP(r *http.Request) string {
+	// Check X-Forwarded-For header
 	if xff := r.Header.Get("X-Forwarded-For"); lo.IsNotEmpty(xff) {
 		if i := strings.Index(xff, ","); i >= 0 {
 			return strings.TrimSpace(xff[:i])
@@ -42,10 +44,12 @@ func clientIP(r *http.Request) string {
 		return strings.TrimSpace(xff)
 	}
 
+	// Check X-Real-IP header
 	if xri := r.Header.Get("X-Real-IP"); lo.IsNotEmpty(xri) {
 		return strings.TrimSpace(xri)
 	}
 
+	// Return remote address as fallback
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
@@ -54,7 +58,8 @@ func clientIP(r *http.Request) string {
 	return host
 }
 
-func parseFeatures(header string) map[string]bool {
+// ParseFeatures parses the features from the header.
+func ParseFeatures(header string) map[string]bool {
 	features := map[string]bool{}
 	if lo.IsEmpty(header) {
 		return features
