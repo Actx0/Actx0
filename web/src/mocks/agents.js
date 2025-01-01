@@ -356,10 +356,10 @@ export function formatMetadata(meta) {
   }
 }
 
-export function agentDetailPath(agentId) {
+export function agentPath(agentId) {
   return `/agents/${agentId}`
 }
 
-export function sessionDetailPath(agentId, sessionId) {
+export function sessionPath(agentId, sessionId) {
   return `/agents/${agentId}/sessions/${sessionId}`
 }
