@@ -48,11 +48,11 @@ type MeAccessKeyResponse struct {
 }
 
 // NewMe creates a /me module with the given repositories.
-func NewMe(akr db.APIKeyRepository, ur db.UserRepository, war db.WorkspaceAccessKeyRepository) *Me {
+func NewMe(apiKeys db.APIKeyRepository, users db.UserRepository, accessKeys db.WorkspaceAccessKeyRepository) *Me {
 	return &Me{
-		APIKeyRepository:             akr,
-		UserRepository:               ur,
-		WorkspaceAccessKeyRepository: war,
+		APIKeyRepository:             apiKeys,
+		UserRepository:               users,
+		WorkspaceAccessKeyRepository: accessKeys,
 	}
 }
 

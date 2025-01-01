@@ -46,11 +46,11 @@ type Prompt struct {
 }
 
 // NewPrompt creates a prompt module with the given repositories.
-func NewPrompt(pr db.PromptRepository, pvr db.PromptVersionRepository, wr db.WorkspaceRepository) *Prompt {
+func NewPrompt(prompts db.PromptRepository, promptVersions db.PromptVersionRepository, workspaces db.WorkspaceRepository) *Prompt {
 	return &Prompt{
-		PromptRepository:        pr,
-		PromptVersionRepository: pvr,
-		WorkspaceRepository:     wr,
+		PromptRepository:        prompts,
+		PromptVersionRepository: promptVersions,
+		WorkspaceRepository:     workspaces,
 	}
 }
 

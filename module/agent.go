@@ -31,10 +31,10 @@ type Agent struct {
 }
 
 // NewAgent creates an agent module with the given repositories.
-func NewAgent(ar db.AgentRepository, wr db.WorkspaceRepository) *Agent {
+func NewAgent(agents db.AgentRepository, workspaces db.WorkspaceRepository) *Agent {
 	return &Agent{
-		AgentRepository:     ar,
-		WorkspaceRepository: wr,
+		AgentRepository:     agents,
+		WorkspaceRepository: workspaces,
 	}
 }
 

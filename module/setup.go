@@ -32,10 +32,10 @@ type SetupRequest struct {
 }
 
 // NewSetup creates a Setup with the given repositories.
-func NewSetup(cr db.ConfigRepository, ur db.UserRepository) *Setup {
+func NewSetup(config db.ConfigRepository, users db.UserRepository) *Setup {
 	return &Setup{
-		ConfigRepository: cr,
-		UserRepository:   ur,
+		ConfigRepository: config,
+		UserRepository:   users,
 	}
 }
 

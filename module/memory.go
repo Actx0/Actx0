@@ -72,10 +72,10 @@ type Memory struct {
 }
 
 // NewMemory creates a session memory module with the given repositories.
-func NewMemory(mr db.SessionMemoryRepository, as *AgentSession) *Memory {
+func NewMemory(memories db.SessionMemoryRepository, agentSessions *AgentSession) *Memory {
 	return &Memory{
-		MemoryRepository: mr,
-		AgentSession:     as,
+		MemoryRepository: memories,
+		AgentSession:     agentSessions,
 	}
 }
 

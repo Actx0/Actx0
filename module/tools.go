@@ -15,9 +15,9 @@ type Tools struct {
 }
 
 // NewTools creates a tools module.
-func NewTools(meteoClient meteo.Client) *Tools {
+func NewTools(meteo meteo.Client) *Tools {
 	return &Tools{
-		Meteo: meteoClient,
+		Meteo: meteo,
 	}
 }
 

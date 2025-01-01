@@ -71,10 +71,10 @@ type Message struct {
 }
 
 // NewMessage creates a session message module with the given repositories.
-func NewMessage(mr db.SessionMessageRepository, sr db.AgentSessionRepository) *Message {
+func NewMessage(messages db.SessionMessageRepository, sessions db.AgentSessionRepository) *Message {
 	return &Message{
-		MessageRepository: mr,
-		SessionRepository: sr,
+		MessageRepository: messages,
+		SessionRepository: sessions,
 	}
 }
 

@@ -28,12 +28,12 @@ type Workspace struct {
 }
 
 // NewWorkspace creates a workspace module with the given repositories.
-func NewWorkspace(wr db.WorkspaceRepository, wur db.WorkspaceUserRepository, sr db.SubscriptionRepository, ur db.UserRepository) *Workspace {
+func NewWorkspace(workspaces db.WorkspaceRepository, workspaceUsers db.WorkspaceUserRepository, subscriptions db.SubscriptionRepository, users db.UserRepository) *Workspace {
 	return &Workspace{
-		WorkspaceRepository:     wr,
-		WorkspaceUserRepository: wur,
-		SubscriptionRepository:  sr,
-		UserRepository:          ur,
+		WorkspaceRepository:     workspaces,
+		WorkspaceUserRepository: workspaceUsers,
+		SubscriptionRepository:  subscriptions,
+		UserRepository:          users,
 	}
 }
 

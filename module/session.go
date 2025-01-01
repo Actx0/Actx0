@@ -21,10 +21,10 @@ type SessionManager struct {
 }
 
 // NewSessionManager creates a new session manager.
-func NewSessionManager(sesr db.SessionRepository, ur db.UserRepository) *SessionManager {
+func NewSessionManager(sessions db.SessionRepository, users db.UserRepository) *SessionManager {
 	return &SessionManager{
-		SessionRepo: sesr,
-		UserRepo:    ur,
+		SessionRepo: sessions,
+		UserRepo:    users,
 	}
 }
 

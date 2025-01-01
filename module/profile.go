@@ -36,9 +36,9 @@ type Profile struct {
 }
 
 // NewProfile creates a Profile module with the given repositories.
-func NewProfile(ur db.UserRepository) *Profile {
+func NewProfile(users db.UserRepository) *Profile {
 	return &Profile{
-		UserRepository: ur,
+		UserRepository: users,
 	}
 }
 
