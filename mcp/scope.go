@@ -11,17 +11,17 @@ import (
 )
 
 const (
-	HeaderWorkspaceID = "X-Workspace-Id"
-	HeaderAgentID     = "X-Agent-Id"
-	HeaderSessionID   = "X-Session-Id"
+	HeaderWorkspaceId = "X-Workspace-Id"
+	HeaderAgentId     = "X-Agent-Id"
+	HeaderSessionId   = "X-Session-Id"
 	HeaderAccessKey   = "X-Access-Key"
 )
 
 // Scope is the connection-level identity for MCP tool calls.
 type Scope struct {
-	WorkspaceID string
-	AgentID     string
-	SessionID   string
+	WorkspaceId string
+	AgentId     string
+	SessionId   string
 	AccessKey   string
 }
 
@@ -30,9 +30,9 @@ type scopeKey struct{}
 // ScopeFromHeader builds a Scope from request headers.
 func ScopeFromHeader(h http.Header) Scope {
 	return Scope{
-		WorkspaceID: h.Get(HeaderWorkspaceID),
-		AgentID:     h.Get(HeaderAgentID),
-		SessionID:   h.Get(HeaderSessionID),
+		WorkspaceId: h.Get(HeaderWorkspaceId),
+		AgentId:     h.Get(HeaderAgentId),
+		SessionId:   h.Get(HeaderSessionId),
 		AccessKey:   h.Get(HeaderAccessKey),
 	}
 }

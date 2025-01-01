@@ -31,13 +31,13 @@ func NewAPIClient(mgt string, timeout time.Duration) *APIClient {
 	}
 }
 
-// GetSessionByExternalID gets a session by external id.
-func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*Session, int, error) {
+// GetSessionByExternalId gets a session by external id.
+func (c *APIClient) GetSessionByExternalId(ctx context.Context, scope Scope) (*Session, int, error) {
 	path := fmt.Sprintf(
 		"/api/v1/workspaces/%s/agents/%s/sessions/by-labels?id=%s",
-		scope.WorkspaceID,
-		scope.AgentID,
-		url.QueryEscape(scope.SessionID),
+		scope.WorkspaceId,
+		scope.AgentId,
+		url.QueryEscape(scope.SessionId),
 	)
 
 	var session Session
@@ -53,9 +53,9 @@ func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*S
 func (c *APIClient) CreateSession(ctx context.Context, scope Scope) (*Session, int, error) {
 	path := fmt.Sprintf(
 		"/api/v1/workspaces/%s/agents/%s/sessions?id=%s",
-		scope.WorkspaceID,
-		scope.AgentID,
-		url.QueryEscape(scope.SessionID),
+		scope.WorkspaceId,
+		scope.AgentId,
+		url.QueryEscape(scope.SessionId),
 	)
 
 	var session Session
@@ -71,9 +71,9 @@ func (c *APIClient) CreateSession(ctx context.Context, scope Scope) (*Session, i
 func (c *APIClient) DeleteSession(ctx context.Context, scope Scope) error {
 	path := fmt.Sprintf(
 		"/api/v1/workspaces/%s/agents/%s/sessions/by-labels?id=%s",
-		scope.WorkspaceID,
-		scope.AgentID,
-		url.QueryEscape(scope.SessionID),
+		scope.WorkspaceId,
+		scope.AgentId,
+		url.QueryEscape(scope.SessionId),
 	)
 
 	status, err := c.Request(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
@@ -89,7 +89,7 @@ func (c *APIClient) DeleteSession(ctx context.Context, scope Scope) error {
 
 // EnsureSession returns the internal session id, creating the session when missing.
 func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, error) {
-	session, status, err := c.GetSessionByExternalID(ctx, scope)
+	session, status, err := c.GetSessionByExternalId(ctx, scope)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +105,7 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 		return session.Id, nil
 	}
 	if status == http.StatusConflict {
-		session, status, err = c.GetSessionByExternalID(ctx, scope)
+		session, status, err = c.GetSessionByExternalId(ctx, scope)
 		if err != nil {
 			return "", err
 		}
@@ -117,9 +117,9 @@ func (c *APIClient) EnsureSession(ctx context.Context, scope Scope) (string, err
 	return "", fmt.Errorf("ensure session: unexpected status %d", status)
 }
 
-// ResolveSession returns the internal session id for Scope.SessionID.
+// ResolveSession returns the internal session id for Scope.SessionId.
 func (c *APIClient) ResolveSession(ctx context.Context, scope Scope) (string, error) {
-	session, status, err := c.GetSessionByExternalID(ctx, scope)
+	session, status, err := c.GetSessionByExternalId(ctx, scope)
 	if err != nil {
 		return "", err
 	}
@@ -132,7 +132,7 @@ func (c *APIClient) ResolveSession(ctx context.Context, scope Scope) (string, er
 
 // CreateMemory stores a session memory.
 func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content string, meta *string) (*Memory, error) {
-	sessionID, err := c.EnsureSession(ctx, scope)
+	sessionId, err := c.EnsureSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +146,15 @@ func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content
 		return nil, err
 	}
 
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories",
+		scope.WorkspaceId,
+		scope.AgentId,
+		sessionId,
+	)
+
 	var memory Memory
-	status, err := c.Request(ctx, http.MethodPost, c.MemoriesPath(scope, sessionID), scope.AccessKey, body, &memory)
+	status, err := c.Request(ctx, http.MethodPost, path, scope.AccessKey, body, &memory)
 	if err != nil {
 		return nil, err
 	}
@@ -160,12 +167,19 @@ func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content
 
 // ListMemories lists session memories.
 func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset int) (*ListMemories, error) {
-	sessionID, err := c.ResolveSession(ctx, scope)
+	sessionId, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s?limit=%d&offset=%d", c.MemoriesPath(scope, sessionID), limit, offset)
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories?limit=%d&offset=%d",
+		scope.WorkspaceId,
+		scope.AgentId,
+		sessionId,
+		limit,
+		offset,
+	)
 
 	var list ListMemories
 	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &list)
@@ -180,13 +194,19 @@ func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset
 }
 
 // GetMemory retrieves one session memory.
-func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string) (*Memory, error) {
-	sessionID, err := c.ResolveSession(ctx, scope)
+func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryId string) (*Memory, error) {
+	sessionId, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories/%s",
+		scope.WorkspaceId,
+		scope.AgentId,
+		sessionId,
+		memoryId,
+	)
 
 	var memory Memory
 	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &memory)
@@ -201,8 +221,8 @@ func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string)
 }
 
 // UpdateMemory updates a session memory.
-func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kind, content string, meta *string) (*Memory, error) {
-	sessionID, err := c.ResolveSession(ctx, scope)
+func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryId, kind, content string, meta *string) (*Memory, error) {
+	sessionId, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +236,13 @@ func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kin
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories/%s",
+		scope.WorkspaceId,
+		scope.AgentId,
+		sessionId,
+		memoryId,
+	)
 
 	var memory Memory
 	status, err := c.Request(ctx, http.MethodPut, path, scope.AccessKey, body, &memory)
@@ -232,7 +258,7 @@ func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kin
 
 // SearchMemories searches session memories.
 func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query string, limit int) (*SearchMemories, error) {
-	sessionID, err := c.ResolveSession(ctx, scope)
+	sessionId, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +271,12 @@ func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query strin
 		return nil, err
 	}
 
-	path := c.MemoriesPath(scope, sessionID) + "/search"
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories/search",
+		scope.WorkspaceId,
+		scope.AgentId,
+		sessionId,
+	)
 
 	var result SearchMemories
 	status, err := c.Request(ctx, http.MethodPost, path, scope.AccessKey, body, &result)
@@ -260,13 +291,19 @@ func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query strin
 }
 
 // DeleteMemory deletes a session memory.
-func (c *APIClient) DeleteMemory(ctx context.Context, scope Scope, memoryID string) error {
-	sessionID, err := c.ResolveSession(ctx, scope)
+func (c *APIClient) DeleteMemory(ctx context.Context, scope Scope, memoryId string) error {
+	sessionId, err := c.ResolveSession(ctx, scope)
 	if err != nil {
 		return err
 	}
 
-	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
+	path := fmt.Sprintf(
+		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories/%s",
+		scope.WorkspaceId,
+		scope.AgentId,
+		sessionId,
+		memoryId,
+	)
 
 	status, err := c.Request(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
 	if err != nil {
@@ -277,16 +314,6 @@ func (c *APIClient) DeleteMemory(ctx context.Context, scope Scope, memoryID stri
 	}
 
 	return nil
-}
-
-// MemoriesPath builds the memories collection path for a session.
-func (c *APIClient) MemoriesPath(scope Scope, sessionID string) string {
-	return fmt.Sprintf(
-		"/api/v1/workspaces/%s/agents/%s/sessions/%s/memories",
-		scope.WorkspaceID,
-		scope.AgentID,
-		sessionID,
-	)
 }
 
 // Request performs an HTTP request against the management server.
