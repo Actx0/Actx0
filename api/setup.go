@@ -37,7 +37,7 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrPlatformAlreadyInstalled):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "platform_already_installed"),
 			})
 		case errors.Is(err, module.ErrFailedCompleteSetup):
@@ -45,7 +45,7 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("adminEmail", req.AdminEmail).
 				Msg("Failed to complete setup")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_complete_setup"),
 			})
 		default:
@@ -53,7 +53,7 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("adminEmail", req.AdminEmail).
 				Msg("Setup failed")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_complete_setup"),
 			})
 		}
@@ -65,7 +65,7 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 		Str("adminEmail", req.AdminEmail).
 		Msg("Platform setup completed")
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"successMessage": locale.TR(r, "setup_completed_successfully"),
 	})
 }
@@ -79,7 +79,7 @@ func SetupStatusAction(w http.ResponseWriter, _ *http.Request) {
 		db.NewUserRepository(db.GetDB()),
 	)
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"installed": sm.IsInstalled(),
 	})
 }

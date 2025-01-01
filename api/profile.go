@@ -21,7 +21,7 @@ import (
 func GetProfileAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -39,14 +39,14 @@ func GetProfileAction(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to get profile")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_get_profile"),
 		})
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"user": map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
+		"user": map[string]any{
 			"id":              profile.Id,
 			"email":           profile.Email,
 			"role":            profile.Role,
@@ -69,7 +69,7 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -91,15 +91,15 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrCurrentPasswordRequired):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "current_password_required"),
 			})
 		case errors.Is(err, module.ErrCurrentPasswordIncorrect):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "current_password_incorrect"),
 			})
 		case errors.Is(err, module.ErrUserEmailAlreadyExists):
-			util.WriteJSON(w, http.StatusConflict, map[string]interface{}{
+			util.WriteJSON(w, http.StatusConflict, map[string]any{
 				"errorMessage": locale.TR(r, "account_with_email_exists"),
 			})
 		case errors.Is(err, module.ErrFailedUpdateProfile), errors.Is(err, module.ErrUserNotFound):
@@ -107,7 +107,7 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to update profile")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_profile"),
 			})
 		default:
@@ -115,7 +115,7 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to update profile")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_profile"),
 			})
 		}
@@ -126,8 +126,8 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 		Str("userId", updated.Id.String()).
 		Msg("Profile updated")
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"user": map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
+		"user": map[string]any{
 			"id":              updated.Id,
 			"email":           updated.Email,
 			"role":            updated.Role,

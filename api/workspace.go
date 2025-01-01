@@ -29,7 +29,7 @@ func CreateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -51,7 +51,7 @@ func CreateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to create workspace")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_create_workspace"),
 		})
 		return
@@ -69,7 +69,7 @@ func CreateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 func ListWorkspacesAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -94,15 +94,15 @@ func ListWorkspacesAction(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to list workspaces")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_list_workspaces"),
 		})
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"workspaces": result.Workspaces,
-		"_meta": map[string]interface{}{
+		"_meta": map[string]any{
 			"limit":  limit,
 			"offset": offset,
 			"total":  result.Total,
@@ -114,7 +114,7 @@ func ListWorkspacesAction(w http.ResponseWriter, r *http.Request) {
 func GetWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -122,7 +122,7 @@ func GetWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -144,7 +144,7 @@ func GetWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 			return
@@ -154,7 +154,7 @@ func GetWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 				Str("workspaceId", wid).
 				Str("userId", user.Id.String()).
 				Msg("Failed to get workspace")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_workspace"),
 			})
 			return
@@ -168,7 +168,7 @@ func GetWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -176,7 +176,7 @@ func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -205,7 +205,7 @@ func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 			return
@@ -215,7 +215,7 @@ func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 				Str("workspaceId", wid).
 				Str("userId", user.Id.String()).
 				Msg("Failed to update workspace")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_workspace"),
 			})
 			return
@@ -234,7 +234,7 @@ func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 func DeleteWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -255,7 +255,7 @@ func DeleteWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 			return
@@ -264,7 +264,7 @@ func DeleteWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("workspaceId", wid).
 				Msg("Failed to delete workspace")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_workspace"),
 			})
 			return
@@ -275,5 +275,5 @@ func DeleteWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 		Str("workspaceId", wid).
 		Msg("Workspace deleted")
 
-	util.WriteJSON(w, http.StatusNoContent, map[string]interface{}{})
+	util.WriteJSON(w, http.StatusNoContent, map[string]any{})
 }

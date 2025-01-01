@@ -23,7 +23,7 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok {
 		log.Info().Msg("New logout request")
-		util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		util.WriteJSON(w, http.StatusOK, map[string]any{
 			"successMessage": locale.TR(r, "logout_successful"),
 		})
 		return
@@ -49,7 +49,7 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 			Msg("Failed to revoke session")
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"successMessage": locale.TR(r, "logout_successful"),
 	})
 }

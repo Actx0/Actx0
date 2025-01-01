@@ -43,13 +43,13 @@ func ForgotPasswordAction(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("email", req.Email).
 			Msg("Failed to process forgot password request")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"successMessage": locale.TR(r, "forgot_password_success"),
 	})
 }
@@ -77,19 +77,19 @@ func ResetPasswordAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrResetTokenInvalid):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "reset_link_invalid_or_expired"),
 			})
 		default:
 			log.Error().Err(err).Msg("Failed to reset password")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_reset_password"),
 			})
 		}
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"successMessage": locale.TR(r, "password_reset_success"),
 	})
 }

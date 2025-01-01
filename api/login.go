@@ -42,30 +42,30 @@ func LoginAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrInvalidCredentials):
-			util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+			util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_username_or_password"),
 			})
 		case errors.Is(err, module.ErrAccountNotActive):
-			util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+			util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 				"errorMessage": locale.TR(r, "account_not_active"),
 			})
 		case errors.Is(err, module.ErrMaintenanceModeEnabled):
-			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
+			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]any{
 				"errorMessage": locale.TR(r, "maintenance_mode_enabled"),
 			})
 		case errors.Is(err, module.ErrFailedCheckMaintenance):
 			log.Error().Err(err).Msg("Failed to get maintenance_mode config")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_check_maintenance"),
 			})
 		case errors.Is(err, module.ErrFailedCreateSession):
 			log.Error().Err(err).Msg("Failed to create session")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session"),
 			})
 		default:
 			log.Error().Err(err).Msg("Login failed")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session"),
 			})
 		}
@@ -73,9 +73,9 @@ func LoginAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.SetCookie(w, "_actx0_session", result.Session.Token, result.CookieOptions)
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"successMessage": locale.TR(r, "login_successful"),
-		"user": map[string]interface{}{
+		"user": map[string]any{
 			"id":              result.User.Id,
 			"email":           result.User.Email,
 			"role":            result.User.Role,

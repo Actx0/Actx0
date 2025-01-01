@@ -15,7 +15,7 @@ import (
 func HealthAction(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("Health check")
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 	})
 }
