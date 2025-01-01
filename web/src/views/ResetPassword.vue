@@ -82,7 +82,7 @@
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authAPI } from '@/api'
+import { auth_api } from '@/api'
 import { showFlash } from '@/lib/flash'
 
 const { t } = useI18n()
@@ -120,7 +120,7 @@ const handleSubmit = async () => {
   }
 
   try {
-    await authAPI.resetPassword({ token, password: form.password })
+    await auth_api.resetPassword({ token, password: form.password })
     showFlash(t('common.saved'))
     setTimeout(() => router.push('/login'), 2000)
   } catch (err) {

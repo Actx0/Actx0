@@ -67,7 +67,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { authAPI } from '@/api'
+import { auth_api } from '@/api'
 import { showFlash } from '@/lib/flash'
 
 const { t } = useI18n()
@@ -80,7 +80,7 @@ const handleSubmit = async () => {
   error.value = null
 
   try {
-    await authAPI.forgotPassword({ email: form.email })
+    await auth_api.forgotPassword({ email: form.email })
     showFlash(t('common.sent'))
   } catch (err) {
     error.value = err.response?.data?.errorMessage || t('forgot_password.error_default')

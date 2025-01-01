@@ -142,7 +142,7 @@
 import { computed, reactive, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authAPI, setupAPI } from '@/api'
+import { auth_api, setup_api } from '@/api'
 import { saveUser } from '@/lib/auth'
 import { applyUserPreferences } from '@/lib/preferences'
 
@@ -173,7 +173,7 @@ const handleLogin = async () => {
   error.value = null
 
   try {
-    const response = await authAPI.login({
+    const response = await auth_api.login({
       email: form.email,
       password: form.password,
       rememberMe: form.rememberMe
@@ -196,7 +196,7 @@ const handleLogin = async () => {
 
 onMounted(async () => {
   try {
-    const response = await setupAPI.checkInstalled()
+    const response = await setup_api.checkInstalled()
     if (!response.data.installed) {
       router.push('/setup')
     }

@@ -230,7 +230,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
-import { agentAPI, sessionAPI, messageAPI, memoryAPI } from '@/api'
+import { agent_api, session_api, message_api, memory_api } from '@/api'
 import { showFlash } from '@/lib/flash'
 import { useWorkspaceContext } from '@/lib/permission'
 import {
@@ -283,8 +283,8 @@ async function loadSession() {
 
   try {
     const [agentRes, sessionRes] = await Promise.all([
-      agentAPI.get(currentWorkspace.id, agentId.value),
-      sessionAPI.get(currentWorkspace.id, agentId.value, sessionId.value),
+      agent_api.get(currentWorkspace.id, agentId.value),
+      session_api.get(currentWorkspace.id, agentId.value, sessionId.value),
     ])
     agent.value = agentRes.data
     session.value = sessionRes.data
@@ -305,7 +305,7 @@ async function loadMessages() {
   messagesLoading.value = true
   messagesError.value = null
   try {
-    const res = await messageAPI.list(currentWorkspace.id, agentId.value, sessionId.value, {
+    const res = await message_api.list(currentWorkspace.id, agentId.value, sessionId.value, {
       limit: LIST_LIMIT,
       offset: 0,
     })
@@ -324,7 +324,7 @@ async function loadMemories() {
   memoriesLoading.value = true
   memoriesError.value = null
   try {
-    const res = await memoryAPI.list(currentWorkspace.id, agentId.value, sessionId.value, {
+    const res = await memory_api.list(currentWorkspace.id, agentId.value, sessionId.value, {
       limit: LIST_LIMIT,
       offset: 0,
     })
@@ -414,10 +414,10 @@ async function confirmDelete() {
 
   try {
     if (pendingDelete.value.type === 'message') {
-      await messageAPI.delete(currentWorkspace.id, agentId.value, sessionId.value, pendingDelete.value.id)
+      await message_api.delete(currentWorkspace.id, agentId.value, sessionId.value, pendingDelete.value.id)
       await loadMessages()
     } else {
-      await memoryAPI.delete(currentWorkspace.id, agentId.value, sessionId.value, pendingDelete.value.id)
+      await memory_api.delete(currentWorkspace.id, agentId.value, sessionId.value, pendingDelete.value.id)
       await loadMemories()
     }
     pendingDelete.value = null

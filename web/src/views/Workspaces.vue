@@ -324,7 +324,7 @@ import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
-import { workspaceAPI } from '@/api'
+import { workspace_api } from '@/api'
 import { saveWorkspaceToStorage, removeWorkspaceFromStorage } from '@/utils/storage'
 import { canManageWorkspace, useWorkspaceContext } from '@/lib/permission'
 
@@ -371,7 +371,7 @@ async function loadPage() {
   errorMessage.value = null
 
   try {
-    const res = await workspaceAPI.list({
+    const res = await workspace_api.list({
       limit,
       offset: offset.value
     })
@@ -396,7 +396,7 @@ async function switchToWorkspace(workspace) {
   errorMessage.value = null
 
   try {
-    const res = await workspaceAPI.get(workspace.id)
+    const res = await workspace_api.get(workspace.id)
     saveWorkspaceToStorage({ ...workspace, ...res.data, role: res.data.role })
     router.push('/dashboard')
   } catch (err) {
@@ -428,7 +428,7 @@ async function handleCreate() {
   createError.value = null
 
   try {
-    await workspaceAPI.create({ name })
+    await workspace_api.create({ name })
     showCreateModal.value = false
     createForm.name = ''
     setPage(1)
@@ -464,7 +464,7 @@ async function handleUpdate() {
   editError.value = null
 
   try {
-    const res = await workspaceAPI.update(workspace.id, { name })
+    const res = await workspace_api.update(workspace.id, { name })
     if (currentWorkspace.id === workspace.id) {
       saveWorkspaceToStorage({ ...currentWorkspace, ...res.data })
     }
@@ -503,7 +503,7 @@ async function confirmDelete() {
   deleteError.value = null
 
   try {
-    await workspaceAPI.delete(workspace.id)
+    await workspace_api.delete(workspace.id)
     if (currentWorkspace.id === workspace.id) {
       removeWorkspaceFromStorage()
     }

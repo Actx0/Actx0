@@ -277,7 +277,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
-import { agentAPI, sessionAPI } from '@/api'
+import { agent_api, session_api } from '@/api'
 import { formatAgentDate, buildUpdatePayload, sessionDetailPath, formatLabels, formatDateTime } from '@/lib/agent'
 
 const { t } = useI18n()
@@ -361,7 +361,7 @@ async function loadAgent() {
   sessions.value = []
   sessionsTotal.value = 0
   try {
-    const res = await agentAPI.get(currentWorkspace.id, agentId.value)
+    const res = await agent_api.get(currentWorkspace.id, agentId.value)
     agent.value = res.data
     await loadSessions()
   } catch (err) {
@@ -379,7 +379,7 @@ async function loadSessions() {
   sessionsLoading.value = true
   sessionsError.value = null
   try {
-    const res = await sessionAPI.list(currentWorkspace.id, agentId.value, {
+    const res = await session_api.list(currentWorkspace.id, agentId.value, {
       limit: sessionsLimit,
       offset: sessionsOffset.value,
     })
@@ -437,7 +437,7 @@ async function handleSave() {
   saveLoading.value = true
   editError.value = null
   try {
-    const res = await agentAPI.update(currentWorkspace.id, agentId.value, buildUpdatePayload(editForm))
+    const res = await agent_api.update(currentWorkspace.id, agentId.value, buildUpdatePayload(editForm))
     agent.value = res.data
     showEditModal.value = false
     showFlash(t('common.saved'))
@@ -481,7 +481,7 @@ async function confirmDeleteSession() {
   deleteSessionError.value = null
 
   try {
-    await sessionAPI.delete(currentWorkspace.id, agentId.value, { id: session.externalId })
+    await session_api.delete(currentWorkspace.id, agentId.value, { id: session.externalId })
     deleteSessionTarget.value = null
 
     if (sessionsOffset.value >= sessionsTotal.value - 1 && sessionsOffset.value > 0) {

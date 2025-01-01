@@ -353,7 +353,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { apiKeysAPI, authAPI } from '@/api'
+import { apiKeys_api, auth_api } from '@/api'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { user, saveUser } from '@/lib/auth'
@@ -419,7 +419,7 @@ async function loadApiKeys() {
   errorMessage.value = null
 
   try {
-    const res = await apiKeysAPI.list({ limit: 100, offset: 0 })
+    const res = await apiKeys_api.list({ limit: 100, offset: 0 })
     apiKeys.value = res.data.keys ?? []
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('profile.failed_load_api_keys')
@@ -440,7 +440,7 @@ async function handleCreateKey() {
   creatingKey.value = true
 
   try {
-    const res = await apiKeysAPI.create({
+    const res = await apiKeys_api.create({
       name,
       expiresAt: keyForm.expiresAt ? new Date(keyForm.expiresAt).toISOString() : ''
     })
@@ -480,7 +480,7 @@ async function confirmRevokeKey() {
   errorMessage.value = null
 
   try {
-    await apiKeysAPI.delete(key.id)
+    await apiKeys_api.delete(key.id)
     await loadApiKeys()
     newlyCreatedKey.value = null
     revokeModalKey.value = null
@@ -505,7 +505,7 @@ async function handleSave() {
   if (form.newPassword.trim()) payload.newPassword = form.newPassword
 
   try {
-    const res = await authAPI.updateProfile(payload)
+    const res = await auth_api.updateProfile(payload)
     saveUser(res.data.user)
     applyUserPreferences(res.data.user)
     showFlash(t('common.saved'))

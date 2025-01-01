@@ -125,7 +125,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
-import { auditAPI } from '@/api'
+import { audit_api } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
 import { useUrlPagination } from '@/lib/pagination'
 import { formatDateTime, hasMetadata, formatMetadata } from '@/lib/agent'
@@ -178,7 +178,7 @@ async function loadPage() {
   errorMessage.value = null
 
   try {
-    const res = await auditAPI.list(currentWorkspace.id, { limit, offset: offset.value })
+    const res = await audit_api.list(currentWorkspace.id, { limit, offset: offset.value })
     audits.value = res.data.audits || []
     total.value = res.data._meta?.total ?? 0
   } catch (err) {

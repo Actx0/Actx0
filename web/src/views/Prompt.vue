@@ -233,7 +233,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useWorkspaceContext } from '@/lib/permission'
 import PromptFormFields from '@/components/PromptFormFields.vue'
-import { promptAPI } from '@/api'
+import { prompt_api } from '@/api'
 import {
   emptyPromptForm,
   formFromPrompt,
@@ -297,7 +297,7 @@ async function loadVersions(selectLatest = false) {
   loading.value = true
   errorMessage.value = null
   try {
-    const res = await promptAPI.listVersions(currentWorkspace.id, promptId.value, { limit: 100, offset: 0 })
+    const res = await prompt_api.listVersions(currentWorkspace.id, promptId.value, { limit: 100, offset: 0 })
     versions.value = res.data.versions || []
     if (versions.value.length === 0) {
       router.replace('/prompts')
@@ -338,7 +338,7 @@ async function handleSaveVersion() {
   versionLoading.value = true
   versionModalError.value = null
   try {
-    const created = await promptAPI.createVersion(currentWorkspace.id, promptId.value, buildCreatePayload(form, { omitName: true }))
+    const created = await prompt_api.createVersion(currentWorkspace.id, promptId.value, buildCreatePayload(form, { omitName: true }))
     showVersionModal.value = false
     await loadVersions(true)
     selectedVersion.value = versions.value.find((v) => v.id === created.data.id) || versions.value[0]
@@ -384,7 +384,7 @@ async function confirmPromoteProduction() {
   promoteProductionError.value = null
   errorMessage.value = null
   try {
-    await promptAPI.updateVersion(currentWorkspace.id, promptId.value, version.id, {
+    await prompt_api.updateVersion(currentWorkspace.id, promptId.value, version.id, {
       type: version.type,
       content: version.content,
       config: serializePromptConfigForApi(version.config),
@@ -407,7 +407,7 @@ async function confirmDeleteVersion() {
   deletingVersion.value = true
   deleteVersionError.value = null
   try {
-    await promptAPI.deleteVersion(currentWorkspace.id, promptId.value, version.id)
+    await prompt_api.deleteVersion(currentWorkspace.id, promptId.value, version.id)
     deleteVersion.value = null
     deleteConfirmName.value = ''
     await loadVersions(true)

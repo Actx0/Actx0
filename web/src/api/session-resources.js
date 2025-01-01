@@ -94,7 +94,7 @@
  * // => '{"source":"sdk","model":"gpt-4"}'
  *
  * @example
- * messageAPI.create(workspaceId, agentId, sessionId, {
+ * message_api.create(workspaceId, agentId, sessionId, {
  *   role: 'assistant',
  *   content: 'Done.',
  *   meta: stringifyMeta({ toolCalls: [{ name: 'search', id: 'call_1' }] }),

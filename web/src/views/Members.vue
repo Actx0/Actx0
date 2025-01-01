@@ -167,7 +167,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
-import { workspaceInviteAPI, workspaceMemberAPI } from '@/api'
+import { workspaceInvite_api, workspaceMember_api } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
 
 const { t } = useI18n()
@@ -214,7 +214,7 @@ async function loadMembers() {
   errorMessage.value = null
 
   try {
-    const res = await workspaceMemberAPI.list(currentWorkspace.id, { limit: 100, offset: 0 })
+    const res = await workspaceMember_api.list(currentWorkspace.id, { limit: 100, offset: 0 })
     members.value = res.data.members || []
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('members_page.failed_load_members')
@@ -229,7 +229,7 @@ async function loadInvites() {
   errorMessage.value = null
 
   try {
-    const res = await workspaceInviteAPI.list(currentWorkspace.id, { limit: 100, offset: 0 })
+    const res = await workspaceInvite_api.list(currentWorkspace.id, { limit: 100, offset: 0 })
     invites.value = (res.data.invites || []).filter((invite) => invite.status === 'pending')
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('members_page.failed_load_invites')
@@ -244,7 +244,7 @@ async function createInvite() {
   errorMessage.value = null
 
   try {
-    await workspaceInviteAPI.create(currentWorkspace.id, {
+    await workspaceInvite_api.create(currentWorkspace.id, {
       email: inviteForm.email.trim(),
       role: inviteForm.role
     })
@@ -265,7 +265,7 @@ async function updateMemberRole(member, role) {
   errorMessage.value = null
 
   try {
-    await workspaceMemberAPI.updateRole(currentWorkspace.id, member.userId, { role })
+    await workspaceMember_api.updateRole(currentWorkspace.id, member.userId, { role })
     await loadMembers()
     showFlash(t('common.saved'))
   } catch (err) {
@@ -282,7 +282,7 @@ async function deleteMember(member) {
   errorMessage.value = null
 
   try {
-    await workspaceMemberAPI.delete(currentWorkspace.id, member.userId)
+    await workspaceMember_api.delete(currentWorkspace.id, member.userId)
     await loadMembers()
     showFlash(t('common.deleted'))
   } catch (err) {
@@ -298,7 +298,7 @@ async function deleteInvite(invite) {
   errorMessage.value = null
 
   try {
-    await workspaceInviteAPI.delete(currentWorkspace.id, invite.id)
+    await workspaceInvite_api.delete(currentWorkspace.id, invite.id)
     await loadInvites()
     showFlash(t('common.cancelled'))
   } catch (err) {

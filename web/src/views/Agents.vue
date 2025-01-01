@@ -167,7 +167,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
-import { agentAPI } from '@/api'
+import { agent_api } from '@/api'
 import { agentDetailPath, formatAgentDate, buildCreatePayload } from '@/lib/agent'
 
 const { t } = useI18n()
@@ -195,7 +195,7 @@ async function loadPage() {
   loading.value = true
   errorMessage.value = null
   try {
-    const res = await agentAPI.list(currentWorkspace.id, { limit, offset: offset.value })
+    const res = await agent_api.list(currentWorkspace.id, { limit, offset: offset.value })
     agents.value = res.data.agents || []
     total.value = res.data._meta?.total ?? 0
   } catch (err) {
@@ -238,7 +238,7 @@ async function handleCreate() {
   createLoading.value = true
   createError.value = null
   try {
-    const created = await agentAPI.create(currentWorkspace.id, buildCreatePayload(form))
+    const created = await agent_api.create(currentWorkspace.id, buildCreatePayload(form))
     showCreateModal.value = false
     showFlash(t('common.created'))
     router.push(agentDetailPath(created.data.id))
@@ -269,7 +269,7 @@ async function confirmDelete() {
   deletingId.value = agent.id
   deleteError.value = null
   try {
-    await agentAPI.delete(currentWorkspace.id, agent.id)
+    await agent_api.delete(currentWorkspace.id, agent.id)
     deleteTarget.value = null
     await loadPage()
     showFlash(t('common.deleted'))

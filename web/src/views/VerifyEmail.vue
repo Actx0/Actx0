@@ -46,7 +46,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { authAPI } from '@/api'
+import { auth_api } from '@/api'
 import { showFlash } from '@/lib/flash'
 
 const { t } = useI18n()
@@ -58,7 +58,7 @@ const error = ref(null)
 
 onMounted(async () => {
   try {
-    await authAPI.verifyEmail(route.params.token)
+    await auth_api.verifyEmail(route.params.token)
     showFlash(t('common.saved'))
     setTimeout(() => router.push('/login'), 2000)
   } catch (err) {
