@@ -95,6 +95,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 					})
 					return
 				}
+
 				if workspace == nil {
 					util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
 						"errorMessage": locale.TR(r, "workspace_not_found"),
@@ -169,6 +170,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 					})
 					return
 				}
+
 				if !allowed {
 					log.Info().
 						Str("path", r.URL.Path).
