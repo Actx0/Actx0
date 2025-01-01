@@ -7,13 +7,13 @@
 
     <main>
       <section class="relative mx-auto max-w-6xl px-6 pb-20 pt-16 md:pt-24">
-        <div class="mx-auto max-w-3xl text-center">
+        <div class="mx-auto max-w-4xl text-center">
           <div class="opacity-0 animate-fade-up">
             <h1 class="hero-gradient-text text-4xl font-semibold leading-tight tracking-tight md:text-6xl md:leading-[1.1]">
               {{ $t('landing.hero.title') }}
             </h1>
           </div>
-          <p class="mx-auto mt-6 max-w-2xl text-lg text-muted opacity-0 animate-fade-up animate-delay-200">
+          <p class="mx-auto mt-6 max-w-3xl text-lg text-muted opacity-0 animate-fade-up animate-delay-200">
             {{ $t('landing.hero.subtitle') }}
           </p>
           <div class="mt-8 flex flex-wrap items-center justify-center gap-3 opacity-0 animate-fade-up animate-delay-300">
@@ -321,7 +321,7 @@ const featureTab = ref('efficiency')
 const copyLabel = ref(t('landing.copy'))
 const rootRef = ref(null)
 
-const codeTabs = ['python', 'curl', 'go']
+const codeTabs = ['python', 'nodejs', 'curl', 'go']
 const featureTabs = ['efficiency', 'visibility', 'control']
 
 const efficiencyItems = [
@@ -483,6 +483,29 @@ results = client.search(
     limit=5,
 )
 print(results)`,
+  nodejs: `// npm install actx0
+import { MemoryClient } from "actx0";
+
+const client = new MemoryClient({
+  apiKey: "your-access-key",
+  workspace: "your-workspace",
+});
+
+// Store a memory from conversation
+await client.add({
+  messages: [
+    { role: "user", content: "I'm allergic to nuts." },
+    { role: "assistant", content: "Noted. I'll remember that." },
+  ],
+  agentId: "support-bot",
+});
+
+// Retrieve relevant context at inference time
+const results = await client.search(
+  "What are my dietary restrictions?",
+  { agentId: "support-bot", limit: 5 },
+);
+console.log(results);`,
   curl: `# Search agent memory
 curl -X POST "https://your-instance/api/v1/memory/search" \\
   -H "Authorization: Bearer YOUR_ACCESS_KEY" \\
