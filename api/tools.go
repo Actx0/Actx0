@@ -12,27 +12,22 @@ import (
 	"github.com/clivern/actx0/pkg/meteo"
 	"github.com/clivern/actx0/pkg/util"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 )
 
 // GetCityInformationAction runs the getCityInformation tool.
 func GetCityInformationAction(w http.ResponseWriter, r *http.Request) {
 	var req module.GetCityInformationRequest
-	if err := util.DecodeAndValidate(r, &req); err != nil {
+	err := util.DecodeAndValidate(r, &req)
+	if err != nil {
 		util.WriteValidationError(w, err)
 		return
 	}
 
 	tools := module.NewTools(meteo.New())
+
 	city, err := tools.GetCityInformation(r.Context(), &req)
 	if err != nil {
-		var validationErrs validator.ValidationErrors
-		if errors.As(err, &validationErrs) {
-			util.WriteValidationError(w, err)
-			return
-		}
-
 		switch {
 		case errors.Is(err, meteo.ErrCityNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
@@ -60,20 +55,16 @@ func GetCityInformationAction(w http.ResponseWriter, r *http.Request) {
 // GetWeatherByCityAction runs the getWeatherByCity tool.
 func GetWeatherByCityAction(w http.ResponseWriter, r *http.Request) {
 	var req module.GetWeatherByCityRequest
-	if err := util.DecodeAndValidate(r, &req); err != nil {
+	err := util.DecodeAndValidate(r, &req)
+	if err != nil {
 		util.WriteValidationError(w, err)
 		return
 	}
 
 	tools := module.NewTools(meteo.New())
+
 	weather, err := tools.GetWeatherByCity(r.Context(), &req)
 	if err != nil {
-		var validationErrs validator.ValidationErrors
-		if errors.As(err, &validationErrs) {
-			util.WriteValidationError(w, err)
-			return
-		}
-
 		switch {
 		case errors.Is(err, meteo.ErrCityNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
@@ -101,38 +92,23 @@ func GetWeatherByCityAction(w http.ResponseWriter, r *http.Request) {
 // GetWeatherByCoordinatesAction runs the getWeatherByCoordinates tool.
 func GetWeatherByCoordinatesAction(w http.ResponseWriter, r *http.Request) {
 	var req module.GetWeatherByCoordinatesRequest
-	if err := util.DecodeAndValidate(r, &req); err != nil {
+	err := util.DecodeAndValidate(r, &req)
+	if err != nil {
 		util.WriteValidationError(w, err)
 		return
 	}
 
 	tools := module.NewTools(meteo.New())
+
 	weather, err := tools.GetWeatherByCoordinates(r.Context(), &req)
 	if err != nil {
-		var validationErrs validator.ValidationErrors
-		if errors.As(err, &validationErrs) {
-			util.WriteValidationError(w, err)
-			return
-		}
-
-		switch {
-		case errors.Is(err, meteo.ErrCityNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
-				"errorMessage": locale.TR(r, "city_not_found"),
-			})
-		case errors.Is(err, meteo.ErrEmptyCityName):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
-				"errorMessage": locale.TR(r, "city_required"),
-			})
-		default:
-			log.Error().
-				Err(err).
-				Str("toolName", "getWeatherByCoordinates").
-				Msg("Failed to run tool")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
-				"errorMessage": locale.TR(r, "failed_run_tool"),
-			})
-		}
+		log.Error().
+			Err(err).
+			Str("toolName", "getWeatherByCoordinates").
+			Msg("Failed to run tool")
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			"errorMessage": locale.TR(r, "failed_run_tool"),
+		})
 		return
 	}
 
