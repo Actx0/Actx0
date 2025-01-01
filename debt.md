@@ -76,9 +76,9 @@ Mark done: `- [x] path/to/file`
 - [ ] db/subscription.go
 - [ ] db/types.go
 - [x] db/usage.go
-- [ ] db/user.go
-- [ ] db/user_api_key.go
-- [ ] db/user_session.go
+- [x] db/user.go
+- [x] db/user_api_key.go
+- [x] db/user_session.go
 - [ ] db/wdoc.go
 - [ ] db/wkey.go
 - [ ] db/workspace.go
