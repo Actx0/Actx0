@@ -10,8 +10,33 @@ import (
 	"github.com/clivern/actx0/pkg/ai"
 )
 
+const bytesPerGB = 1024 * 1024 * 1024
+
 // Usage provides workspace consumption helpers.
 type Usage struct{}
+
+// WorkspaceUsageMetrics is current workspace consumption for billing.
+type WorkspaceUsageMetrics struct {
+	APICalls         int64   `json:"apiCalls"`
+	WorkspaceMembers int64   `json:"workspaceMembers"`
+	DocumentsCount   int64   `json:"documentsCount"`
+	PromptsCount     int64   `json:"promptsCount"`
+	StorageGB        float64 `json:"storageGB"`
+	HistoryRecords   int64   `json:"historyRecords"`
+	MemoryRecords    int64   `json:"memoryRecords"`
+	AITokens         int64   `json:"aiTokens"`
+}
+
+// UsageSnapshotDeps holds repositories needed to load workspace usage.
+type UsageSnapshotDeps struct {
+	WorkspaceUserRepository     db.WorkspaceUserRepository
+	WorkspaceDocumentRepository db.WorkspaceDocumentRepository
+	PromptRepository            db.PromptRepository
+	UsageRepository             db.UsageRepository
+	SubscriptionRepository      db.SubscriptionRepository
+	SessionMessageRepository    db.SessionMessageRepository
+	SessionMemoryRepository     db.SessionMemoryRepository
+}
 
 // NewUsage returns a usage module.
 func NewUsage() *Usage {
@@ -31,6 +56,81 @@ func (u *Usage) DocumentsCount(r db.WorkspaceDocumentRepository, workspaceId db.
 // StorageUsed returns total document storage in bytes for a workspace.
 func (u *Usage) StorageUsed(r db.WorkspaceDocumentRepository, workspaceId db.Id) (int64, error) {
 	return r.SumSizeByWorkspaceId(workspaceId)
+}
+
+// APICalls returns API call usage for the current calendar month.
+func (u *Usage) APICalls(ur db.UsageRepository, workspaceId db.Id) (int64, error) {
+	start, _ := currentMonthPeriod()
+	return ur.GetQuantityByPeriod(workspaceId, db.UsageTypeAPICalls, start)
+}
+
+// PromptsCount returns the number of prompts in a workspace.
+func (u *Usage) PromptsCount(r db.PromptRepository, workspaceId db.Id) (int64, error) {
+	return r.CountByWorkspaceId(workspaceId)
+}
+
+// HistoryRecords returns session message rows stored across a workspace.
+func (u *Usage) HistoryRecords(r db.SessionMessageRepository, workspaceId db.Id) (int64, error) {
+	return r.CountByWorkspaceId(workspaceId)
+}
+
+// MemoryRecords returns session memory rows stored across a workspace.
+func (u *Usage) MemoryRecords(r db.SessionMemoryRepository, workspaceId db.Id) (int64, error) {
+	return r.CountByWorkspaceId(workspaceId)
+}
+
+// GetWorkspaceUsage returns all billing usage metrics for a workspace.
+func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*WorkspaceUsageMetrics, error) {
+	apiCalls, err := u.APICalls(deps.UsageRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	members, err := u.MembersCount(deps.WorkspaceUserRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	documents, err := u.DocumentsCount(deps.WorkspaceDocumentRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	prompts, err := u.PromptsCount(deps.PromptRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	storageBytes, err := u.StorageUsed(deps.WorkspaceDocumentRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	historyRecords, err := u.HistoryRecords(deps.SessionMessageRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	memoryRecords, err := u.MemoryRecords(deps.SessionMemoryRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	aiTokens, err := u.AITokens(deps.UsageRepository, deps.SubscriptionRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WorkspaceUsageMetrics{
+		APICalls:         apiCalls,
+		WorkspaceMembers: members,
+		DocumentsCount:   documents,
+		PromptsCount:     prompts,
+		StorageGB:        float64(storageBytes) / bytesPerGB,
+		HistoryRecords:   historyRecords,
+		MemoryRecords:    memoryRecords,
+		AITokens:         aiTokens,
+	}, nil
 }
 
 // AITokens returns AI token usage for the workspace subscription period.

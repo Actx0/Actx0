@@ -127,6 +127,7 @@ func SetupServer(Static embed.FS) http.Handler {
 		})
 
 		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspaceBilling)).Get("/billing", api.GetBillingStatusAction)
+		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspaceBilling)).Get("/billing/usage", api.GetBillingUsageAction)
 		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspaceBilling)...).Post("/billing/checkout", api.CreateBillingCheckoutAction)
 		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspaceBilling)...).Post("/billing/portal", api.CreateBillingPortalAction)
 

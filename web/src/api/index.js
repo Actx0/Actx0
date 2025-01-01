@@ -110,6 +110,7 @@ export const statsAPI = {
 
 export const billingAPI = {
   status: (workspaceId) => api.get(`/workspaces/${workspaceId}/billing`),
+  usage: (workspaceId) => api.get(`/workspaces/${workspaceId}/billing/usage`),
   checkout: (workspaceId, data) => api.post(`/workspaces/${workspaceId}/billing/checkout`, data),
   portal: (workspaceId) => api.post(`/workspaces/${workspaceId}/billing/portal`),
 }

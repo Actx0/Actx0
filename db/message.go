@@ -28,6 +28,7 @@ type SessionMessageRepository interface {
 	Delete(id Id) error
 	DeleteBySessionId(sessionId Id) error
 	CountBySessionId(sessionId Id) (int64, error)
+	CountByWorkspaceId(workspaceId Id) (int64, error)
 	ListBySessionId(sessionId Id, limit, offset int) ([]*SessionMessage, error)
 }
 
@@ -159,6 +160,19 @@ func (r *SessionMessageRepositoryPostgres) CountBySessionId(sessionId Id) (int64
 		FROM session_messages
 		WHERE session_id = $1`,
 		sessionId.String(),
+	).Scan(&count)
+	return count, err
+}
+
+// CountByWorkspaceId counts session message rows across a workspace.
+func (r *SessionMessageRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, error) {
+	var count int64
+	err := r.db.QueryRow(
+		`SELECT COUNT(*)
+		FROM session_messages sm
+		INNER JOIN sessions s ON s.id = sm.session_id
+		WHERE s.workspace_id = $1`,
+		workspaceId.String(),
 	).Scan(&count)
 	return count, err
 }

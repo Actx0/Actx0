@@ -471,6 +471,9 @@ msgstr "Échec de la création de la session du portail de facturation."
 msgid "failed_get_billing_status"
 msgstr "Échec de la récupération de l'état de facturation."
 
+msgid "failed_get_billing_usage"
+msgstr "Échec de la récupération de l'utilisation de facturation."
+
 msgid "invalid_billing_plan"
 msgstr "Plan de facturation invalide."
 

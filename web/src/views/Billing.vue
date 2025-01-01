@@ -283,8 +283,18 @@ const billingStatus = ref({
   updatedAt: ''
 })
 
-const planLimits = {
-  hobby: {
+const usageData = ref({
+  used: {
+    apiCalls: 0,
+    workspaceMembers: 0,
+    documentsCount: 0,
+    promptsCount: 0,
+    storageGB: 0,
+    historyRecords: 0,
+    memoryRecords: 0,
+    aiTokens: 0
+  },
+  limits: {
     apiCalls: 10_000,
     workspaceMembers: 3,
     documentsCount: 100,
@@ -294,49 +304,8 @@ const planLimits = {
     memoryRecords: 500,
     aiTokens: 500_000
   },
-  starter: {
-    apiCalls: 50_000,
-    workspaceMembers: 10,
-    documentsCount: 500,
-    promptsCount: 250,
-    storageGB: 25,
-    historyRecords: 10_000,
-    memoryRecords: 5_000,
-    aiTokens: 2_000_000
-  },
-  growth: {
-    apiCalls: 200_000,
-    workspaceMembers: 25,
-    documentsCount: 2_000,
-    promptsCount: 1_000,
-    storageGB: 100,
-    historyRecords: 50_000,
-    memoryRecords: 25_000,
-    aiTokens: 10_000_000
-  },
-  pro: {
-    apiCalls: 1_000_000,
-    workspaceMembers: 100,
-    documentsCount: 10_000,
-    promptsCount: 5_000,
-    storageGB: 500,
-    historyRecords: 500_000,
-    memoryRecords: 250_000,
-    aiTokens: 50_000_000
-  }
-}
-
-// Mock usage — replace with API data later
-const mockUsage = {
-  apiCalls: 8_100,
-  workspaceMembers: 2,
-  documentsCount: 68,
-  promptsCount: 12,
-  storageGB: 2.4,
-  historyRecords: 720,
-  memoryRecords: 312,
-  aiTokens: 320_000
-}
+  periodReset: ''
+})
 
 const plans = [
   {
@@ -410,6 +379,10 @@ const canManageStripe = computed(() => {
 const isCurrentPlan = (plan) => plan.id === billingStatus.value.plan
 
 const usagePeriodReset = computed(() => {
+  if (usageData.value.periodReset) {
+    return formatDate(usageData.value.periodReset)
+  }
+
   const now = new Date()
   const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
   return next.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
@@ -546,8 +519,7 @@ const buildUsageMetrics = (limits, used) => {
 }
 
 const usageMetrics = computed(() => {
-  const limits = planLimits[billingStatus.value.plan] || planLimits.hobby
-  return buildUsageMetrics(limits, mockUsage)
+  return buildUsageMetrics(usageData.value.limits, usageData.value.used)
 })
 
 const formatDate = (value) => {
@@ -563,8 +535,12 @@ const loadBilling = async () => {
   billingLoading.value = true
   errorMessage.value = ''
   try {
-    const res = await billingAPI.status(currentWorkspace.id)
-    billingStatus.value = res.data
+    const [statusRes, usageRes] = await Promise.all([
+      billingAPI.status(currentWorkspace.id),
+      billingAPI.usage(currentWorkspace.id)
+    ])
+    billingStatus.value = statusRes.data
+    usageData.value = usageRes.data
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || 'Failed to load billing.'
   } finally {

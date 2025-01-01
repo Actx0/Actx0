@@ -471,6 +471,9 @@ msgstr "Failed to create billing portal session."
 msgid "failed_get_billing_status"
 msgstr "Failed to get billing status."
 
+msgid "failed_get_billing_usage"
+msgstr "Failed to get billing usage."
+
 msgid "invalid_billing_plan"
 msgstr "Invalid billing plan."
 

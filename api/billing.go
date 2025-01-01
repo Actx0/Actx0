@@ -56,6 +56,49 @@ func GetBillingStatusAction(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, http.StatusOK, status)
 }
 
+// GetBillingUsageAction returns workspace usage and plan limits for billing.
+func GetBillingUsageAction(w http.ResponseWriter, r *http.Request) {
+	workspaceId := chi.URLParam(r, "workspaceId")
+	log.Info().
+		Str("workspaceId", workspaceId).
+		Msg("Getting billing usage")
+
+	bm := module.NewBilling(
+		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
+	)
+
+	usage, err := bm.GetBillingUsage(db.Id(workspaceId), module.UsageSnapshotDeps{
+		WorkspaceUserRepository:     db.NewWorkspaceUserRepository(db.GetDB()),
+		WorkspaceDocumentRepository: db.NewWorkspaceDocumentRepository(db.GetDB()),
+		PromptRepository:            db.NewPromptRepository(db.GetDB()),
+		UsageRepository:             db.NewUsageRepository(db.GetDB()),
+		SubscriptionRepository:      db.NewSubscriptionRepository(db.GetDB()),
+		SessionMessageRepository:    db.NewSessionMessageRepository(db.GetDB()),
+		SessionMemoryRepository:     db.NewSessionMemoryRepository(db.GetDB()),
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrWorkspaceNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrBillingSubscriptionNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "workspace_subscription_not_found"),
+			})
+		default:
+			log.Error().Err(err).Msg("Failed to get billing usage")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"errorMessage": locale.TR(r, "failed_get_billing_usage"),
+			})
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, usage)
+}
+
 // CreateBillingCheckoutAction creates a Stripe Checkout session for a paid plan.
 func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 	var req module.BillingCheckoutRequest

@@ -29,6 +29,7 @@ type SessionMemoryRepository interface {
 	Delete(id Id) error
 	DeleteBySessionId(sessionId Id) error
 	CountBySessionId(sessionId Id) (int64, error)
+	CountByWorkspaceId(workspaceId Id) (int64, error)
 	ListBySessionId(sessionId Id, limit, offset int) ([]*SessionMemory, error)
 }
 
@@ -170,6 +171,19 @@ func (r *SessionMemoryRepositoryPostgres) CountBySessionId(sessionId Id) (int64,
 		FROM session_memories
 		WHERE session_id = $1`,
 		sessionId.String(),
+	).Scan(&count)
+	return count, err
+}
+
+// CountByWorkspaceId counts session memory rows across a workspace.
+func (r *SessionMemoryRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, error) {
+	var count int64
+	err := r.db.QueryRow(
+		`SELECT COUNT(*)
+		FROM session_memories sm
+		INNER JOIN sessions s ON s.id = sm.session_id
+		WHERE s.workspace_id = $1`,
+		workspaceId.String(),
 	).Scan(&count)
 	return count, err
 }
