@@ -67,7 +67,7 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 				return
 			}
 
-			if !isMeteredAPICall(r) {
+			if !IsMeteredAPICall(r) {
 				return
 			}
 
