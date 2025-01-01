@@ -90,13 +90,6 @@ func GitHubOAuthCallbackAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := github.PrimaryEmail(emails, user.Email)
-	name := lo.Ternary(
-		lo.IsNotEmpty(user.Name),
-		user.Name,
-		user.Login,
-	)
-
 	auth := module.NewAuth(
 		db.NewUserRepository(db.GetDB()),
 		db.NewSessionRepository(db.GetDB()),
@@ -109,8 +102,12 @@ func GitHubOAuthCallbackAction(w http.ResponseWriter, r *http.Request) {
 	result, err := auth.LoginWithOAuth(r.Context(), &module.OAuthIdentity{
 		Provider:       db.UserProviderGithub,
 		ProviderUserID: strconv.FormatInt(user.ID, 10),
-		Email:          email,
-		Name:           name,
+		Email:          github.PrimaryEmail(emails, user.Email),
+		Name: lo.Ternary(
+			lo.IsNotEmpty(user.Name),
+			user.Name,
+			user.Login,
+		),
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("GitHub oauth login failed")
