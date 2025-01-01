@@ -45,15 +45,6 @@ type Prompt struct {
 	WorkspaceRepository     db.WorkspaceRepository
 }
 
-// NewPrompt creates a prompt module with the given repositories.
-func NewPrompt(prompts db.PromptRepository, promptVersions db.PromptVersionRepository, workspaces db.WorkspaceRepository) *Prompt {
-	return &Prompt{
-		PromptRepository:        prompts,
-		PromptVersionRepository: promptVersions,
-		WorkspaceRepository:     workspaces,
-	}
-}
-
 // CreatePromptRequest is the body for creating a prompt with its first version.
 type CreatePromptRequest struct {
 	Name          string  `json:"name" validate:"required,min=1,max=150" label:"Name"`
@@ -126,6 +117,15 @@ type PromptResponse struct {
 type ListPromptVersionsResponse struct {
 	Versions []*PromptVersionResponse
 	Total    int64
+}
+
+// NewPrompt creates a prompt module with the given repositories.
+func NewPrompt(prompts db.PromptRepository, promptVersions db.PromptVersionRepository, workspaces db.WorkspaceRepository) *Prompt {
+	return &Prompt{
+		PromptRepository:        prompts,
+		PromptVersionRepository: promptVersions,
+		WorkspaceRepository:     workspaces,
+	}
 }
 
 // CreatePrompt creates a new prompt with its first version.
