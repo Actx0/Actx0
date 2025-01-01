@@ -38,5 +38,5 @@ docs/
 .ruff_cache/
 
 # Local commit helper
-commit.sh
+commit
 
