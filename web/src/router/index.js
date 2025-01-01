@@ -183,8 +183,8 @@ const routes = [
   },
   {
     path: '/prompts/:promptId',
-    name: 'PromptDetail',
-    component: () => import('@/views/PromptDetail.vue'),
+    name: 'Prompt',
+    component: () => import('@/views/Prompt.vue'),
     meta: { requiresAuth: true, requiresWorkspace: true, title: 'Prompt', description: 'Prompt versions' }
   },
   {
