@@ -55,17 +55,19 @@ func SetupServer(Static embed.FS) http.Handler {
 	})
 
 	r.Group(func(r chi.Router) { // public — no auth required
-		r.Get("/api/v1/public/_health", api.HealthAction)                           // liveness probe
-		r.Get("/api/v1/public/_ready", api.ReadyAction)                             // readiness probe (db, deps)
-		r.Post("/api/v1/public/action/setup", api.SetupAction)                      // initial app setup
-		r.Get("/api/v1/public/action/setup/status", api.SetupStatusAction)          // setup completion status
-		r.Post("/api/v1/public/action/login", api.LoginAction)                      // user login
-		r.Post("/api/v1/public/action/logout", api.LogoutAction)                    // user logout
-		r.Post("/api/v1/public/action/forgot-password", api.ForgotPasswordAction)   // request password reset email
-		r.Post("/api/v1/public/action/reset-password", api.ResetPasswordAction)     // reset password with token
-		r.Post("/api/v1/public/action/register", api.RegisterAction)                // user registration
-		r.Post("/api/v1/public/action/verify-email/{token}", api.VerifyEmailAction) // verify email with token
-		r.Post("/api/v1/public/action/stripe/webhook", api.StripeWebhookAction)     // Stripe billing webhook
+		r.Get("/api/v1/public/_health", api.HealthAction)                                   // liveness probe
+		r.Get("/api/v1/public/_ready", api.ReadyAction)                                     // readiness probe (db, deps)
+		r.Post("/api/v1/public/action/setup", api.SetupAction)                              // initial app setup
+		r.Get("/api/v1/public/action/setup/status", api.SetupStatusAction)                  // setup completion status
+		r.Post("/api/v1/public/action/login", api.LoginAction)                              // user login
+		r.Post("/api/v1/public/action/logout", api.LogoutAction)                            // user logout
+		r.Post("/api/v1/public/action/forgot-password", api.ForgotPasswordAction)           // request password reset email
+		r.Post("/api/v1/public/action/reset-password", api.ResetPasswordAction)             // reset password with token
+		r.Post("/api/v1/public/action/register", api.RegisterAction)                        // user registration
+		r.Post("/api/v1/public/action/verify-email/{token}", api.VerifyEmailAction)         // verify email with token
+		r.Get("/api/v1/public/action/oauth/github", api.GitHubOAuthStartAction)             // start GitHub OAuth
+		r.Get("/api/v1/public/action/oauth/github/callback", api.GitHubOAuthCallbackAction) // GitHub OAuth callback
+		r.Post("/api/v1/public/action/stripe/webhook", api.StripeWebhookAction)             // Stripe billing webhook
 	})
 	r.Get("/api/v1/me", api.GetMeAction) // current authenticated user
 	r.Group(func(r chi.Router) {         // user profile and workspace invites
@@ -166,11 +168,11 @@ func SetupServer(Static embed.FS) http.Handler {
 		})
 
 		r.Route("/agents", func(r chi.Router) {
-			r.With(middleware.Protect(middleware.Config{Perm: module.CanListAgents})).Get("/", api.ListAgentsAction)                        // list agents
-			r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateAgent})).Post("/", api.CreateAgentAction)                     // create agent
-			r.With(middleware.Protect(middleware.Config{Perm: module.CanGetAgent})).Get("/{agentId}", api.GetAgentAction)                   // get agent
-			r.With(middleware.Protect(middleware.Config{Perm: module.CanUpdateAgent})).Put("/{agentId}", api.UpdateAgentAction)          // update agent
-			r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteAgent})).Delete("/{agentId}", api.DeleteAgentAction)          // delete agent
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanListAgents})).Get("/", api.ListAgentsAction)               // list agents
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateAgent})).Post("/", api.CreateAgentAction)            // create agent
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanGetAgent})).Get("/{agentId}", api.GetAgentAction)          // get agent
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanUpdateAgent})).Put("/{agentId}", api.UpdateAgentAction)    // update agent
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteAgent})).Delete("/{agentId}", api.DeleteAgentAction) // delete agent
 
 			r.Route("/{agentId}/sessions", func(r chi.Router) {
 				r.With(middleware.Protect(middleware.Config{Perm: module.CanListAgentSessions})).Get("/", api.ListAgentSessionsAction)                       // list agent sessions

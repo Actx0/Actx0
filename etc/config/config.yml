@@ -25,6 +25,12 @@ app:
     resend:
       api_key: ${ACTX0_RESEND_API_KEY:-}
 
+  oauth:
+    github:
+      client_id: ${ACTX0_GITHUB_OAUTH_CLIENT_ID:-}
+      client_secret: ${ACTX0_GITHUB_OAUTH_CLIENT_SECRET:-}
+      redirect_url: ${ACTX0_GITHUB_OAUTH_REDIRECT_URL:-http://localhost/api/v1/public/action/oauth/github/callback}
+
   database:
     rw:
       driver: ${ACTX0_DATABASE_DRIVER:-postgres}
