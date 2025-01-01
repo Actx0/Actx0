@@ -320,7 +320,7 @@ Mark done: `- [x] path/to/file`
 - [x] web/src/views/Members.vue
 - [x] web/src/views/NotFound.vue
 - [x] web/src/views/Profile.vue
-- [x] web/src/views/PromptDetail.vue
+- [x] web/src/views/Prompt.vue
 - [x] web/src/views/Prompts.vue
 - [x] web/src/views/Register.vue
 - [x] web/src/views/ResetPassword.vue
