@@ -89,9 +89,9 @@ app:
         pool_size: ${ACTX0_AI_QDRANT_POOL_SIZE:-3}
     llm:
       lite:
-        model: ${ACTX0_AI_LITE_LLM_MODEL:-cohere/command-r7b-12-2024}
+        model: ${ACTX0_AI_LITE_LLM_MODEL:-openai/gpt-5.4}
       large:
-        model: ${ACTX0_AI_LARGE_LLM_MODEL:-openai/gpt-4o}
+        model: ${ACTX0_AI_LARGE_LLM_MODEL:-openai/gpt-5.4}
 
   cache:
     provider: ${ACTX0_CACHE_PROVIDER:-redis}
