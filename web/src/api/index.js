@@ -90,13 +90,13 @@ export const invite_api = {
   rejectByToken: (token) => api.post(`/action/reject-invite/${encodeURIComponent(token)}`),
 }
 
-export const workspaceMember_api = {
+export const workspace_member_api = {
   list: (workspaceId, params) => api.get(`/workspaces/${workspaceId}/members`, { params }),
   updateRole: (workspaceId, userId, data) => api.put(`/workspaces/${workspaceId}/members/${userId}`, data),
   delete: (workspaceId, userId) => api.delete(`/workspaces/${workspaceId}/members/${userId}`),
 }
 
-export const workspaceInvite_api = {
+export const workspace_invite_api = {
   list: (workspaceId, params) => api.get(`/workspaces/${workspaceId}/invites`, { params }),
   create: (workspaceId, data) => api.post(`/workspaces/${workspaceId}/invites`, data),
   delete: (workspaceId, id) => api.delete(`/workspaces/${workspaceId}/invites/${id}`),
@@ -118,13 +118,13 @@ export const billing_api = {
   portal: (workspaceId) => api.post(`/workspaces/${workspaceId}/billing/portal`),
 }
 
-export const workspaceAccessKey_api = {
+export const workspace_access_key_api = {
   list: (workspaceId, params) => api.get(`/workspaces/${workspaceId}/keys`, { params }),
   create: (workspaceId, data) => api.post(`/workspaces/${workspaceId}/keys`, data),
   delete: (workspaceId, id) => api.delete(`/workspaces/${workspaceId}/keys/${id}`),
 }
 
-export const apiKeys_api = {
+export const api_keys_api = {
   list: (params) => api.get('/apiKeys', { params }),
   create: (data) => api.post('/apiKeys', data),
   delete: (id) => api.delete(`/apiKeys/${id}`),
