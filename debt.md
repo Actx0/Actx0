@@ -66,7 +66,7 @@ Mark done: `- [x] path/to/file`
 - [x] db/config.go
 - [x] db/database.go
 - [x] db/helpers.go
-- [ ] db/integration.go
+- [x] db/integration.go
 - [x] db/invite.go
 - [ ] db/memory.go
 - [ ] db/message.go
@@ -82,7 +82,7 @@ Mark done: `- [x] path/to/file`
 - [ ] db/wdoc.go
 - [x] db/wkey.go
 - [x] db/workspace.go
-- [ ] db/wstats.go
+- [x] db/wstats.go
 - [x] db/wuser.go
 
 ## locale/

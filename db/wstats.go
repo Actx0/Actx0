@@ -41,6 +41,7 @@ func NewWorkspaceStatsRepository(db *sql.DB) WorkspaceStatsRepository {
 func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*WorkspaceStats, error) {
 	stats := &WorkspaceStats{}
 
+	// Memories Stored
 	err := r.db.QueryRow(
 		`SELECT COUNT(*)
 		FROM session_memories sm
@@ -56,6 +57,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	monthEnd := monthStart.AddDate(0, 1, 0)
 
+	// APICalls Month
 	err = r.db.QueryRow(
 		`SELECT COALESCE(SUM(quantity), 0)
 		FROM usage
@@ -72,6 +74,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		return nil, err
 	}
 
+	// Active Agents
 	err = r.db.QueryRow(
 		`SELECT COUNT(*)
 		FROM agents
@@ -82,6 +85,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		return nil, err
 	}
 
+	// Prompts
 	err = r.db.QueryRow(
 		`SELECT COUNT(*)
 		FROM prompts
