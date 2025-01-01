@@ -111,6 +111,12 @@ export const audit_api = {
   get: (workspaceId, auditId) => api.get(`/workspaces/${workspaceId}/audits/${auditId}`),
 }
 
+export const notification_api = {
+  list: (workspaceId, params) => api.get(`/workspaces/${workspaceId}/notifications`, { params }),
+  markRead: (workspaceId, notificationId) => api.post(`/workspaces/${workspaceId}/notifications/${notificationId}/read`),
+  archive: (workspaceId, notificationId) => api.post(`/workspaces/${workspaceId}/notifications/${notificationId}/archive`),
+}
+
 export const billing_api = {
   status: (workspaceId) => api.get(`/workspaces/${workspaceId}/billing`),
   usage: (workspaceId) => api.get(`/workspaces/${workspaceId}/billing/usage`),

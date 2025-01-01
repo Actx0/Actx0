@@ -40,18 +40,17 @@
       <section class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="section overflow-hidden !p-0">
           <div class="border-b border-theme-border px-6 py-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.attention_title') }}</h2>
-                <p class="mt-0.5 text-sm text-theme-textLight">{{ $t('dashboard.attention_subtitle') }}</p>
-              </div>
-              <span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                {{ $t('dashboard.mock_badge') }}
-              </span>
+            <div>
+              <h2 class="text-lg font-semibold text-theme-text">{{ $t('dashboard.attention_title') }}</h2>
+              <p class="mt-0.5 text-sm text-theme-textLight">{{ $t('dashboard.attention_subtitle') }}</p>
             </div>
           </div>
 
-          <ul class="divide-y divide-theme-border max-h-[28rem] overflow-y-auto">
+          <p v-if="notificationsLoading" class="px-6 py-8 text-sm text-theme-textLight">{{ $t('common.loading') }}</p>
+          <p v-else-if="attentionItems.length === 0" class="px-6 py-8 text-sm text-theme-textLight">
+            {{ $t('dashboard.attention_empty') }}
+          </p>
+          <ul v-else class="divide-y divide-theme-border max-h-[28rem] overflow-y-auto">
             <li
               v-for="item in attentionItems"
               :key="item.id"
@@ -290,6 +289,7 @@ import {
   billing_api,
   workspace_api,
   audit_api,
+  notification_api,
 } from '@/api'
 import AppNav from '@/components/AppNav.vue'
 import { user } from '@/lib/auth'
@@ -307,9 +307,11 @@ const ACTIVITY_LIMIT = 6
 
 const workspace = ref({ ...currentWorkspace })
 const loading = ref(true)
+const notificationsLoading = ref(true)
 const plan = ref('hobby')
 const showWhatsNew = ref(localStorage.getItem(WHATS_NEW_KEY) !== '1')
 const audits = ref([])
+const notifications = ref([])
 
 const topAgents = [
   { id: 'agt_support', name: 'Support bot', handle: 'support-bot', sessions: 1842, memories: 9210 },
@@ -334,120 +336,27 @@ const memberCount = computed(() => {
   return loading.value ? '…' : workspace.value.membersCount.toLocaleString()
 })
 
-const attentionItems = computed(() => [
-  {
-    id: 'quota',
+const notificationMeta = {
+  email_unverified: {
     level: 'warn',
-    title: t('dashboard.attention_quota_title'),
-    description: t('dashboard.attention_quota_desc'),
-    action: t('dashboard.attention_quota_action'),
-    to: '/billing',
+    to: '/profile',
+    action: 'dashboard.attention_email_unverified_action',
   },
-  {
-    id: 'doc',
-    level: 'error',
-    title: t('dashboard.attention_doc_title'),
-    description: t('dashboard.attention_doc_desc'),
-    action: t('dashboard.attention_doc_action'),
-    to: '/knowledge',
-  },
-  {
-    id: 'key',
-    level: 'error',
-    title: t('dashboard.attention_key_title'),
-    description: t('dashboard.attention_key_desc'),
-    action: t('dashboard.attention_key_action'),
-    to: '/settings',
-  },
-  {
-    id: 'agent',
-    level: 'warn',
-    title: t('dashboard.attention_agent_title'),
-    description: t('dashboard.attention_agent_desc'),
-    action: t('dashboard.attention_agent_action'),
-    to: '/agents',
-  },
-  {
-    id: 'prompt',
-    level: 'warn',
-    title: t('dashboard.attention_prompt_title'),
-    description: t('dashboard.attention_prompt_desc'),
-    action: t('dashboard.attention_prompt_action'),
-    to: '/prompts',
-  },
-  {
-    id: 'invite',
-    level: 'info',
-    title: t('dashboard.attention_invite_title'),
-    description: t('dashboard.attention_invite_desc'),
-    action: t('dashboard.attention_invite_action'),
-    to: '/members',
-  },
-  {
-    id: 'integration',
-    level: 'info',
-    title: t('dashboard.attention_integration_title'),
-    description: t('dashboard.attention_integration_desc'),
-    action: t('dashboard.attention_integration_action'),
-    to: '/integrations',
-  },
-  {
-    id: 'errors',
-    level: 'error',
-    title: t('dashboard.attention_errors_title'),
-    description: t('dashboard.attention_errors_desc'),
-    action: t('dashboard.attention_errors_action'),
-    to: '/agents',
-  },
-  {
-    id: 'queue',
-    level: 'error',
-    title: t('dashboard.attention_queue_title'),
-    description: t('dashboard.attention_queue_desc'),
-    action: t('dashboard.attention_queue_action'),
-    to: '/knowledge',
-  },
-  {
-    id: 'empty_memory',
-    level: 'warn',
-    title: t('dashboard.attention_empty_memory_title'),
-    description: t('dashboard.attention_empty_memory_desc'),
-    action: t('dashboard.attention_empty_memory_action'),
-    to: '/agents',
-  },
-  {
-    id: 'trial',
-    level: 'warn',
-    title: t('dashboard.attention_trial_title'),
-    description: t('dashboard.attention_trial_desc'),
-    action: t('dashboard.attention_trial_action'),
-    to: '/billing',
-  },
-  {
-    id: 'stale_key',
-    level: 'info',
-    title: t('dashboard.attention_stale_key_title'),
-    description: t('dashboard.attention_stale_key_desc'),
-    action: t('dashboard.attention_stale_key_action'),
-    to: '/settings',
-  },
-  {
-    id: 'latency',
-    level: 'warn',
-    title: t('dashboard.attention_latency_title'),
-    description: t('dashboard.attention_latency_desc'),
-    action: t('dashboard.attention_latency_action'),
-    to: '/audits',
-  },
-  {
-    id: 'empty_kb',
-    level: 'info',
-    title: t('dashboard.attention_empty_kb_title'),
-    description: t('dashboard.attention_empty_kb_desc'),
-    action: t('dashboard.attention_empty_kb_action'),
-    to: '/knowledge',
-  },
-])
+}
+
+const attentionItems = computed(() =>
+  notifications.value.map((item) => {
+    const meta = notificationMeta[item.type] || {}
+    return {
+      id: item.id,
+      level: meta.level || 'info',
+      title: item.title,
+      description: item.body || '',
+      action: meta.action ? t(meta.action) : '',
+      to: meta.to || null,
+    }
+  }),
+)
 
 const activityIcons = {
   prompt: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
@@ -508,6 +417,7 @@ function attentionDotClass(level) {
 
 async function loadDashboard() {
   loading.value = true
+  notificationsLoading.value = true
 
   const tasks = [
     stats_api.get(currentWorkspace.id)
@@ -527,6 +437,11 @@ async function loadDashboard() {
         saveWorkspaceToStorage(workspace.value)
       })
       .catch(() => {}),
+
+    notification_api.list(currentWorkspace.id, { limit: 50, offset: 0 })
+      .then((res) => { notifications.value = res.data.notifications || [] })
+      .catch(() => { notifications.value = [] })
+      .finally(() => { notificationsLoading.value = false }),
   ]
 
   if (canManage.value) {
