@@ -238,7 +238,7 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 	reply, usage, err := s.liteLLM.Complete(ctx, []ai.Message{
 		{Role: "system", Content: conf.GenerateMemorySystemPrompt},
 		{Role: "user", Content: fmt.Sprintf("role=%s\n%s", message.Role, message.Content)},
-	})
+	}, ai.CompleteOptions{JSONObject: true})
 	if err != nil {
 		return fmt.Errorf("%w: complete: %v", ErrGenerateFailed, err)
 	}
@@ -273,6 +273,16 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 		)
 	}
 
+	log.Info().
+		Str("message_id", messageId.String()).
+		Str("session_id", session.Id.String()).
+		Str("role", message.Role).
+		Str("reply", reply).
+		Int64("prompt_tokens", usage.PromptTokens).
+		Int64("total_tokens", usage.TotalTokens).
+		Int64("total_cost", usage.Cost).
+		Msg("Memory generate model reply")
+
 	var result struct {
 		Skip    bool   `json:"skip"`
 		Kind    string `json:"kind"`
@@ -280,16 +290,30 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 	}
 	err = json.Unmarshal([]byte(strings.TrimSpace(reply)), &result)
 	if err != nil {
-		return fmt.Errorf("%w: parse reply: %v", ErrGenerateFailed, err)
+		log.Warn().
+			Err(err).
+			Str("message_id", messageId.String()).
+			Str("reply", reply).
+			Msg("Memory generate reply was not JSON, skipping")
+		return nil
 	}
 
 	result.Kind = strings.TrimSpace(result.Kind)
 	result.Content = strings.TrimSpace(result.Content)
 
 	if result.Skip || result.Content == "" {
+		log.Info().
+			Str("message_id", messageId.String()).
+			Bool("skip", result.Skip).
+			Str("kind", result.Kind).
+			Msg("Memory generate skipped")
 		return nil
 	}
 	if result.Kind != MemoryKindShortLived && result.Kind != MemoryKindLongLived {
+		log.Info().
+			Str("message_id", messageId.String()).
+			Str("kind", result.Kind).
+			Msg("Memory generate skipped invalid kind")
 		return nil
 	}
 
@@ -307,6 +331,13 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 	if err != nil {
 		return fmt.Errorf("%w: index memory: %v", ErrGenerateFailed, err)
 	}
+
+	log.Info().
+		Str("message_id", messageId.String()).
+		Str("memory_id", memory.Id.String()).
+		Str("kind", memory.Kind).
+		Str("content", memory.Content).
+		Msg("Memory generate stored")
 
 	return nil
 }
