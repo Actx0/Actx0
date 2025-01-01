@@ -75,6 +75,14 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  db.Id(wid),
+		Action:       "document.upload",
+		ResourceType: "document",
+		ResourceId:   doc.Id,
+		Meta:         map[string]any{"title": doc.Title, "filename": doc.Filename},
+	})
+
 	util.WriteJSON(w, http.StatusCreated, doc)
 }
 
@@ -191,6 +199,13 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  db.Id(wid),
+		Action:       "document.delete",
+		ResourceType: "document",
+		ResourceId:   db.Id(documentId),
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }

@@ -54,6 +54,14 @@ func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "agent.create",
+		ResourceType: "agent",
+		ResourceId:   agent.Id,
+		Meta:         map[string]any{"name": agent.Name, "handle": agent.Handle},
+	})
+
 	util.WriteJSON(w, http.StatusCreated, agent)
 }
 
@@ -195,6 +203,14 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "agent.update",
+		ResourceType: "agent",
+		ResourceId:   agent.Id,
+		Meta:         map[string]any{"name": agent.Name, "handle": agent.Handle},
+	})
+
 	util.WriteJSON(w, http.StatusOK, agent)
 }
 
@@ -240,6 +256,13 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	defer Record(r, &module.RecordAuditEvent{
+		WorkspaceId:  workspaceId,
+		Action:       "agent.delete",
+		ResourceType: "agent",
+		ResourceId:   db.Id(agentId),
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }
