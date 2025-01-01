@@ -70,6 +70,9 @@ const (
 	CanCreateSessionMemory = "CAN_CREATE_SESSION_MEMORY"
 	CanUpdateSessionMemory = "CAN_UPDATE_SESSION_MEMORY"
 	CanDeleteSessionMemory = "CAN_DELETE_SESSION_MEMORY"
+
+	CanListWorkspaceAudits = "CAN_LIST_WORKSPACE_AUDITS"
+	CanGetWorkspaceAudit   = "CAN_GET_WORKSPACE_AUDIT"
 )
 
 var (
@@ -211,6 +214,8 @@ func (p *Perm) CanAsUser(permission string) (bool, error) {
 		CanCreateWorkspaceAccessKey,
 		CanGetWorkspaceAccessKey,
 		CanDeleteWorkspaceAccessKey,
+		CanListWorkspaceAudits,
+		CanGetWorkspaceAudit,
 		CanCreatePrompt,
 		CanUpdatePrompt,
 		CanDeletePrompt,

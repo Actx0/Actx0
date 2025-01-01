@@ -129,6 +129,11 @@ func SetupServer(Static embed.FS) http.Handler {
 
 		r.With(middleware.Protect(middleware.Config{Perm: module.CanGetWorkspace})).Get("/stats", api.GetWorkspaceStatsAction) // get workspace stats
 
+		r.Route("/audits", func(r chi.Router) {
+			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanListWorkspaceAudits})).Get("/", api.ListWorkspaceAuditsAction)      // list audit events
+			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanGetWorkspaceAudit})).Get("/{auditId}", api.GetWorkspaceAuditAction) // get audit event
+		})
+
 		r.Route("/prompts", func(r chi.Router) {
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanListPrompts})).Get("/", api.ListPromptsAction)                            // list prompts
 			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanCreatePrompt})).Post("/", api.CreatePromptAction)             // create prompt
