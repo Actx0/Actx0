@@ -144,6 +144,9 @@ msgstr "Impossible de supprimer le message de session."
 msgid "failed_delete_session_memory"
 msgstr "Impossible de supprimer la mémoire de session."
 
+msgid "failed_regenerate_session_memories"
+msgstr "Impossible de régénérer les mémoires de session."
+
 msgid "failed_delete_api_key"
 msgstr "Impossible de supprimer la clé API."
 

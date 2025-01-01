@@ -22,6 +22,8 @@ var (
 	ErrFailedGetSessionMemory    = errors.New("failed get session memory")
 	ErrFailedUpdateSessionMemory = errors.New("failed update session memory")
 	ErrFailedDeleteSessionMemory = errors.New("failed delete session memory")
+
+	ErrFailedRegenerateSessionMemories = errors.New("failed regenerate session memories")
 )
 
 // CreateSessionMemoryRequest is the body for creating a session memory.
@@ -65,17 +67,28 @@ type ListSessionMemoriesResponse struct {
 	Total    int64
 }
 
+// RegenerateSessionMemoriesResponse is returned when regenerating session memories.
+type RegenerateSessionMemoriesResponse struct {
+	Queued int `json:"queued"`
+}
+
 // Memory is the module for session memory CRUD.
 type Memory struct {
-	MemoryRepository db.SessionMemoryRepository
-	AgentSession     *AgentSession
+	MemoryRepository  db.SessionMemoryRepository
+	MessageRepository db.SessionMessageRepository
+	AgentSession      *AgentSession
 }
 
 // NewMemory creates a session memory module with the given repositories.
-func NewMemory(memories db.SessionMemoryRepository, agentSessions *AgentSession) *Memory {
+func NewMemory(
+	memories db.SessionMemoryRepository,
+	messages db.SessionMessageRepository,
+	agentSessions *AgentSession,
+) *Memory {
 	return &Memory{
-		MemoryRepository: memories,
-		AgentSession:     agentSessions,
+		MemoryRepository:  memories,
+		MessageRepository: messages,
+		AgentSession:      agentSessions,
 	}
 }
 
@@ -310,6 +323,65 @@ func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limi
 	return &ListSessionMemoriesResponse{Memories: list, Total: total}, nil
 }
 
+// RegenerateSessionMemories deletes all session memories and queues generation from user messages.
+func (m *Memory) RegenerateSessionMemories(workspaceId, agentId, sessionId db.Id) (*RegenerateSessionMemoriesResponse, error) {
+	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := m.MemoryRepository.CountBySessionId(sessionId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
+	}
+
+	if count > 0 {
+		memories, err := m.MemoryRepository.ListBySessionId(sessionId, int(count), 0)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
+		}
+
+		err = m.MemoryRepository.DeleteBySessionId(sessionId)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
+		}
+
+		for _, memory := range memories {
+			err = m.EnqueueDeleteTask(workspaceId, memory.Id)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	messageCount, err := m.MessageRepository.CountBySessionId(sessionId)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
+	}
+
+	queued := 0
+	if messageCount > 0 {
+		messages, err := m.MessageRepository.ListBySessionId(sessionId, int(messageCount), 0)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFailedRegenerateSessionMemories, err)
+		}
+
+		for _, message := range messages {
+			if message.Role != "user" {
+				continue
+			}
+
+			err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
+			if err != nil {
+				return nil, err
+			}
+			queued++
+		}
+	}
+
+	return &RegenerateSessionMemoriesResponse{Queued: queued}, nil
+}
+
 // EnqueueIndexTask enqueues an async task to index a session memory.
 func (m *Memory) EnqueueIndexTask(workspaceId, memoryId db.Id) error {
 	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
@@ -332,6 +404,20 @@ func (m *Memory) EnqueueDeleteTask(workspaceId, memoryId db.Id) error {
 		Priority:    AsyncPriorityLow,
 		Payload: map[string]string{
 			"memoryId": memoryId.String(),
+		},
+	})
+
+	return err
+}
+
+// EnqueueGenerateMemoryTask enqueues an async task to generate memory from a message.
+func (m *Memory) EnqueueGenerateMemoryTask(workspaceId, messageId db.Id) error {
+	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+		WorkspaceId: workspaceId,
+		Type:        "task.agent.session.memory.generate",
+		Priority:    AsyncPriorityLow,
+		Payload: map[string]string{
+			"messageId": messageId.String(),
 		},
 	})
 

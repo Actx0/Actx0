@@ -139,7 +139,10 @@
 
           <!-- Memory -->
           <div v-else class="p-6">
-            <div v-if="canManage" class="mb-4 flex justify-end">
+            <div v-if="canManage" class="mb-4 flex justify-end gap-3">
+              <button type="button" class="btn-secondary" :disabled="regenerating" @click="showRegenerateModal = true">
+                {{ regenerating ? $t('agents_page.regenerating') : $t('agents_page.regenerate_memory') }}
+              </button>
               <button type="button" class="btn-primary" @click="openCreateMemory">
                 {{ $t('agents_page.add_memory') }}
               </button>
@@ -285,6 +288,32 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Regenerate memory confirmation -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div v-if="showRegenerateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!regenerating && closeRegenerateModal()">
+          <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
+            <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.regenerate_memory_title') }}</h2>
+            <p class="mt-2 text-sm text-theme-textLight">{{ $t('agents_page.regenerate_memory_confirm') }}</p>
+            <p v-if="regenerateError" class="mt-3 text-sm text-red-600">{{ regenerateError }}</p>
+            <div class="mt-6 flex gap-3 justify-end">
+              <button type="button" class="btn-secondary" :disabled="regenerating" @click="closeRegenerateModal">{{ $t('common.cancel') }}</button>
+              <button type="button" class="btn-primary" :disabled="regenerating" @click="regenerateMemories">
+                {{ regenerating ? $t('agents_page.regenerating') : $t('agents_page.regenerate_memory') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -322,6 +351,10 @@ const memoryModal = ref(null)
 const memoryForm = reactive({ kind: 'fact', content: '' })
 const memorySaving = ref(false)
 const memoryError = ref(null)
+
+const showRegenerateModal = ref(false)
+const regenerating = ref(false)
+const regenerateError = ref(null)
 
 const loading = ref(false)
 const errorMessage = ref(null)
@@ -506,6 +539,27 @@ async function saveMemory() {
     memoryError.value = err.response?.data?.errorMessage || t('agents_page.failed_save_memory')
   } finally {
     memorySaving.value = false
+  }
+}
+
+function closeRegenerateModal() {
+  showRegenerateModal.value = false
+  regenerateError.value = null
+}
+
+async function regenerateMemories() {
+  regenerating.value = true
+  regenerateError.value = null
+
+  try {
+    const res = await memory_api.regenerate(currentWorkspace.id, agentId.value, sessionId.value)
+    showRegenerateModal.value = false
+    await loadMemories()
+    showFlash(t('agents_page.regenerate_memory_queued', { count: res.data.queued }))
+  } catch (err) {
+    regenerateError.value = err.response?.data?.errorMessage || t('agents_page.failed_regenerate_memory')
+  } finally {
+    regenerating.value = false
   }
 }
 
