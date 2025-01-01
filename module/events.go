@@ -50,27 +50,31 @@ var (
 // RegisterEventListeners wires application event handlers.
 func RegisterEventListeners() {
 	UserLoggedIn.On(func(_ context.Context, e UserLoggedInData) {
-		log.Info().
+		log.Debug().
+			Str("event", EventUserLoggedIn).
 			Str("userId", e.UserID.String()).
 			Str("sessionId", e.SessionID.String()).
-			Msg("User logged in")
+			Msg("Event emitted")
 	})
 
 	UserLoggedOut.On(func(_ context.Context, e UserLoggedOutData) {
-		log.Info().
+		log.Debug().
+			Str("event", EventUserLoggedOut).
 			Str("userId", e.UserID.String()).
-			Msg("User logged out")
+			Msg("Event emitted")
 	})
 
 	UserForgotPassword.On(func(_ context.Context, e UserForgotPasswordData) {
-		log.Info().
+		log.Debug().
+			Str("event", EventUserForgotPassword).
 			Str("userId", e.UserID.String()).
-			Msg("Password reset token created")
+			Msg("Event emitted")
 	})
 
 	UserResetPassword.On(func(_ context.Context, e UserResetPasswordData) {
-		log.Info().
+		log.Debug().
+			Str("event", EventUserResetPassword).
 			Str("userId", e.UserID.String()).
-			Msg("Password reset completed")
+			Msg("Event emitted")
 	})
 }
