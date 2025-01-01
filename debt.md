@@ -135,7 +135,7 @@ Mark done: `- [x] path/to/file`
 - [ ] module/register.go
 - [ ] module/session.go
 - [ ] module/settings.go
-- [ ] module/setup.go
+- [x] module/setup.go
 - [ ] module/stats.go
 - [ ] module/tools.go
 - [ ] module/usage.go
