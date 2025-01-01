@@ -55,6 +55,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	invite, err := im.CreateInvite(db.Id(workspaceId), &req, user)
@@ -71,6 +72,10 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrPendingInviteExists):
 			util.WriteJSON(w, http.StatusConflict, map[string]any{
 				"errorMessage": locale.TR(r, "pending_invite_already_exists"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().
@@ -123,6 +128,7 @@ func ListInvitesAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	result, err := im.ListInvites(db.Id(workspaceId), limit, offset)
@@ -180,6 +186,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	invite, err := im.GetInvite(db.Id(workspaceId), db.Id(inviteId))
@@ -238,6 +245,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	err := im.DeleteInvite(db.Id(workspaceId), db.Id(inviteId))
@@ -298,6 +306,7 @@ func GetUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	invite, err := im.GetUserInviteByToken(token)
@@ -355,6 +364,7 @@ func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Requ
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	invite, err := im.GetAuthenticatedUserInviteByToken(token, user)
@@ -406,6 +416,7 @@ func ListUserInvitesAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	result, err := im.ListUserInvites(user, limit, offset)
@@ -459,6 +470,7 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	invite, err := im.AcceptUserInviteByToken(token, user)
@@ -479,6 +491,10 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrInviteEmailMismatch):
 			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "invite_email_mismatch"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().
@@ -539,6 +555,7 @@ func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 		db.NewConfigRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewWorkspaceUserRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 		resend.NewMailer(),
 	)
 	invite, err := im.RejectUserInviteByToken(token, user)

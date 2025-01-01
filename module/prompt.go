@@ -43,6 +43,7 @@ type Prompt struct {
 	PromptRepository        db.PromptRepository
 	PromptVersionRepository db.PromptVersionRepository
 	WorkspaceRepository     db.WorkspaceRepository
+	SubscriptionRepository  db.SubscriptionRepository
 }
 
 // CreatePromptRequest is the body for creating a prompt with its first version.
@@ -120,11 +121,17 @@ type ListPromptVersionsResponse struct {
 }
 
 // NewPrompt creates a prompt module with the given repositories.
-func NewPrompt(prompts db.PromptRepository, promptVersions db.PromptVersionRepository, workspaces db.WorkspaceRepository) *Prompt {
+func NewPrompt(
+	prompts db.PromptRepository,
+	promptVersions db.PromptVersionRepository,
+	workspaces db.WorkspaceRepository,
+	subscriptions db.SubscriptionRepository,
+) *Prompt {
 	return &Prompt{
 		PromptRepository:        prompts,
 		PromptVersionRepository: promptVersions,
 		WorkspaceRepository:     workspaces,
+		SubscriptionRepository:  subscriptions,
 	}
 }
 
@@ -136,6 +143,19 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 	}
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
+	}
+
+	reached, err := NewUsage().IsPromptsCountReached(
+		p.PromptRepository,
+		p.SubscriptionRepository,
+		workspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	handle := util.HandleFromName(req.Name, promptHandleMaxLen)

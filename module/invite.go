@@ -52,6 +52,7 @@ type Invite struct {
 	ConfigRepository        db.ConfigRepository
 	WorkspaceRepository     db.WorkspaceRepository
 	WorkspaceUserRepository db.WorkspaceUserRepository
+	SubscriptionRepository  db.SubscriptionRepository
 	Mailer                  InviteMailer
 }
 
@@ -62,6 +63,7 @@ func NewInvite(
 	config db.ConfigRepository,
 	workspaces db.WorkspaceRepository,
 	workspaceUsers db.WorkspaceUserRepository,
+	subscriptions db.SubscriptionRepository,
 	mailer InviteMailer,
 ) *Invite {
 	return &Invite{
@@ -70,6 +72,7 @@ func NewInvite(
 		ConfigRepository:        config,
 		WorkspaceRepository:     workspaces,
 		WorkspaceUserRepository: workspaceUsers,
+		SubscriptionRepository:  subscriptions,
 		Mailer:                  mailer,
 	}
 }
@@ -110,6 +113,19 @@ func (i *Invite) CreateInvite(workspaceId db.Id, req *CreateInviteRequest, invit
 	}
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
+	}
+
+	reached, err := NewUsage().IsMembersCountReached(
+		i.WorkspaceUserRepository,
+		i.SubscriptionRepository,
+		workspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	existingUser, err := i.UserRepository.GetByEmail(req.Email)
@@ -462,6 +478,19 @@ func (i *Invite) AcceptUserInviteByToken(token string, user *db.User) (*InviteRe
 
 	if !strings.EqualFold(user.Email, invite.Email) {
 		return nil, ErrInviteEmailMismatch
+	}
+
+	reached, err := NewUsage().IsMembersCountReached(
+		i.WorkspaceUserRepository,
+		i.SubscriptionRepository,
+		invite.WorkspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	membership, err := i.WorkspaceUserRepository.GetByWorkspaceAndUser(invite.WorkspaceId, user.Id)

@@ -110,11 +110,13 @@ func NewMemory(
 	memories db.SessionMemoryRepository,
 	messages db.SessionMessageRepository,
 	agentSessions *AgentSession,
+	subscriptions db.SubscriptionRepository,
 ) *Memory {
 	return &Memory{
-		MemoryRepository:  memories,
-		MessageRepository: messages,
-		AgentSession:      agentSessions,
+		MemoryRepository:       memories,
+		MessageRepository:      messages,
+		AgentSession:           agentSessions,
+		SubscriptionRepository: subscriptions,
 	}
 }
 
@@ -123,6 +125,19 @@ func (m *Memory) CreateSessionMemory(workspaceId, agentId, sessionId db.Id, req 
 	session, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
+	}
+
+	reached, err := NewUsage().IsMemoryRecordsReached(
+		m.MemoryRepository,
+		m.SubscriptionRepository,
+		workspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	memory := &db.SessionMemory{
@@ -158,6 +173,19 @@ func (m *Memory) BatchCreateSessionMemories(workspaceId, agentId, sessionId db.I
 	session, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
+	}
+
+	reached, err := NewUsage().IsMemoryRecordsReached(
+		m.MemoryRepository,
+		m.SubscriptionRepository,
+		workspaceId,
+		int64(len(req.Memories)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	responses := make([]*SessionMemoryResponse, 0, len(req.Memories))
@@ -356,6 +384,24 @@ func (m *Memory) SearchSessionMemories(ctx context.Context, workspaceId, agentId
 		return nil, err
 	}
 
+	usageMod := NewUsage()
+
+	reached, err := usageMod.IsAITokensReached(m.UsageRepository, m.SubscriptionRepository, workspaceId, 1)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
+	}
+
+	reached, err = usageMod.IsAICostReached(m.UsageRepository, m.SubscriptionRepository, workspaceId, 0)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
+	}
+
 	hits, usage, err := m.Agent.SearchSessionMemories(ctx, agent.SearchSessionRequest{
 		WorkspaceId: workspaceId,
 		AgentId:     agentId,
@@ -367,7 +413,7 @@ func (m *Memory) SearchSessionMemories(ctx context.Context, workspaceId, agentId
 		return nil, fmt.Errorf("%w: %v", ErrFailedSearchSessionMemories, err)
 	}
 
-	err = NewUsage().IncrementAIUsage(
+	err = usageMod.IncrementAIUsage(
 		m.UsageRepository,
 		m.SubscriptionRepository,
 		workspaceId,
@@ -375,6 +421,10 @@ func (m *Memory) SearchSessionMemories(ctx context.Context, workspaceId, agentId
 		usage.Cost,
 	)
 	if err != nil {
+		if errors.Is(err, ErrWorkspaceCapacityReached) {
+			return nil, err
+		}
+
 		log.Warn().
 			Err(err).
 			Str("workspaceId", workspaceId.String()).

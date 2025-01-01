@@ -53,6 +53,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceDocumentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		store,
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 
 	doc, err := dm.UploadDocument(
@@ -65,6 +66,10 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to upload document")
@@ -111,6 +116,7 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceDocumentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		store,
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 
 	result, err := dm.ListDocuments(
@@ -174,6 +180,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceDocumentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		store,
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 
 	err = dm.DeleteDocument(
@@ -264,10 +271,10 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceDocumentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 		nil,
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	dm.Knowledge = ksvc
 	dm.UsageRepository = db.NewUsageRepository(db.GetDB())
-	dm.SubscriptionRepository = db.NewSubscriptionRepository(db.GetDB())
 
 	result, err := dm.SearchDocuments(
 		r.Context(),
@@ -282,6 +289,10 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to search documents")

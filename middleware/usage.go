@@ -7,7 +7,9 @@ import (
 	"net/http"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/locale"
 	"github.com/clivern/actx0/module"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 )
@@ -28,6 +30,28 @@ func (s *StatusRecorder) WriteHeader(code int) {
 func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			workspace, hasWorkspace := GetWorkspaceFromContext(r.Context())
+			if hasWorkspace {
+				if _, _, ok := GetPrincipal(r); ok {
+					usageRepo := db.NewUsageRepository(db.GetDB(false))
+					subscriptions := db.NewSubscriptionRepository(db.GetDB(false))
+
+					reached, err := module.NewUsage().IsAPICallsReached(usageRepo, subscriptions, workspace.Id, 1)
+					if err != nil {
+						log.Warn().
+							Err(err).
+							Str("workspaceId", workspace.Id.String()).
+							Str("path", r.URL.Path).
+							Msg("Failed to check workspace API call capacity")
+					} else if reached {
+						util.WriteJSON(w, http.StatusForbidden, map[string]any{
+							"errorMessage": locale.TR(r, "workspace_capacity_reached"),
+						})
+						return
+					}
+				}
+			}
+
 			recorder := &StatusRecorder{ResponseWriter: w, status: http.StatusOK}
 			next.ServeHTTP(recorder, r)
 
@@ -39,8 +63,7 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 				return
 			}
 
-			workspace, ok := GetWorkspaceFromContext(r.Context())
-			if !ok {
+			if !hasWorkspace {
 				return
 			}
 

@@ -537,5 +537,8 @@ msgstr "La facturation Stripe n'est pas configurée."
 msgid "workspace_subscription_not_found"
 msgstr "Abonnement de l'espace de travail introuvable."
 
+msgid "workspace_capacity_reached"
+msgstr "Capacité de l'espace de travail atteinte pour le forfait actuel."
+
 msgid "workspace_member_not_found"
 msgstr "Membre de l'espace de travail introuvable."

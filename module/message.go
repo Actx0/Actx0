@@ -97,10 +97,15 @@ type Message struct {
 }
 
 // NewMessage creates a session message module with the given repositories.
-func NewMessage(messages db.SessionMessageRepository, sessions db.AgentSessionRepository) *Message {
+func NewMessage(
+	messages db.SessionMessageRepository,
+	sessions db.AgentSessionRepository,
+	subscriptions db.SubscriptionRepository,
+) *Message {
 	return &Message{
-		MessageRepository: messages,
-		SessionRepository: sessions,
+		MessageRepository:      messages,
+		SessionRepository:      sessions,
+		SubscriptionRepository: subscriptions,
 	}
 }
 
@@ -121,6 +126,19 @@ func (m *Message) CreateSessionMessage(workspaceId, agentId, sessionId db.Id, re
 	session, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
+	}
+
+	reached, err := NewUsage().IsHistoryRecordsReached(
+		m.MessageRepository,
+		m.SubscriptionRepository,
+		workspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	message := &db.SessionMessage{
@@ -167,6 +185,19 @@ func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.
 	session, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
+	}
+
+	reached, err := NewUsage().IsHistoryRecordsReached(
+		m.MessageRepository,
+		m.SubscriptionRepository,
+		workspaceId,
+		int64(len(req.Messages)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	responses := make([]*SessionMessageResponse, 0, len(req.Messages))
@@ -368,6 +399,24 @@ func (m *Message) SearchSessionMessages(ctx context.Context, workspaceId, agentI
 		return nil, err
 	}
 
+	usg := NewUsage()
+
+	reached, err := usg.IsAITokensReached(m.UsageRepository, m.SubscriptionRepository, workspaceId, 1)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
+	}
+
+	reached, err = usg.IsAICostReached(m.UsageRepository, m.SubscriptionRepository, workspaceId, 0)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
+	}
+
 	hits, usage, err := m.Agent.SearchSessionMessages(ctx, agent.SearchSessionRequest{
 		WorkspaceId: workspaceId,
 		AgentId:     agentId,
@@ -379,7 +428,7 @@ func (m *Message) SearchSessionMessages(ctx context.Context, workspaceId, agentI
 		return nil, fmt.Errorf("%w: %v", ErrFailedSearchSessionMessages, err)
 	}
 
-	err = NewUsage().IncrementAIUsage(
+	err = usg.IncrementAIUsage(
 		m.UsageRepository,
 		m.SubscriptionRepository,
 		workspaceId,
@@ -387,6 +436,10 @@ func (m *Message) SearchSessionMessages(ctx context.Context, workspaceId, agentI
 		usage.Cost,
 	)
 	if err != nil {
+		if errors.Is(err, ErrWorkspaceCapacityReached) {
+			return nil, err
+		}
+
 		log.Warn().
 			Err(err).
 			Str("workspaceId", workspaceId.String()).
