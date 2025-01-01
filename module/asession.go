@@ -52,26 +52,6 @@ type AgentSessionResponse struct {
 	UpdatedAt   string            `json:"updatedAt"`
 }
 
-func toAgentSessionResponse(session *db.AgentSession) *AgentSessionResponse {
-	var labelMap map[string]string
-	if session.Labels != nil && *session.Labels != "" {
-		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
-	}
-
-	return &AgentSessionResponse{
-		Id:          session.Id,
-		ExternalId:  session.ExternalId,
-		WorkspaceId: session.WorkspaceId,
-		AgentId:     session.AgentId,
-		Title:       session.Title,
-		Status:      session.Status,
-		Labels:      labelMap,
-		Meta:        util.JSONRawFromString(session.Meta),
-		CreatedAt:   session.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   session.UpdatedAt.UTC().Format(time.RFC3339),
-	}
-}
-
 // ListAgentSessionsResponse is returned when listing agent sessions.
 type ListAgentSessionsResponse struct {
 	Sessions []*AgentSessionResponse
@@ -166,12 +146,28 @@ func (s *AgentSession) CreateAgentSession(workspaceId, agentId db.Id, externalId
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateAgentSession, err)
 	}
 
-	return toAgentSessionResponse(session), nil
+	var labelMap map[string]string
+	if session.Labels != nil && *session.Labels != "" {
+		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
+	}
+
+	return &AgentSessionResponse{
+		Id:          session.Id,
+		ExternalId:  session.ExternalId,
+		WorkspaceId: session.WorkspaceId,
+		AgentId:     session.AgentId,
+		Title:       session.Title,
+		Status:      session.Status,
+		Labels:      labelMap,
+		Meta:        util.JSONRawFromString(session.Meta),
+		CreatedAt:   session.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:   session.UpdatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // GetAgentSession returns one session by internal id.
 func (s *AgentSession) GetAgentSession(workspaceId, agentId, sessionId db.Id) (*AgentSessionResponse, error) {
-	session, err := s.loadAgentSession(workspaceId, agentId, sessionId)
+	session, err := s.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrWorkspaceNotFound),
@@ -183,10 +179,27 @@ func (s *AgentSession) GetAgentSession(workspaceId, agentId, sessionId db.Id) (*
 		}
 	}
 
-	return toAgentSessionResponse(session), nil
+	var labelMap map[string]string
+	if session.Labels != nil && *session.Labels != "" {
+		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
+	}
+
+	return &AgentSessionResponse{
+		Id:          session.Id,
+		ExternalId:  session.ExternalId,
+		WorkspaceId: session.WorkspaceId,
+		AgentId:     session.AgentId,
+		Title:       session.Title,
+		Status:      session.Status,
+		Labels:      labelMap,
+		Meta:        util.JSONRawFromString(session.Meta),
+		CreatedAt:   session.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:   session.UpdatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
-func (s *AgentSession) loadAgentSession(workspaceId, agentId, sessionId db.Id) (*db.AgentSession, error) {
+// LoadAgentSession loads a session after verifying it belongs to the workspace and agent.
+func (s *AgentSession) LoadAgentSession(workspaceId, agentId, sessionId db.Id) (*db.AgentSession, error) {
 	workspace, err := s.WorkspaceRepository.GetById(workspaceId)
 	if err != nil {
 		return nil, err
@@ -276,7 +289,23 @@ func (s *AgentSession) ListAgentSessions(workspaceId, agentId db.Id, externalId 
 
 	list := make([]*AgentSessionResponse, 0, len(sessions))
 	for _, item := range sessions {
-		list = append(list, toAgentSessionResponse(item))
+		var labelMap map[string]string
+		if item.Labels != nil && *item.Labels != "" {
+			_ = json.Unmarshal([]byte(*item.Labels), &labelMap)
+		}
+
+		list = append(list, &AgentSessionResponse{
+			Id:          item.Id,
+			ExternalId:  item.ExternalId,
+			WorkspaceId: item.WorkspaceId,
+			AgentId:     item.AgentId,
+			Title:       item.Title,
+			Status:      item.Status,
+			Labels:      labelMap,
+			Meta:        util.JSONRawFromString(item.Meta),
+			CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
+		})
 	}
 
 	return &ListAgentSessionsResponse{Sessions: list, Total: total}, nil
@@ -324,7 +353,23 @@ func (s *AgentSession) GetAgentSessionByLabels(workspaceId, agentId db.Id, exter
 		return nil, ErrAgentSessionNotFound
 	}
 
-	return toAgentSessionResponse(session), nil
+	var labelMap map[string]string
+	if session.Labels != nil && *session.Labels != "" {
+		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
+	}
+
+	return &AgentSessionResponse{
+		Id:          session.Id,
+		ExternalId:  session.ExternalId,
+		WorkspaceId: session.WorkspaceId,
+		AgentId:     session.AgentId,
+		Title:       session.Title,
+		Status:      session.Status,
+		Labels:      labelMap,
+		Meta:        util.JSONRawFromString(session.Meta),
+		CreatedAt:   session.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:   session.UpdatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // UpdateAgentSessionByLabels updates a session identified by external id or query labels.
@@ -401,7 +446,23 @@ func (s *AgentSession) UpdateAgentSessionByLabels(workspaceId, agentId db.Id, ex
 		return nil, fmt.Errorf("%w: %v", ErrFailedUpdateAgentSession, err)
 	}
 
-	return toAgentSessionResponse(session), nil
+	var labelMap map[string]string
+	if session.Labels != nil && *session.Labels != "" {
+		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
+	}
+
+	return &AgentSessionResponse{
+		Id:          session.Id,
+		ExternalId:  session.ExternalId,
+		WorkspaceId: session.WorkspaceId,
+		AgentId:     session.AgentId,
+		Title:       session.Title,
+		Status:      session.Status,
+		Labels:      labelMap,
+		Meta:        util.JSONRawFromString(session.Meta),
+		CreatedAt:   session.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:   session.UpdatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // DeleteAgentSessionByLabels deletes a session identified by external id or query labels.

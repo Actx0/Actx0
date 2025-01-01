@@ -174,10 +174,14 @@ export const messageAPI = {
     api.get(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`),
   create: (workspaceId, agentId, sessionId, data) =>
     api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages`, data),
+  createBatch: (workspaceId, agentId, sessionId, data) =>
+    api.post(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/batch`, data),
   update: (workspaceId, agentId, sessionId, messageId, data) =>
     api.put(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`, data),
   delete: (workspaceId, agentId, sessionId, messageId) =>
     api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/${messageId}`),
+  deleteBatch: (workspaceId, agentId, sessionId, data) =>
+    api.delete(`/workspaces/${workspaceId}/agents/${agentId}/sessions/${sessionId}/messages/batch`, { data }),
 }
 
 export const memoryAPI = {

@@ -90,6 +90,82 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, http.StatusCreated, message)
 }
 
+// BatchCreateSessionMessagesAction creates multiple messages in an agent session.
+func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
+	wid := chi.URLParam(r, "workspaceId")
+	if wid == "" {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			"errorMessage": locale.TR(r, "invalid_workspace_id"),
+		})
+		return
+	}
+	workspaceId := db.Id(wid)
+
+	agentIdStr := chi.URLParam(r, "agentId")
+	if agentIdStr == "" {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			"errorMessage": locale.TR(r, "invalid_agent_id"),
+		})
+		return
+	}
+
+	sessionIdStr := chi.URLParam(r, "sessionId")
+	if sessionIdStr == "" {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			"errorMessage": locale.TR(r, "invalid_session_reference"),
+		})
+		return
+	}
+
+	var req module.BatchCreateSessionMessagesRequest
+	if err := util.DecodeAndValidate(r, &req); err != nil {
+		util.WriteValidationError(w, err)
+		return
+	}
+
+	mm := module.NewMessage(
+		db.NewSessionMessageRepository(db.GetDB()),
+		module.NewAgentSession(
+			db.NewAgentSessionRepository(db.GetDB()),
+			db.NewAgentRepository(db.GetDB()),
+			db.NewWorkspaceRepository(db.GetDB()),
+		),
+	)
+	messages, err := mm.BatchCreateSessionMessages(
+		workspaceId,
+		db.Id(agentIdStr),
+		db.Id(sessionIdStr),
+		&req,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrWorkspaceNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "agent_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentSessionNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		default:
+			log.Error().Err(err).Str("sessionId", sessionIdStr).Msg("Failed to batch create session messages")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"errorMessage": locale.TR(r, "failed_create_session_message"),
+			})
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusCreated, map[string]interface{}{
+		"messages": messages,
+	})
+}
+
 // ListSessionMessagesAction lists messages for an agent session.
 func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
@@ -405,6 +481,84 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 			})
 		default:
 			log.Error().Err(err).Str("messageId", messageIdStr).Msg("Failed to delete session message")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"errorMessage": locale.TR(r, "failed_delete_session_message"),
+			})
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// BatchDeleteSessionMessagesAction deletes multiple messages in an agent session.
+func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
+	wid := chi.URLParam(r, "workspaceId")
+	if wid == "" {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			"errorMessage": locale.TR(r, "invalid_workspace_id"),
+		})
+		return
+	}
+	workspaceId := db.Id(wid)
+
+	agentIdStr := chi.URLParam(r, "agentId")
+	if agentIdStr == "" {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			"errorMessage": locale.TR(r, "invalid_agent_id"),
+		})
+		return
+	}
+
+	sessionIdStr := chi.URLParam(r, "sessionId")
+	if sessionIdStr == "" {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			"errorMessage": locale.TR(r, "invalid_session_reference"),
+		})
+		return
+	}
+
+	var req module.BatchDeleteSessionMessagesRequest
+	if err := util.DecodeAndValidate(r, &req); err != nil {
+		util.WriteValidationError(w, err)
+		return
+	}
+
+	mm := module.NewMessage(
+		db.NewSessionMessageRepository(db.GetDB()),
+		module.NewAgentSession(
+			db.NewAgentSessionRepository(db.GetDB()),
+			db.NewAgentRepository(db.GetDB()),
+			db.NewWorkspaceRepository(db.GetDB()),
+		),
+	)
+	err := mm.BatchDeleteSessionMessages(
+		workspaceId,
+		db.Id(agentIdStr),
+		db.Id(sessionIdStr),
+		&req,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrWorkspaceNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "agent_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentSessionNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		case errors.Is(err, module.ErrSessionMessageNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+				"errorMessage": locale.TR(r, "session_message_not_found"),
+			})
+		default:
+			log.Error().Err(err).Str("sessionId", sessionIdStr).Msg("Failed to batch delete session messages")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_delete_session_message"),
 			})

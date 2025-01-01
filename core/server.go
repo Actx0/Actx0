@@ -175,6 +175,8 @@ func SetupServer(Static embed.FS) http.Handler {
 				r.Route("/{sessionId}/messages", func(r chi.Router) {
 					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMessages)).Get("/", api.ListSessionMessagesAction)                 // list session messages
 					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMessage)).Post("/", api.CreateSessionMessageAction)              // create session message
+					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMessage)).Post("/batch", api.BatchCreateSessionMessagesAction)   // batch create session messages
+					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMessage)).Delete("/batch", api.BatchDeleteSessionMessagesAction) // batch delete session messages
 					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMessage)).Get("/{messageId}", api.GetSessionMessageAction)          // get session message
 					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMessage)).Put("/{messageId}", api.UpdateSessionMessageAction)    // update session message
 					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMessage)).Delete("/{messageId}", api.DeleteSessionMessageAction) // delete session message

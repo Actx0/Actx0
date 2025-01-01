@@ -69,7 +69,7 @@ func NewMemory(mr db.SessionMemoryRepository, as *AgentSession) *Memory {
 
 // CreateSessionMemory creates a memory in a session.
 func (m *Memory) CreateSessionMemory(workspaceId, agentId, sessionId db.Id, req *CreateSessionMemoryRequest) (*SessionMemoryResponse, error) {
-	session, err := m.AgentSession.loadAgentSession(workspaceId, agentId, sessionId)
+	session, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (m *Memory) CreateSessionMemory(workspaceId, agentId, sessionId db.Id, req 
 
 // GetSessionMemory returns one memory by id.
 func (m *Memory) GetSessionMemory(workspaceId, agentId, sessionId, memoryId db.Id) (*SessionMemoryResponse, error) {
-	_, err := m.AgentSession.loadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (m *Memory) GetSessionMemory(workspaceId, agentId, sessionId, memoryId db.I
 
 // UpdateSessionMemory updates a memory by id.
 func (m *Memory) UpdateSessionMemory(workspaceId, agentId, sessionId, memoryId db.Id, req *UpdateSessionMemoryRequest) (*SessionMemoryResponse, error) {
-	_, err := m.AgentSession.loadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (m *Memory) UpdateSessionMemory(workspaceId, agentId, sessionId, memoryId d
 
 // DeleteSessionMemory deletes a memory by id.
 func (m *Memory) DeleteSessionMemory(workspaceId, agentId, sessionId, memoryId db.Id) error {
-	_, err := m.AgentSession.loadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (m *Memory) DeleteSessionMemory(workspaceId, agentId, sessionId, memoryId d
 
 // ListSessionMemories returns paginated memories for a session.
 func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limit, offset int) (*ListSessionMemoriesResponse, error) {
-	_, err := m.AgentSession.loadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
