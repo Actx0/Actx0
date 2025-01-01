@@ -76,6 +76,7 @@ type PlanUsageLimits struct {
 	HistoryRecords   int64   `json:"historyRecords"`
 	MemoryRecords    int64   `json:"memoryRecords"`
 	AITokens         int64   `json:"aiTokens"`
+	AICost           float64 `json:"aiCost"`
 }
 
 // BillingUsageResponse is workspace usage and limits for the billing page.
@@ -97,6 +98,7 @@ var planUsageLimits = map[string]PlanUsageLimits{
 		HistoryRecords:   1_000,
 		MemoryRecords:    500,
 		AITokens:         500_000,
+		AICost:           2.0,
 	},
 	stripe.PlanStarter: {
 		Price:            19,
@@ -108,6 +110,7 @@ var planUsageLimits = map[string]PlanUsageLimits{
 		HistoryRecords:   20_000,
 		MemoryRecords:    10_000,
 		AITokens:         2_000_000,
+		AICost:           15.2,
 	},
 	stripe.PlanGrowth: {
 		Price:            69,
@@ -119,6 +122,7 @@ var planUsageLimits = map[string]PlanUsageLimits{
 		HistoryRecords:   75_000,
 		MemoryRecords:    40_000,
 		AITokens:         7_300_000,
+		AICost:           55.2,
 	},
 	stripe.PlanPro: {
 		Price:            219,
@@ -130,6 +134,7 @@ var planUsageLimits = map[string]PlanUsageLimits{
 		HistoryRecords:   250_000,
 		MemoryRecords:    125_000,
 		AITokens:         23_200_000,
+		AICost:           175.2,
 	},
 }
 
@@ -218,6 +223,59 @@ func (b *Billing) GetBillingUsage(workspaceId db.Id, deps UsageSnapshotDeps) (*B
 		Used:        *used,
 		Limits:      limits,
 	}, nil
+}
+
+// HasReachedAnyUsagePercent reports whether any plan-capped metric has reached the given percent.
+func (b *Billing) HasReachedAnyUsagePercent(workspaceId db.Id, deps UsageSnapshotDeps, percent float64) (bool, string, error) {
+	subscription, err := b.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, "", err
+	}
+	if subscription == nil {
+		return false, "", ErrBillingSubscriptionNotFound
+	}
+
+	err = b.UpdateHobbyPlanPeriods(subscription)
+	if err != nil {
+		return false, "", err
+	}
+
+	used, err := b.Usage.GetWorkspaceUsage(deps, workspaceId)
+	if err != nil {
+		return false, "", err
+	}
+
+	limits, ok := planUsageLimits[subscription.Plan]
+	if !ok {
+		limits = planUsageLimits[stripe.PlanHobby]
+	}
+
+	checks := []struct {
+		metric string
+		used   float64
+		limit  float64
+	}{
+		{"apiCalls", float64(used.APICalls), float64(limits.APICalls)},
+		{"workspaceMembers", float64(used.WorkspaceMembers), float64(limits.WorkspaceMembers)},
+		{"documentsCount", float64(used.DocumentsCount), float64(limits.DocumentsCount)},
+		{"promptsCount", float64(used.PromptsCount), float64(limits.PromptsCount)},
+		{"storageGB", used.StorageGB, limits.StorageGB},
+		{"historyRecords", float64(used.HistoryRecords), float64(limits.HistoryRecords)},
+		{"memoryRecords", float64(used.MemoryRecords), float64(limits.MemoryRecords)},
+		{"aiTokens", float64(used.AITokens), float64(limits.AITokens)},
+		{"aiCost", used.AICost, limits.AICost},
+	}
+
+	for _, check := range checks {
+		if check.limit == 0 {
+			continue
+		}
+		if check.used/check.limit*100 >= percent {
+			return true, check.metric, nil
+		}
+	}
+
+	return false, "", nil
 }
 
 // CreateCheckoutSession starts Stripe Checkout for a paid plan.
