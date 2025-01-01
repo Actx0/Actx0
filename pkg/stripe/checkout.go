@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/samber/lo"
 	stripesdk "github.com/stripe/stripe-go/v82"
 )
 
@@ -23,7 +24,7 @@ type CheckoutOptions struct {
 // CreateCheckoutSession starts a Stripe Checkout subscription flow.
 func (c *Client) CreateCheckoutSession(ctx context.Context, opts CheckoutOptions) (*stripesdk.CheckoutSession, error) {
 	priceId := c.config.PriceId(opts.Plan)
-	if priceId == "" {
+	if lo.IsEmpty(priceId) {
 		return nil, ErrInvalidPlan
 	}
 
@@ -49,9 +50,9 @@ func (c *Client) CreateCheckoutSession(ctx context.Context, opts CheckoutOptions
 		},
 	}
 
-	if opts.CustomerId != "" {
+	if lo.IsNotEmpty(opts.CustomerId) {
 		params.Customer = stripesdk.String(opts.CustomerId)
-	} else if opts.CustomerEmail != "" {
+	} else if lo.IsNotEmpty(opts.CustomerEmail) {
 		params.CustomerEmail = stripesdk.String(opts.CustomerEmail)
 	}
 

@@ -13,6 +13,7 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 const (
@@ -38,7 +39,7 @@ func SessionAuth() func(http.Handler) http.Handler {
 
 			// API Key Check
 			apiKey := r.Header.Get("X-API-Key")
-			if apiKey != "" {
+			if lo.IsNotEmpty(apiKey) {
 				user, err := db.NewUserRepository(db.GetDB()).GetByAPIKey(apiKey)
 				if err != nil {
 					log.Info().
@@ -61,7 +62,7 @@ func SessionAuth() func(http.Handler) http.Handler {
 
 			// Access Key Check
 			accessKey := r.Header.Get("X-Access-Key")
-			if accessKey != "" {
+			if lo.IsNotEmpty(accessKey) {
 				key, err := db.NewWorkspaceAccessKeyRepository(db.GetDB()).GetByKey(accessKey)
 				if err != nil {
 					log.Info().
@@ -94,7 +95,7 @@ func SessionAuth() func(http.Handler) http.Handler {
 
 			// Session Token Check
 			sessionToken := util.GetCookie(r, "_actx0_session")
-			if sessionToken == "" {
+			if lo.IsEmpty(sessionToken) {
 				log.Info().
 					Str("path", r.URL.Path).
 					Msg("No session cookie found")

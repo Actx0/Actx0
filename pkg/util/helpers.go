@@ -84,12 +84,12 @@ func ParsePagination(r *http.Request) (limit, offset int) {
 	limit = 50
 	offset = 0
 
-	if v := r.URL.Query().Get("limit"); v != "" {
+	if v := r.URL.Query().Get("limit"); lo.IsNotEmpty(v) {
 		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 && parsed <= 100 {
 			limit = parsed
 		}
 	}
-	if v := r.URL.Query().Get("offset"); v != "" {
+	if v := r.URL.Query().Get("offset"); lo.IsNotEmpty(v) {
 		if parsed, err := strconv.Atoi(v); err == nil && parsed >= 0 {
 			offset = parsed
 		}
@@ -132,7 +132,7 @@ func HandleFromName(name string, maxLength int) string {
 
 // RemoveLabelFromJSON removes a label from a JSON-encoded string array.
 func RemoveLabelFromJSON(labels *string, label string) (*string, bool) {
-	if labels == nil || *labels == "" {
+	if labels == nil || lo.IsEmpty(*labels) {
 		return labels, false
 	}
 	var items []string
@@ -156,7 +156,7 @@ func RemoveLabelFromJSON(labels *string, label string) (*string, bool) {
 
 // JSONRawFromString returns stored JSON text as a RawMessage for API responses.
 func JSONRawFromString(raw *string) json.RawMessage {
-	if raw == nil || *raw == "" {
+	if raw == nil || lo.IsEmpty(*raw) {
 		return nil
 	}
 	return json.RawMessage(*raw)
@@ -164,7 +164,7 @@ func JSONRawFromString(raw *string) json.RawMessage {
 
 // JSONSliceFromString unmarshals a JSON-encoded slice from a stored string pointer.
 func JSONSliceFromString[T any](raw *string) []T {
-	if raw == nil || *raw == "" {
+	if raw == nil || lo.IsEmpty(*raw) {
 		return nil
 	}
 	var items []T

@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+
+	"github.com/samber/lo"
 )
 
 const gravatarBaseURL = "https://www.gravatar.com/avatar"
@@ -15,7 +17,7 @@ const gravatarBaseURL = "https://www.gravatar.com/avatar"
 // GravatarURL returns the Gravatar avatar URL for the given email.
 func GravatarURL(email string, size int) string {
 	email = strings.TrimSpace(strings.ToLower(email))
-	if email == "" {
+	if lo.IsEmpty(email) {
 		return ""
 	}
 	sum := md5.Sum([]byte(email))

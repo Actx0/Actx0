@@ -72,7 +72,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 			// Workspace — load {workspaceId} into context for handlers / perm check
 			if cfg.Workspace {
 				wid := chi.URLParam(r, "workspaceId")
-				if wid == "" {
+				if lo.IsEmpty(wid) {
 					log.Error().
 						Str("path", r.URL.Path).
 						Msg("Protect Workspace missing workspace id param")
@@ -104,7 +104,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 			}
 
 			// Perm — workspace permission; allows access keys unless User/Roles ran above
-			if cfg.Perm != "" {
+			if lo.IsNotEmpty(cfg.Perm) {
 				perm := module.NewPerm(db.GetDB())
 
 				// Prefer workspace already loaded by Workspace step or a group Protect
@@ -112,7 +112,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 					perm = perm.WithWorkspace(workspace)
 				} else {
 					wid := chi.URLParam(r, "workspaceId")
-					if wid == "" {
+					if lo.IsEmpty(wid) {
 						log.Error().
 							Str("path", r.URL.Path).
 							Str("permission", cfg.Perm).

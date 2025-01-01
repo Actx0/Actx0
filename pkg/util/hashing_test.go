@@ -6,6 +6,7 @@ package util
 import (
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -83,7 +84,7 @@ func TestUnitPasswordHashing(t *testing.T) {
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {
 				hash := tc.hash
-				if hash == "" {
+				if lo.IsEmpty(hash) {
 					var err error
 					hash, err = HashPassword(tc.password)
 					assert.NoError(t, err)

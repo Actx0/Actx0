@@ -14,12 +14,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // CreateSessionMessageAction creates a message in an agent session.
 func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -28,7 +29,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -36,7 +37,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -93,7 +94,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 // BatchCreateSessionMessagesAction creates multiple messages in an agent session.
 func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -102,7 +103,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -110,7 +111,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -169,7 +170,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 // ListSessionMessagesAction lists messages for an agent session.
 func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -178,7 +179,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -186,7 +187,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -247,7 +248,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 // GetSessionMessageAction returns one message by id.
 func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -256,7 +257,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -264,7 +265,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -272,7 +273,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	messageIdStr := chi.URLParam(r, "messageId")
-	if messageIdStr == "" {
+	if lo.IsEmpty(messageIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_message_id"),
 		})
@@ -327,7 +328,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 // UpdateSessionMessageAction updates a message by id.
 func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -336,7 +337,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -344,7 +345,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -352,7 +353,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	messageIdStr := chi.URLParam(r, "messageId")
-	if messageIdStr == "" {
+	if lo.IsEmpty(messageIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_message_id"),
 		})
@@ -414,7 +415,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 // DeleteSessionMessageAction deletes a message by id.
 func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -423,7 +424,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -431,7 +432,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -439,7 +440,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	messageIdStr := chi.URLParam(r, "messageId")
-	if messageIdStr == "" {
+	if lo.IsEmpty(messageIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_message_id"),
 		})
@@ -494,7 +495,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 // BatchDeleteSessionMessagesAction deletes multiple messages in an agent session.
 func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -503,7 +504,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -511,7 +512,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})

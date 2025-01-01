@@ -14,12 +14,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // CreateAgentSessionAction creates an agent session identified by query id and/or labels.
 func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -28,7 +29,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -37,7 +38,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 
 	externalId := util.ParseSessionExternalId(r)
 	labels := util.ParseQueryLabels(r)
-	if externalId == "" && len(labels) == 0 {
+	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -102,7 +103,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 // ListAgentSessionsAction lists agent sessions with optional id or label filters.
 func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -111,7 +112,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -172,7 +173,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 // GetAgentSessionAction returns one agent session by internal id.
 func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -181,7 +182,7 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -189,7 +190,7 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionIdStr := chi.URLParam(r, "sessionId")
-	if sessionIdStr == "" {
+	if lo.IsEmpty(sessionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -236,7 +237,7 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 // GetAgentSessionByLabelsAction returns one agent session by external id or exact query labels.
 func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -245,7 +246,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -254,7 +255,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 
 	externalId := util.ParseSessionExternalId(r)
 	labels := util.ParseQueryLabels(r)
-	if externalId == "" && len(labels) == 0 {
+	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -310,7 +311,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 // UpdateAgentSessionByLabelsAction updates an agent session identified by external id or query labels.
 func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -319,7 +320,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -328,7 +329,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 
 	externalId := util.ParseSessionExternalId(r)
 	labels := util.ParseQueryLabels(r)
-	if externalId == "" && len(labels) == 0 {
+	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
@@ -395,7 +396,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 // DeleteAgentSessionByLabelsAction deletes an agent session identified by external id or query labels.
 func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -404,7 +405,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -413,7 +414,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 
 	externalId := util.ParseSessionExternalId(r)
 	labels := util.ParseQueryLabels(r)
-	if externalId == "" && len(labels) == 0 {
+	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})

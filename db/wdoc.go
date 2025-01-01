@@ -6,6 +6,8 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/samber/lo"
 )
 
 const (
@@ -93,7 +95,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) Create(document *WorkspaceDocument
 	}
 	document.InternalId = internalId
 
-	if document.Status == "" {
+	if lo.IsEmpty(document.Status) {
 		document.Status = WorkspaceDocumentStatusProcessing
 	}
 

@@ -6,6 +6,8 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/samber/lo"
 )
 
 const (
@@ -103,7 +105,7 @@ func (r *AgentRepositoryPostgres) Create(agent *Agent) error {
 	}
 	agent.Id = id
 
-	if agent.Kind == "" {
+	if lo.IsEmpty(agent.Kind) {
 		agent.Kind = AgentKindUnmanaged
 	}
 

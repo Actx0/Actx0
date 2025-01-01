@@ -18,12 +18,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // UploadDocumentAction uploads a .txt or .md document to a workspace.
 func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -79,7 +80,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 // ListDocumentsAction returns documents for a workspace.
 func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -136,7 +137,7 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 // DeleteDocumentAction deletes a workspace document.
 func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -144,7 +145,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	documentIdStr := chi.URLParam(r, "documentId")
-	if documentIdStr == "" {
+	if lo.IsEmpty(documentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_document_id"),
 		})
@@ -196,7 +197,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 // SearchDocumentsAction searches workspace documents by semantic query.
 func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})

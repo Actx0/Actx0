@@ -14,12 +14,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // CreateWorkspaceAccessKeyAction creates a workspace access key; raw key is returned only once.
 func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -74,7 +75,7 @@ func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 // ListWorkspaceAccessKeysAction lists workspace access keys (metadata only, never the secret).
 func ListWorkspaceAccessKeysAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -125,7 +126,7 @@ func ListWorkspaceAccessKeysAction(w http.ResponseWriter, r *http.Request) {
 // GetWorkspaceAccessKeyAction returns one workspace access key (never the secret).
 func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -133,7 +134,7 @@ func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	keyIdStr := chi.URLParam(r, "keyId")
-	if keyIdStr == "" {
+	if lo.IsEmpty(keyIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_access_key_id"),
 		})
@@ -174,7 +175,7 @@ func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 // DeleteWorkspaceAccessKeyAction deletes a workspace access key.
 func DeleteWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -182,7 +183,7 @@ func DeleteWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	keyIdStr := chi.URLParam(r, "keyId")
-	if keyIdStr == "" {
+	if lo.IsEmpty(keyIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_access_key_id"),
 		})

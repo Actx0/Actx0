@@ -6,6 +6,7 @@ package chunk
 import (
 	"fmt"
 
+	"github.com/samber/lo"
 	"github.com/tmc/langchaingo/textsplitter"
 )
 
@@ -101,7 +102,7 @@ func newSplitter(config Config) (textsplitter.TextSplitter, error) {
 
 // splitterType returns the splitter type for a document format.
 func splitterType(splitter Splitter) Splitter {
-	if splitter == "" {
+	if lo.IsEmpty(splitter) {
 		return SplitterRecursive
 	}
 
@@ -160,11 +161,11 @@ func newTokenSplitter(config Config) textsplitter.TextSplitter {
 		textsplitter.WithChunkOverlap(config.Overlap),
 	}
 
-	if config.Token.ModelName != "" {
+	if lo.IsNotEmpty(config.Token.ModelName) {
 		opts = append(opts, textsplitter.WithModelName(config.Token.ModelName))
 	}
 
-	if config.Token.EncodingName != "" {
+	if lo.IsNotEmpty(config.Token.EncodingName) {
 		opts = append(opts, textsplitter.WithEncodingName(config.Token.EncodingName))
 	}
 

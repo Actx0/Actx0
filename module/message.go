@@ -11,6 +11,8 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 var (
@@ -158,7 +160,7 @@ func (m *Message) UpdateSessionMessage(workspaceId, agentId, sessionId, messageI
 		return nil, ErrSessionMessageNotFound
 	}
 
-	if req.Role != "" {
+	if lo.IsNotEmpty(req.Role) {
 		message.Role = req.Role
 	}
 	message.Content = req.Content

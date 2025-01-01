@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/leonelquinteros/gotext"
+	"github.com/samber/lo"
 )
 
 var locales = make(map[string]*gotext.Po)
@@ -43,19 +44,19 @@ func Load(f fs.FS) error {
 
 // T returns the translation for the given language and key.
 func T(lang, key string) string {
-	if lang == "" {
+	if lo.IsEmpty(lang) {
 		lang = defaultLang
 	}
 	po, ok := locales[lang]
 	if ok && po != nil {
-		if msg := getMsg(po, key); msg != "" {
+		if msg := getMsg(po, key); lo.IsNotEmpty(msg) {
 			return msg
 		}
 	}
 	if lang != defaultLang {
 		poEn := locales[defaultLang]
 		if poEn != nil {
-			if msg := getMsg(poEn, key); msg != "" {
+			if msg := getMsg(poEn, key); lo.IsNotEmpty(msg) {
 				return msg
 			}
 		}
@@ -79,7 +80,7 @@ func GetLangFromRequest(r *http.Request) string {
 	}
 
 	ah := r.Header.Get("Accept-Language")
-	if ah == "" {
+	if lo.IsEmpty(ah) {
 		return defaultLang
 	}
 

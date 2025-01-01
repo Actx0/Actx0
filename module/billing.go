@@ -15,6 +15,7 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 	stripesdk "github.com/stripe/stripe-go/v82"
 )
 
@@ -229,7 +230,7 @@ func (b *Billing) CreateCheckoutSession(ctx context.Context, workspaceId db.Id, 
 	if err != nil {
 		return nil, err
 	}
-	if client.Config().PriceId(req.Plan) == "" {
+	if lo.IsEmpty(client.Config().PriceId(req.Plan)) {
 		return nil, stripe.ErrInvalidPlan
 	}
 
@@ -278,7 +279,7 @@ func (b *Billing) CreatePortalSession(ctx context.Context, workspaceId db.Id, re
 		return nil, ErrBillingSubscriptionNotFound
 	}
 	customerId := util.StringValue(subscription.ProviderCustomerId)
-	if customerId == "" {
+	if lo.IsEmpty(customerId) {
 		return nil, ErrBillingPortalUnavailable
 	}
 
@@ -327,7 +328,7 @@ func (b *Billing) SyncStripeSubscription(client *stripe.Client, payload *stripes
 	workspaceId := db.Id(payload.Metadata["workspace_id"])
 	plan := payload.Metadata["plan"]
 
-	if workspaceId == "" {
+	if lo.IsEmpty(workspaceId) {
 		return nil
 	}
 
@@ -350,11 +351,11 @@ func (b *Billing) SyncStripeSubscription(client *stripe.Client, payload *stripes
 
 	provider := BillingProviderStripe
 	subscription.Provider = &provider
-	if payload.Customer != nil && payload.Customer.ID != "" {
+	if payload.Customer != nil && lo.IsNotEmpty(payload.Customer.ID) {
 		customerId := payload.Customer.ID
 		subscription.ProviderCustomerId = &customerId
 	}
-	if payload.ID != "" && status != BillingStatusCanceled {
+	if lo.IsNotEmpty(payload.ID) && status != BillingStatusCanceled {
 		providerSubscriptionId := payload.ID
 		subscription.ProviderSubscriptionId = &providerSubscriptionId
 	}
@@ -369,13 +370,13 @@ func (b *Billing) SyncStripeSubscription(client *stripe.Client, payload *stripes
 			value := time.Unix(item.CurrentPeriodEnd, 0).UTC()
 			subscription.CurrentPeriodEnd = &value
 		}
-		if plan == "" && item.Price != nil {
+		if lo.IsEmpty(plan) && item.Price != nil {
 			plan = client.Config().PlanForPriceId(item.Price.ID)
 		}
 	}
 
 	if status == BillingStatusActive || status == BillingStatusCanceled {
-		if plan != "" {
+		if lo.IsNotEmpty(plan) {
 			subscription.Plan = plan
 		}
 		subscription.Status = status

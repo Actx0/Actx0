@@ -142,10 +142,10 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 	}
 
 	if appCtx, ok := AppCtxFrom(ctx); ok && appCtx != nil {
-		if appCtx.IPAddress != "" {
+		if lo.IsNotEmpty(appCtx.IPAddress) {
 			session.IPAddress = &appCtx.IPAddress
 		}
-		if appCtx.UserAgent != "" {
+		if lo.IsNotEmpty(appCtx.UserAgent) {
 			session.UserAgent = &appCtx.UserAgent
 		}
 	}

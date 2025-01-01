@@ -11,6 +11,8 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 var (
@@ -167,7 +169,7 @@ func (m *Memory) UpdateSessionMemory(workspaceId, agentId, sessionId, memoryId d
 		return nil, ErrSessionMemoryNotFound
 	}
 
-	if req.Kind != "" {
+	if lo.IsNotEmpty(req.Kind) {
 		memory.Kind = req.Kind
 	}
 	memory.Content = req.Content

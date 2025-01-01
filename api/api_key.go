@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // CreateUserAPIKeyAction creates an API key; raw key is returned only once.
@@ -117,7 +118,7 @@ func GetUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiKeyIdStr := chi.URLParam(r, "apiKeyId")
-	if apiKeyIdStr == "" {
+	if lo.IsEmpty(apiKeyIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_api_key_id"),
 		})
@@ -165,7 +166,7 @@ func DeleteUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiKeyIdStr := chi.URLParam(r, "apiKeyId")
-	if apiKeyIdStr == "" {
+	if lo.IsEmpty(apiKeyIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_api_key_id"),
 		})

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/samber/lo"
 )
 
 // Validator is a singleton instance of the validator
@@ -23,11 +24,11 @@ func init() {
 	// Register custom tag name function to use 'label' tag
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		label := fld.Tag.Get("label")
-		if label != "" {
+		if lo.IsNotEmpty(label) {
 			return label
 		}
 		name := fld.Tag.Get("json")
-		if name != "" {
+		if lo.IsNotEmpty(name) {
 			return name
 		}
 		return fld.Name
@@ -131,7 +132,7 @@ func validateJSONString(fl validator.FieldLevel) bool {
 		return false
 	}
 	s = strings.TrimSpace(s)
-	if s == "" {
+	if lo.IsEmpty(s) {
 		return true
 	}
 
@@ -146,7 +147,7 @@ func validateJSONObjectString(fl validator.FieldLevel) bool {
 		return false
 	}
 	s = strings.TrimSpace(s)
-	if s == "" {
+	if lo.IsEmpty(s) {
 		return true
 	}
 

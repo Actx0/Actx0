@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 // PromptVersion is a prompt version joined with its parent prompt row.
@@ -120,7 +122,7 @@ func (r *PromptRepositoryPostgres) ExistsByHandle(workspaceId Id, handle string)
 
 // Create inserts a prompt version row for an existing prompt.
 func (r *PromptRepositoryPostgres) Create(prompt *PromptVersion) error {
-	if prompt.PromptId == "" {
+	if lo.IsEmpty(prompt.PromptId) {
 		return fmt.Errorf("prompt id required")
 	}
 

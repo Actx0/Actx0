@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 // Id is a PostgreSQL UUID primary or foreign key.
@@ -43,7 +44,7 @@ func (id *Id) Scan(value interface{}) error {
 
 // Value implements driver.Valuer for INSERT/UPDATE.
 func (id Id) Value() (driver.Value, error) {
-	if id == "" {
+	if lo.IsEmpty(id) {
 		return nil, nil
 	}
 	return string(id), nil
@@ -56,7 +57,7 @@ func (id Id) String() string {
 
 // ValueOrNil returns the Id as interface{} for use in queries; returns nil if id is empty (for nullable columns).
 func (id Id) ValueOrNil() interface{} {
-	if id == "" {
+	if lo.IsEmpty(id) {
 		return nil
 	}
 	return string(id)
@@ -64,7 +65,7 @@ func (id Id) ValueOrNil() interface{} {
 
 // ValueOrNilPtr returns the Id as interface{} for nullable columns; returns nil if the pointer is nil or Id is empty.
 func (id *Id) ValueOrNilPtr() interface{} {
-	if id == nil || *id == "" {
+	if id == nil || lo.IsEmpty(*id) {
 		return nil
 	}
 	return string(*id)

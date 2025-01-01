@@ -14,6 +14,8 @@ import (
 	"slices"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/samber/lo"
 )
 
 const (
@@ -90,7 +92,7 @@ func ParseUploadForm(r *http.Request) (*UploadForm, error) {
 	}
 
 	title := strings.TrimSpace(r.FormValue("title"))
-	if title == "" {
+	if lo.IsEmpty(title) {
 		return nil, fmt.Errorf("Title is required")
 	}
 	if len(title) > 255 {
@@ -127,7 +129,7 @@ func ParseUploadForm(r *http.Request) (*UploadForm, error) {
 // ParseLabels parses labels from a JSON array or delimited string.
 func ParseLabels(raw string) ([]string, error) {
 	raw = strings.TrimSpace(raw)
-	if raw == "" {
+	if lo.IsEmpty(raw) {
 		return []string{}, nil
 	}
 
@@ -142,7 +144,7 @@ func ParseLabels(raw string) ([]string, error) {
 	labels := make([]string, 0, len(parts))
 	for _, part := range parts {
 		label := strings.TrimSpace(part)
-		if label == "" {
+		if lo.IsEmpty(label) {
 			continue
 		}
 

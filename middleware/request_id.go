@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 // Context key for request Id
@@ -21,7 +22,7 @@ func RequestId(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestId := r.Header.Get("X-Request-ID")
 
-		if requestId == "" {
+		if lo.IsEmpty(requestId) {
 			requestId = uuid.New().String()
 		}
 

@@ -14,12 +14,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // CreateAgentAction creates a new agent in a workspace.
 func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -59,7 +60,7 @@ func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 // ListAgentsAction returns agents for a workspace.
 func ListAgentsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -102,7 +103,7 @@ func ListAgentsAction(w http.ResponseWriter, r *http.Request) {
 // GetAgentAction returns one agent by Id.
 func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -111,7 +112,7 @@ func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -148,7 +149,7 @@ func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 // UpdateAgentAction updates an agent by Id.
 func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -157,7 +158,7 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -200,7 +201,7 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 // DeleteAgentAction deletes an agent by Id.
 func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -209,7 +210,7 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	agentIdStr := chi.URLParam(r, "agentId")
-	if agentIdStr == "" {
+	if lo.IsEmpty(agentIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})

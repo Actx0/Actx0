@@ -148,7 +148,7 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 	}
 
 	handle := util.HandleFromName(req.Name, promptHandleMaxLen)
-	if handle == "" {
+	if lo.IsEmpty(handle) {
 		return nil, ErrInvalidPromptHandle
 	}
 	exists, err := p.PromptRepository.ExistsByHandle(workspaceId, handle)
@@ -200,7 +200,7 @@ func (p *Prompt) CreatePromptVersion(workspaceId, promptId db.Id, req *CreatePro
 	}
 
 	var existing []string
-	if req.Labels != nil && *req.Labels != "" {
+	if req.Labels != nil && lo.IsNotEmpty(*req.Labels) {
 		if err := json.Unmarshal([]byte(*req.Labels), &existing); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 		}
@@ -269,7 +269,7 @@ func (p *Prompt) GetPromptVersionByHandle(workspaceId db.Id, handle, versionSpec
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
 	}
-	if handle == "" {
+	if lo.IsEmpty(handle) {
 		return nil, ErrInvalidPromptHandle
 	}
 
@@ -374,7 +374,7 @@ func (p *Prompt) UpdatePromptVersion(workspaceId, promptId, versionId db.Id, req
 		return nil, ErrPromptVersionNotFound
 	}
 
-	if req.Type != "" {
+	if lo.IsNotEmpty(req.Type) {
 		prompt.Type = req.Type
 	}
 	prompt.Content = req.Content
@@ -382,7 +382,7 @@ func (p *Prompt) UpdatePromptVersion(workspaceId, promptId, versionId db.Id, req
 	prompt.Labels = req.Labels
 	prompt.CommitMessage = req.CommitMessage
 	prompt.Meta = req.Meta
-	if req.Status != "" {
+	if lo.IsNotEmpty(req.Status) {
 		prompt.Status = req.Status
 	}
 	if req.Production {
@@ -469,7 +469,7 @@ func (p *Prompt) ListPrompts(workspaceId db.Id, limit, offset int) (*ListPrompts
 	list := make([]*PromptSummaryResponse, 0, len(summaries))
 	for _, item := range summaries {
 		var summaryLabels []string
-		if item.LatestLabels != nil && *item.LatestLabels != "" {
+		if item.LatestLabels != nil && lo.IsNotEmpty(*item.LatestLabels) {
 			_ = json.Unmarshal([]byte(*item.LatestLabels), &summaryLabels)
 		}
 		list = append(list, &PromptSummaryResponse{
@@ -508,7 +508,7 @@ func (p *Prompt) GetPrompt(workspaceId, promptId db.Id) (*PromptSummaryResponse,
 	}
 
 	var summaryLabels []string
-	if summary.LatestLabels != nil && *summary.LatestLabels != "" {
+	if summary.LatestLabels != nil && lo.IsNotEmpty(*summary.LatestLabels) {
 		_ = json.Unmarshal([]byte(*summary.LatestLabels), &summaryLabels)
 	}
 

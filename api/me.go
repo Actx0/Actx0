@@ -13,6 +13,7 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // GetMeAction returns the authenticated API key or access key principal.
@@ -20,7 +21,7 @@ func GetMeAction(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.Header.Get("X-API-Key")
 	accessKey := r.Header.Get("X-Access-Key")
 
-	if apiKey == "" && accessKey == "" {
+	if lo.IsEmpty(apiKey) && lo.IsEmpty(accessKey) {
 		util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
 			"errorMessage": locale.TR(r, "me_requires_key_header"),
 		})
@@ -33,7 +34,7 @@ func GetMeAction(w http.ResponseWriter, r *http.Request) {
 		db.NewWorkspaceAccessKeyRepository(db.GetDB()),
 	)
 
-	if apiKey != "" {
+	if lo.IsNotEmpty(apiKey) {
 		me, err := mm.GetByAPIKey(apiKey)
 		if err != nil {
 			switch {

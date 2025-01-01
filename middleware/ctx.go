@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/clivern/actx0/module"
+
+	"github.com/samber/lo"
 )
 
 // AppContext attaches request metadata as module.AppCtx on the request context.
@@ -33,14 +35,14 @@ func GetAppCtx(ctx context.Context) (*module.AppCtx, bool) {
 }
 
 func clientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+	if xff := r.Header.Get("X-Forwarded-For"); lo.IsNotEmpty(xff) {
 		if i := strings.Index(xff, ","); i >= 0 {
 			return strings.TrimSpace(xff[:i])
 		}
 		return strings.TrimSpace(xff)
 	}
 
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
+	if xri := r.Header.Get("X-Real-IP"); lo.IsNotEmpty(xri) {
 		return strings.TrimSpace(xri)
 	}
 
@@ -54,13 +56,13 @@ func clientIP(r *http.Request) string {
 
 func parseFeatures(header string) map[string]bool {
 	features := map[string]bool{}
-	if header == "" {
+	if lo.IsEmpty(header) {
 		return features
 	}
 
 	for part := range strings.SplitSeq(header, ",") {
 		name := strings.TrimSpace(part)
-		if name != "" {
+		if lo.IsNotEmpty(name) {
 			features[name] = true
 		}
 	}

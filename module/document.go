@@ -16,6 +16,7 @@ import (
 	"github.com/clivern/actx0/service/knowledge"
 
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 var (
@@ -235,7 +236,7 @@ func (d *Document) ListDocuments(workspaceId db.Id, limit, offset int) (*ListDoc
 	responses := make([]*DocumentResponse, 0, len(documents))
 	for _, document := range documents {
 		var labels []string
-		if document.Labels != nil && *document.Labels != "" {
+		if document.Labels != nil && lo.IsNotEmpty(*document.Labels) {
 			_ = json.Unmarshal([]byte(*document.Labels), &labels)
 		}
 

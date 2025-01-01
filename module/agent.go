@@ -11,6 +11,8 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 var (
@@ -133,7 +135,7 @@ func (a *Agent) ListAgents(workspaceId db.Id, limit, offset int) (*ListAgentsRes
 	list := make([]*AgentResponse, 0, len(agents))
 	for _, item := range agents {
 		var kbLabels map[string]string
-		if item.KbLabels != nil && *item.KbLabels != "" {
+		if item.KbLabels != nil && lo.IsNotEmpty(*item.KbLabels) {
 			_ = json.Unmarshal([]byte(*item.KbLabels), &kbLabels)
 		}
 
@@ -174,7 +176,7 @@ func (a *Agent) GetAgent(workspaceId, agentId db.Id) (*AgentResponse, error) {
 	}
 
 	var kbLabels map[string]string
-	if agent.KbLabels != nil && *agent.KbLabels != "" {
+	if agent.KbLabels != nil && lo.IsNotEmpty(*agent.KbLabels) {
 		_ = json.Unmarshal([]byte(*agent.KbLabels), &kbLabels)
 	}
 
@@ -220,7 +222,7 @@ func (a *Agent) UpdateAgent(workspaceId, agentId db.Id, req *UpdateAgentRequest)
 	}
 
 	var kbLabels map[string]string
-	if agent.KbLabels != nil && *agent.KbLabels != "" {
+	if agent.KbLabels != nil && lo.IsNotEmpty(*agent.KbLabels) {
 		_ = json.Unmarshal([]byte(*agent.KbLabels), &kbLabels)
 	}
 

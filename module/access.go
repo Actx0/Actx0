@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 var (
@@ -74,7 +75,7 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 	}
 
 	var expiresAt *time.Time
-	if req.ExpiresAt != "" {
+	if lo.IsNotEmpty(req.ExpiresAt) {
 		t, err := time.Parse(time.RFC3339, req.ExpiresAt)
 		if err != nil {
 			return nil, ErrInvalidExpiresAt
@@ -152,7 +153,7 @@ func (a *Access) ListAccessKeys(workspaceId db.Id, limit, offset int) (*ListAcce
 	list := make([]*AccessKeyResponse, 0, len(keys))
 	for _, item := range keys {
 		var permissions []string
-		if item.Meta != nil && *item.Meta != "" {
+		if item.Meta != nil && lo.IsNotEmpty(*item.Meta) {
 			if err := json.Unmarshal([]byte(*item.Meta), &permissions); err != nil {
 				return nil, fmt.Errorf("%w: %v", ErrFailedListAccessKeys, err)
 			}
@@ -199,7 +200,7 @@ func (a *Access) GetAccessKey(workspaceId, id db.Id) (*AccessKeyResponse, error)
 	}
 
 	var permissions []string
-	if item.Meta != nil && *item.Meta != "" {
+	if item.Meta != nil && lo.IsNotEmpty(*item.Meta) {
 		if err := json.Unmarshal([]byte(*item.Meta), &permissions); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedGetAccessKey, err)
 		}

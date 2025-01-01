@@ -14,12 +14,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // CreatePromptAction creates a new prompt with its first version.
 func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -67,7 +68,7 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 // CreatePromptVersionAction creates a new version for an existing prompt.
 func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -76,7 +77,7 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	promptIdStr := chi.URLParam(r, "promptId")
-	if promptIdStr == "" {
+	if lo.IsEmpty(promptIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
@@ -119,7 +120,7 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 // ListPromptsAction returns prompt summaries for a workspace (one row per prompt name).
 func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -162,7 +163,7 @@ func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 // GetPromptByNameAction returns a prompt version by handle and optional version selector.
 func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -171,7 +172,7 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	name := chi.URLParam(r, "promptName")
-	if name == "" {
+	if lo.IsEmpty(name) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_name"),
 		})
@@ -216,7 +217,7 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 // GetPromptAction returns one prompt by Id.
 func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -225,7 +226,7 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	promptIdStr := chi.URLParam(r, "promptId")
-	if promptIdStr == "" {
+	if lo.IsEmpty(promptIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
@@ -262,7 +263,7 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 // GetPromptVersionAction returns one prompt version by Id.
 func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -271,7 +272,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	promptIdStr := chi.URLParam(r, "promptId")
-	if promptIdStr == "" {
+	if lo.IsEmpty(promptIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
@@ -279,7 +280,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	promptVersionIdStr := chi.URLParam(r, "promptVersionId")
-	if promptVersionIdStr == "" {
+	if lo.IsEmpty(promptVersionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_version_id"),
 		})
@@ -316,7 +317,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 // UpdatePromptVersionAction updates a prompt version.
 func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -325,7 +326,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	promptIdStr := chi.URLParam(r, "promptId")
-	if promptIdStr == "" {
+	if lo.IsEmpty(promptIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
@@ -333,7 +334,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	promptVersionIdStr := chi.URLParam(r, "promptVersionId")
-	if promptVersionIdStr == "" {
+	if lo.IsEmpty(promptVersionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_version_id"),
 		})
@@ -382,7 +383,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 // DeletePromptVersionAction deletes a prompt version by Id.
 func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -391,7 +392,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	promptIdStr := chi.URLParam(r, "promptId")
-	if promptIdStr == "" {
+	if lo.IsEmpty(promptIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
@@ -399,7 +400,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	promptVersionIdStr := chi.URLParam(r, "promptVersionId")
-	if promptVersionIdStr == "" {
+	if lo.IsEmpty(promptVersionIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_version_id"),
 		})
@@ -436,7 +437,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 // ListPromptVersionsAction returns versions for a prompt.
 func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -445,7 +446,7 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	promptIdStr := chi.URLParam(r, "promptId")
-	if promptIdStr == "" {
+	if lo.IsEmpty(promptIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
@@ -491,7 +492,7 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 // DeletePromptAction deletes a prompt and all of its versions.
 func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -500,7 +501,7 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := db.Id(wid)
 
 	promptIdStr := chi.URLParam(r, "promptId")
-	if promptIdStr == "" {
+	if lo.IsEmpty(promptIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})

@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 var (
@@ -58,7 +59,7 @@ func (a *APIKey) CreateAPIKey(req *CreateAPIKeyRequest, user *db.User) (*APIKeyR
 	}
 
 	var expiresAt *time.Time
-	if req.ExpiresAt != "" {
+	if lo.IsNotEmpty(req.ExpiresAt) {
 		t, err := time.Parse(time.RFC3339, req.ExpiresAt)
 		if err != nil {
 			return nil, ErrInvalidExpiresAt

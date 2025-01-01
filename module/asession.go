@@ -13,6 +13,7 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 var (
@@ -92,7 +93,7 @@ func (s *AgentSession) CreateAgentSession(workspaceId, agentId db.Id, externalId
 		return nil, ErrAgentNotFound
 	}
 
-	if externalId == "" && len(labels) == 0 {
+	if lo.IsEmpty(externalId) && len(labels) == 0 {
 		return nil, ErrInvalidSessionReference
 	}
 
@@ -114,7 +115,7 @@ func (s *AgentSession) CreateAgentSession(workspaceId, agentId db.Id, externalId
 		}
 	}
 
-	if externalId == "" {
+	if lo.IsEmpty(externalId) {
 		token, err := uuid.NewRandom()
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreateAgentSession, err)
@@ -147,7 +148,7 @@ func (s *AgentSession) CreateAgentSession(workspaceId, agentId db.Id, externalId
 	}
 
 	var labelMap map[string]string
-	if session.Labels != nil && *session.Labels != "" {
+	if session.Labels != nil && lo.IsNotEmpty(*session.Labels) {
 		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
 	}
 
@@ -180,7 +181,7 @@ func (s *AgentSession) GetAgentSession(workspaceId, agentId, sessionId db.Id) (*
 	}
 
 	var labelMap map[string]string
-	if session.Labels != nil && *session.Labels != "" {
+	if session.Labels != nil && lo.IsNotEmpty(*session.Labels) {
 		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
 	}
 
@@ -250,7 +251,7 @@ func (s *AgentSession) ListAgentSessions(workspaceId, agentId db.Id, externalId 
 		return nil, ErrAgentNotFound
 	}
 
-	if externalId != "" {
+	if lo.IsNotEmpty(externalId) {
 		session, err := s.SessionRepository.GetByAgentIdAndExternalId(agent.Id, externalId)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedListAgentSessions, err)
@@ -290,7 +291,7 @@ func (s *AgentSession) ListAgentSessions(workspaceId, agentId db.Id, externalId 
 	list := make([]*AgentSessionResponse, 0, len(sessions))
 	for _, item := range sessions {
 		var labelMap map[string]string
-		if item.Labels != nil && *item.Labels != "" {
+		if item.Labels != nil && lo.IsNotEmpty(*item.Labels) {
 			_ = json.Unmarshal([]byte(*item.Labels), &labelMap)
 		}
 
@@ -330,7 +331,7 @@ func (s *AgentSession) GetAgentSessionByLabels(workspaceId, agentId db.Id, exter
 	}
 
 	var session *db.AgentSession
-	if externalId != "" {
+	if lo.IsNotEmpty(externalId) {
 		session, err = s.SessionRepository.GetByAgentIdAndExternalId(agent.Id, externalId)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedGetAgentSession, err)
@@ -354,7 +355,7 @@ func (s *AgentSession) GetAgentSessionByLabels(workspaceId, agentId db.Id, exter
 	}
 
 	var labelMap map[string]string
-	if session.Labels != nil && *session.Labels != "" {
+	if session.Labels != nil && lo.IsNotEmpty(*session.Labels) {
 		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
 	}
 
@@ -391,7 +392,7 @@ func (s *AgentSession) UpdateAgentSessionByLabels(workspaceId, agentId db.Id, ex
 	}
 
 	var session *db.AgentSession
-	if externalId != "" {
+	if lo.IsNotEmpty(externalId) {
 		session, err = s.SessionRepository.GetByAgentIdAndExternalId(agent.Id, externalId)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedUpdateAgentSession, err)
@@ -447,7 +448,7 @@ func (s *AgentSession) UpdateAgentSessionByLabels(workspaceId, agentId db.Id, ex
 	}
 
 	var labelMap map[string]string
-	if session.Labels != nil && *session.Labels != "" {
+	if session.Labels != nil && lo.IsNotEmpty(*session.Labels) {
 		_ = json.Unmarshal([]byte(*session.Labels), &labelMap)
 	}
 
@@ -484,7 +485,7 @@ func (s *AgentSession) DeleteAgentSessionByLabels(workspaceId, agentId db.Id, ex
 	}
 
 	var session *db.AgentSession
-	if externalId != "" {
+	if lo.IsNotEmpty(externalId) {
 		session, err = s.SessionRepository.GetByAgentIdAndExternalId(agent.Id, externalId)
 		if err != nil {
 			return fmt.Errorf("%w: %v", ErrFailedDeleteAgentSession, err)

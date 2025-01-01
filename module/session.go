@@ -48,10 +48,10 @@ func (s *SessionManager) CreateSession(ctx context.Context, userId db.Id, durati
 		ExpiresAt: time.Now().UTC().Add(duration),
 	}
 	if appCtx, ok := AppCtxFrom(ctx); ok && appCtx != nil {
-		if appCtx.IPAddress != "" {
+		if lo.IsNotEmpty(appCtx.IPAddress) {
 			session.IPAddress = &appCtx.IPAddress
 		}
-		if appCtx.UserAgent != "" {
+		if lo.IsNotEmpty(appCtx.UserAgent) {
 			session.UserAgent = &appCtx.UserAgent
 		}
 	}

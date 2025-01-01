@@ -13,6 +13,7 @@ import (
 	"github.com/clivern/actx0/pkg/qdrant"
 
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
 
@@ -28,7 +29,7 @@ func (s *Service) Search(ctx context.Context, req SearchRequest) ([]SearchHit, a
 	filters := map[string]string{
 		migration.PayloadWorkspaceID: req.WorkspaceId.String(),
 	}
-	if tag, ok := req.Labels[migration.PayloadTag]; ok && tag != "" {
+	if tag, ok := req.Labels[migration.PayloadTag]; ok && lo.IsNotEmpty(tag) {
 		filters[migration.PayloadTag] = tag
 	}
 
@@ -44,7 +45,7 @@ func (s *Service) Search(ctx context.Context, req SearchRequest) ([]SearchHit, a
 	hits := make([]SearchHit, 0, len(results))
 	for _, result := range results {
 		internalIdStr := result.Payload[migration.PayloadDocumentInternalID]
-		if internalIdStr == "" {
+		if lo.IsEmpty(internalIdStr) {
 			continue
 		}
 
@@ -61,7 +62,7 @@ func (s *Service) Search(ctx context.Context, req SearchRequest) ([]SearchHit, a
 		}
 
 		labels := map[string]string{}
-		if tag := result.Payload[migration.PayloadTag]; tag != "" {
+		if tag := result.Payload[migration.PayloadTag]; lo.IsNotEmpty(tag) {
 			labels[migration.PayloadTag] = tag
 		}
 

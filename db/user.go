@@ -6,6 +6,8 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/samber/lo"
 )
 
 // User role and provider constants
@@ -108,7 +110,7 @@ func NewUserRepository(db *sql.DB) UserRepository {
 
 // Create inserts a row
 func (r *UserRepositoryPostgres) Create(user *User) error {
-	if user.Id == "" {
+	if lo.IsEmpty(user.Id) {
 		id, err := NewId()
 		if err != nil {
 			return err
@@ -149,7 +151,7 @@ func (r *UserRepositoryPostgres) GetById(id Id) (*User, error) {
 
 // GetByAPIKey returns a user by API key (raw key lookup)
 func (r *UserRepositoryPostgres) GetByAPIKey(apiKey string) (*User, error) {
-	if apiKey == "" {
+	if lo.IsEmpty(apiKey) {
 		return nil, nil
 	}
 	user := &User{}

@@ -253,7 +253,7 @@ func (p *Perm) CanAsAccessKey(permission string) (bool, error) {
 
 // ParseAccessKeyPermissions decodes the permission list stored on a workspace access key.
 func ParseAccessKeyPermissions(accessKey *db.WorkspaceAccessKey) ([]string, error) {
-	if accessKey == nil || accessKey.Meta == nil || *accessKey.Meta == "" {
+	if accessKey == nil || accessKey.Meta == nil || lo.IsEmpty(*accessKey.Meta) {
 		return nil, nil
 	}
 

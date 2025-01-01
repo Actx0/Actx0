@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // CreateInviteAction creates a new user invite.
@@ -29,7 +30,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	workspaceId := chi.URLParam(r, "workspaceId")
-	if workspaceId == "" {
+	if lo.IsEmpty(workspaceId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -97,7 +98,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 // ListInvitesAction returns invites for a workspace.
 func ListInvitesAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := chi.URLParam(r, "workspaceId")
-	if workspaceId == "" {
+	if lo.IsEmpty(workspaceId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -145,7 +146,7 @@ func ListInvitesAction(w http.ResponseWriter, r *http.Request) {
 // GetInviteAction returns one invite by Id.
 func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := chi.URLParam(r, "workspaceId")
-	if workspaceId == "" {
+	if lo.IsEmpty(workspaceId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -153,7 +154,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inviteIdStr := chi.URLParam(r, "inviteId")
-	if inviteIdStr == "" {
+	if lo.IsEmpty(inviteIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_invite_id"),
 		})
@@ -203,7 +204,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 // DeleteInviteAction deletes an invite by Id.
 func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := chi.URLParam(r, "workspaceId")
-	if workspaceId == "" {
+	if lo.IsEmpty(workspaceId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -211,7 +212,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inviteIdStr := chi.URLParam(r, "inviteId")
-	if inviteIdStr == "" {
+	if lo.IsEmpty(inviteIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_invite_id"),
 		})
@@ -265,7 +266,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 // GetUserInviteByTokenAction returns invite details by token (used on the signup page).
 func GetUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
-	if token == "" {
+	if lo.IsEmpty(token) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})
@@ -321,7 +322,7 @@ func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Requ
 	}
 
 	token := chi.URLParam(r, "token")
-	if token == "" {
+	if lo.IsEmpty(token) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})
@@ -425,7 +426,7 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := chi.URLParam(r, "token")
-	if token == "" {
+	if lo.IsEmpty(token) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})
@@ -497,7 +498,7 @@ func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := chi.URLParam(r, "token")
-	if token == "" {
+	if lo.IsEmpty(token) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})

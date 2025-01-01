@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 // ListWorkspaceMembersAction returns workspace members for managers.
@@ -28,7 +29,7 @@ func ListWorkspaceMembersAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -94,7 +95,7 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -102,7 +103,7 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	memberUserIdStr := chi.URLParam(r, "memberUserId")
-	if memberUserIdStr == "" {
+	if lo.IsEmpty(memberUserIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_user_id"),
 		})
@@ -173,7 +174,7 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wid := chi.URLParam(r, "workspaceId")
-	if wid == "" {
+	if lo.IsEmpty(wid) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
@@ -181,7 +182,7 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	memberUserIdStr := chi.URLParam(r, "memberUserId")
-	if memberUserIdStr == "" {
+	if lo.IsEmpty(memberUserIdStr) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_user_id"),
 		})

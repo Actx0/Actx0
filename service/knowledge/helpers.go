@@ -13,6 +13,8 @@ import (
 	"github.com/clivern/actx0/migration"
 	"github.com/clivern/actx0/pkg/chunk"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 const (
@@ -72,7 +74,7 @@ func GetDocumentPayload(document *db.WorkspaceDocument, text string, chunkIndex 
 		migration.PayloadChunkIndex:         strconv.Itoa(chunkIndex),
 	}
 
-	if tag := documentTag(document.Labels); tag != "" {
+	if tag := documentTag(document.Labels); lo.IsNotEmpty(tag) {
 		payload[migration.PayloadTag] = tag
 	}
 
@@ -81,7 +83,7 @@ func GetDocumentPayload(document *db.WorkspaceDocument, text string, chunkIndex 
 
 // documentTag builds the Qdrant tag for a workspace document.
 func documentTag(labels *string) string {
-	if labels == nil || *labels == "" {
+	if labels == nil || lo.IsEmpty(*labels) {
 		return ""
 	}
 

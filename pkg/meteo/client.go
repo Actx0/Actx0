@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/samber/lo"
 )
 
 const (
@@ -77,11 +79,11 @@ func New(opts ...Option) Client {
 // GetCity resolves a place name to geographic details using the Open-Meteo geocoding API.
 func (c *openMeteoClient) GetCity(ctx context.Context, name string, language string) (*City, error) {
 	name = strings.TrimSpace(name)
-	if name == "" {
+	if lo.IsEmpty(name) {
 		return nil, ErrEmptyCityName
 	}
 
-	if language == "" {
+	if lo.IsEmpty(language) {
 		language = "en"
 	}
 
@@ -167,7 +169,7 @@ func (c *openMeteoClient) GetWeatherByCoordinates(ctx context.Context, latitude,
 		return nil, fmt.Errorf("meteo forecast decode: %w", err)
 	}
 
-	if weather.CurrentWeather.Time == "" {
+	if lo.IsEmpty(weather.CurrentWeather.Time) {
 		return nil, ErrInvalidResponse
 	}
 

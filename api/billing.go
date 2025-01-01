@@ -18,6 +18,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
 
@@ -231,7 +232,7 @@ func StripeWebhookAction(w http.ResponseWriter, r *http.Request) {
 	signature := r.Header.Get("Stripe-Signature")
 	log.Info().
 		Int("payloadBytes", len(payload)).
-		Bool("hasSignature", signature != "").
+		Bool("hasSignature", lo.IsNotEmpty(signature)).
 		Msg("Stripe webhook received")
 
 	bm := module.NewBilling(

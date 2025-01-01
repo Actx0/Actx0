@@ -9,6 +9,8 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/samber/lo"
 )
 
 var (
@@ -63,8 +65,8 @@ func (p *Profile) UpdateProfile(userId db.Id, req *UpdateProfileRequest) (*db.Us
 		return nil, ErrUserNotFound
 	}
 
-	if (req.Email != "" && req.Email != user.Email) || req.NewPassword != "" {
-		if req.CurrentPassword == "" {
+	if (lo.IsNotEmpty(req.Email) && req.Email != user.Email) || lo.IsNotEmpty(req.NewPassword) {
+		if lo.IsEmpty(req.CurrentPassword) {
 			return nil, ErrCurrentPasswordRequired
 		}
 		if !util.ComparePassword(user.Password, req.CurrentPassword) {
@@ -73,11 +75,11 @@ func (p *Profile) UpdateProfile(userId db.Id, req *UpdateProfileRequest) (*db.Us
 	}
 
 	name := user.Name
-	if req.Name != "" {
+	if lo.IsNotEmpty(req.Name) {
 		name = req.Name
 	}
 	email := user.Email
-	if req.Email != "" {
+	if lo.IsNotEmpty(req.Email) {
 		email = req.Email
 	}
 
@@ -95,7 +97,7 @@ func (p *Profile) UpdateProfile(userId db.Id, req *UpdateProfileRequest) (*db.Us
 	user.Email = email
 	user.Language = req.Language
 	user.Theme = req.Theme
-	if req.NewPassword != "" {
+	if lo.IsNotEmpty(req.NewPassword) {
 		hashedPassword, err := util.HashPassword(req.NewPassword)
 		if err != nil {
 			return nil, fmt.Errorf("%w: hash password: %v", ErrFailedUpdateProfile, err)
