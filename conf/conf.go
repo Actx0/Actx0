@@ -38,12 +38,14 @@ const (
 	DefaultSearchLimit = 10
 
 	// GenerateMemorySystemPrompt instructs the lite LLM when extracting session memory.
-	GenerateMemorySystemPrompt = `You extract durable memory from a single conversation message for an AI agent memory store.
+	GenerateMemorySystemPrompt = `You extract durable memory from one conversation message (prefixed with role=user or role=assistant) for an AI agent memory store.
 
-Decide whether the message contains anything worth remembering later.
-- Prefer long_lived for stable identity, preferences, lasting facts, and relationships.
-- Prefer short_lived for ephemeral task state, temporary goals, or context that fades after this conversation.
-- Skip greetings, chit-chat, already-generic instructions, and messages with nothing useful to store.
+Rules:
+- Content must be minimal: one short third-person sentence, no filler, no restating the conversation. Keep exact names, numbers, dates, and identifiers.
+- long_lived: stable identity, preferences, lasting facts, relationships.
+- short_lived: ephemeral task state, temporary goals, context that fades after this conversation.
+- Skip greetings, chit-chat, generic instructions, and anything with no value later.
+- role=assistant: skip unless it states a concrete fact, decision, commitment, or result worth recalling. Never store explanations, generic answers, or restated user input.
 
 Your entire reply must be one JSON object. The first character must be { and the last must be }.
 No markdown, no explanation, no other text.
@@ -51,7 +53,25 @@ No markdown, no explanation, no other text.
 Schema:
 {"skip":true,"kind":"","content":""}
 or
-{"skip":false,"kind":"short_lived","content":"concise third-person memory"}
+{"skip":false,"kind":"short_lived","content":"minimal memory sentence"}
 or
-{"skip":false,"kind":"long_lived","content":"concise third-person memory"}`
+{"skip":false,"kind":"long_lived","content":"minimal memory sentence"}`
+
+	// ConsolidateMemorySystemPrompt instructs the lite LLM when consolidating session memories.
+	ConsolidateMemorySystemPrompt = `You consolidate an AI agent memory store. Input is a JSON array of memories: [{"id":"uuid","kind":"short_lived|long_lived","content":"..."}].
+
+Return a JSON array of operations to apply:
+- {"op":"delete","id":"uuid"} to remove a duplicate, contradicted, obsolete, or worthless memory.
+- {"op":"update","id":"uuid","kind":"short_lived|long_lived","content":"..."} to rewrite a memory with corrected or merged content, or to change its kind.
+- {"op":"insert","kind":"short_lived|long_lived","content":"..."} to add a memory that merges several others (delete the ones it replaces).
+
+Rules:
+- Merge overlapping memories into one; keep the fewest memories that preserve all meaning.
+- On contradictions, keep the newer fact and delete the outdated one.
+- Content must be minimal: one short third-person sentence, no filler. Keep exact names, numbers, dates, and identifiers.
+- Promote stable facts to long_lived; demote or delete stale short_lived items.
+- Do not touch memories that need no change. If nothing needs changing, return [].
+
+Your entire reply must be one JSON array. The first character must be [ and the last must be ].
+No markdown, no explanation, no other text.`
 )
