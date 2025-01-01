@@ -32,6 +32,7 @@ func GetBillingStatusAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		module.Usage{},
 	)
 
 	status, err := bm.GetBillingStatus(db.Id(workspaceId))
@@ -67,6 +68,7 @@ func GetBillingUsageAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		module.Usage{},
 	)
 
 	usage, err := bm.GetBillingUsage(db.Id(workspaceId), module.UsageSnapshotDeps{
@@ -127,6 +129,7 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		module.Usage{},
 	)
 	session, err := bm.CreateCheckoutSession(
 		r.Context(),
@@ -181,6 +184,7 @@ func CreateBillingPortalAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		module.Usage{},
 	)
 	session, err := bm.CreatePortalSession(
 		r.Context(),
@@ -238,6 +242,7 @@ func StripeWebhookAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		module.Usage{},
 	)
 
 	err = bm.HandleWebhook(payload, signature)
