@@ -29,7 +29,7 @@ Mark done: `- [x] path/to/file`
 - [x] api/tools.go
 - [x] api/profile.go
 - [x] api/api_key.go
-- [ ] api/access.go
+- [x] api/access.go
 - [ ] api/member.go
 - [ ] api/agent.go
 - [ ] api/billing.go
@@ -114,7 +114,7 @@ Mark done: `- [x] path/to/file`
 
 ## module/
 
-- [ ] module/access.go
+- [x] module/access.go
 - [ ] module/agent.go
 - [x] module/api_key.go
 - [ ] module/asession.go

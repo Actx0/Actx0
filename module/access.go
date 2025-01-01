@@ -85,12 +85,13 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 		if err != nil {
 			return nil, ErrInvalidExpiresAt
 		}
-		expiresAt = &t
+		expiresAt = new(t)
 	}
 
 	if !ValidAccessKeyPermissions(req.Permissions) {
 		return nil, ErrInvalidAccessKeyPermissions
 	}
+
 	raw, err := json.Marshal(AccessKeyMeta{Permissions: req.Permissions})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidAccessKeyPermissions, err)
@@ -109,7 +110,8 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 		Meta:        new(string(raw)),
 	}
 
-	if err := a.WorkspaceAccessKeyRepository.Create(item); err != nil {
+	err = a.WorkspaceAccessKeyRepository.Create(item)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateAccessKey, err)
 	}
 
@@ -123,8 +125,7 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 		Key:         token.String(),
 	}
 	if item.ExpiresAt != nil {
-		formatted := item.ExpiresAt.UTC().Format(time.RFC3339)
-		resp.ExpiresAt = &formatted
+		resp.ExpiresAt = new(item.ExpiresAt.UTC().Format(time.RFC3339))
 	}
 
 	return resp, nil
@@ -170,8 +171,7 @@ func (a *Access) ListAccessKeys(workspaceId db.Id, limit, offset int) (*ListAcce
 			UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
 		}
 		if item.ExpiresAt != nil {
-			formatted := item.ExpiresAt.UTC().Format(time.RFC3339)
-			resp.ExpiresAt = &formatted
+			resp.ExpiresAt = new(item.ExpiresAt.UTC().Format(time.RFC3339))
 		}
 		list = append(list, resp)
 	}
@@ -215,8 +215,7 @@ func (a *Access) GetAccessKey(workspaceId, id db.Id) (*AccessKeyResponse, error)
 		UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 	if item.ExpiresAt != nil {
-		formatted := item.ExpiresAt.UTC().Format(time.RFC3339)
-		resp.ExpiresAt = &formatted
+		resp.ExpiresAt = new(item.ExpiresAt.UTC().Format(time.RFC3339))
 	}
 
 	return resp, nil
@@ -240,7 +239,8 @@ func (a *Access) DeleteAccessKey(workspaceId, id db.Id) error {
 		return ErrAccessKeyNotFound
 	}
 
-	if err := a.WorkspaceAccessKeyRepository.Delete(item.Id); err != nil {
+	err = a.WorkspaceAccessKeyRepository.Delete(item.Id)
+	if err != nil {
 		return fmt.Errorf("%w: %v", ErrFailedDeleteAccessKey, err)
 	}
 
