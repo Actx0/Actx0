@@ -16,7 +16,8 @@ Normalize to a repo-relative path (strip leading `./` or absolute workspace pref
    - already `- [x] FILE` → leave as-is and say so
 3. If the file is missing from `debt.md`, add `- [x] FILE` under the matching `##` section (create the section if needed), using the same style as neighboring entries.
 4. Do not edit anything else in `debt.md`.
-5. Confirm with the path marked done.
+5. If this review revealed a durable convention (prefer X, avoid helper Y, lib gotcha), append a short note to root `SKILL.md` under the right section. Skip trivia.
+6. Confirm with the path marked done.
 
 ## Examples
 

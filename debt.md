@@ -154,10 +154,10 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/cache/
 
-- [ ] pkg/cache/cache.go
-- [ ] pkg/cache/config.go
-- [ ] pkg/cache/errors.go
-- [ ] pkg/cache/redis.go
+- [x] pkg/cache/cache.go
+- [x] pkg/cache/config.go
+- [x] pkg/cache/errors.go
+- [x] pkg/cache/redis.go
 
 ## pkg/chunk/
 
@@ -175,10 +175,10 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/qdrant/
 
-- [ ] pkg/qdrant/client.go
-- [ ] pkg/qdrant/errors.go
-- [ ] pkg/qdrant/helpers.go
-- [ ] pkg/qdrant/types.go
+- [x] pkg/qdrant/client.go
+- [x] pkg/qdrant/errors.go
+- [x] pkg/qdrant/helpers.go
+- [x] pkg/qdrant/types.go
 
 ## pkg/resend/
 
