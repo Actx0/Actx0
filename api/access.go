@@ -68,8 +68,8 @@ func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(wid),
-		Action:       "access_key.create",
-		ResourceType: "access_key",
+		Action:       ActionAccessKeyCreate,
+		ResourceType: ResourceAccessKey,
 		ResourceId:   key.Id,
 		Meta:         map[string]any{"name": key.Name},
 	})
@@ -215,8 +215,8 @@ func DeleteWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(wid),
-		Action:       "access_key.delete",
-		ResourceType: "access_key",
+		Action:       ActionAccessKeyDelete,
+		ResourceType: ResourceAccessKey,
 		ResourceId:   db.Id(keyId),
 	})
 

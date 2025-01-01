@@ -17,6 +17,71 @@ import (
 	"github.com/samber/lo"
 )
 
+// Audit actions recorded by controllers.
+const (
+	ActionWorkspaceCreate = "workspace.create"
+	ActionWorkspaceUpdate = "workspace.update"
+
+	ActionAccessKeyCreate = "access_key.create"
+	ActionAccessKeyDelete = "access_key.delete"
+
+	ActionAgentCreate = "agent.create"
+	ActionAgentUpdate = "agent.update"
+	ActionAgentDelete = "agent.delete"
+
+	ActionPromptCreate        = "prompt.create"
+	ActionPromptDelete        = "prompt.delete"
+	ActionPromptVersionCreate = "prompt.version.create"
+	ActionPromptVersionUpdate = "prompt.version.update"
+	ActionPromptVersionDelete = "prompt.version.delete"
+
+	ActionDocumentUpload = "document.upload"
+	ActionDocumentDelete = "document.delete"
+
+	ActionMemberUpdate = "member.update"
+	ActionMemberRemove = "member.remove"
+
+	ActionInviteCreate = "invite.create"
+	ActionInviteDelete = "invite.delete"
+	ActionInviteAccept = "invite.accept"
+	ActionInviteReject = "invite.reject"
+
+	ActionSessionCreate = "session.create"
+	ActionSessionUpdate = "session.update"
+	ActionSessionDelete = "session.delete"
+
+	ActionMessageCreate      = "message.create"
+	ActionMessageUpdate      = "message.update"
+	ActionMessageDelete      = "message.delete"
+	ActionMessageBatchCreate = "message.batch_create"
+	ActionMessageBatchDelete = "message.batch_delete"
+
+	ActionMemoryCreate      = "memory.create"
+	ActionMemoryUpdate      = "memory.update"
+	ActionMemoryDelete      = "memory.delete"
+	ActionMemoryBatchCreate = "memory.batch_create"
+	ActionMemoryBatchDelete = "memory.batch_delete"
+
+	ActionBillingCheckout = "billing.checkout"
+	ActionBillingPortal   = "billing.portal"
+)
+
+// Audit resource types.
+const (
+	ResourceWorkspace     = "workspace"
+	ResourceAccessKey     = "access_key"
+	ResourceAgent         = "agent"
+	ResourcePrompt        = "prompt"
+	ResourcePromptVersion = "prompt_version"
+	ResourceDocument      = "document"
+	ResourceMember        = "member"
+	ResourceInvite        = "invite"
+	ResourceSession       = "session"
+	ResourceMessage       = "message"
+	ResourceMemory        = "memory"
+	ResourceSubscription  = "subscription"
+)
+
 // ListWorkspaceAuditsAction lists audit events for a workspace.
 func ListWorkspaceAuditsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
