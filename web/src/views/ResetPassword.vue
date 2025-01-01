@@ -100,8 +100,6 @@ const handleSubmit = async () => {
   loading.value = true
   error.value = null
 
-  const token = route.params.token || ''
-
   if (form.password !== form.confirmPassword) {
     error.value = t('reset_password.error_passwords_match')
     loading.value = false
@@ -114,6 +112,7 @@ const handleSubmit = async () => {
     return
   }
 
+  const token = route.params.token
   if (!token) {
     error.value = t('reset_password.error_invalid_link')
     loading.value = false
