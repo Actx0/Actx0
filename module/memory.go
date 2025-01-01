@@ -206,6 +206,11 @@ func (m *Memory) UpdateSessionMemory(workspaceId, agentId, sessionId, memoryId d
 		return nil, fmt.Errorf("%w: %v", ErrFailedUpdateSessionMemory, err)
 	}
 
+	err = m.EnqueueIndexTask(workspaceId, memory.Id)
+	if err != nil {
+		return nil, err
+	}
+
 	return &SessionMemoryResponse{
 		Id:        memory.Id,
 		SessionId: memory.SessionId,

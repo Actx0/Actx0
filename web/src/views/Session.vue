@@ -139,6 +139,11 @@
 
           <!-- Memory -->
           <div v-else class="p-6">
+            <div v-if="canManage" class="mb-4 flex justify-end">
+              <button type="button" class="btn-primary" @click="openCreateMemory">
+                {{ $t('agents_page.add_memory') }}
+              </button>
+            </div>
             <div v-if="memoriesLoading" class="py-12 text-center text-sm text-theme-textLight">
               {{ $t('common.loading') }}
             </div>
@@ -174,14 +179,22 @@
                       >{{ formatMetadata(memory.meta) }}</pre>
                     </div>
                   </div>
-                  <button
-                    v-if="canManage"
-                    type="button"
-                    class="shrink-0 text-sm text-red-600 hover:text-red-700 hover:underline"
-                    @click="openDeleteMemory(memory)"
-                  >
-                    {{ $t('common.delete') }}
-                  </button>
+                  <div v-if="canManage" class="flex shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      class="text-sm text-primary-600 hover:text-primary-700 hover:underline"
+                      @click="openEditMemory(memory)"
+                    >
+                      {{ $t('common.edit') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="text-sm text-red-600 hover:text-red-700 hover:underline"
+                      @click="openDeleteMemory(memory)"
+                    >
+                      {{ $t('common.delete') }}
+                    </button>
+                  </div>
                 </div>
               </li>
             </ul>
@@ -222,11 +235,61 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Create / edit memory -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div v-if="memoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!memorySaving && closeMemoryModal()">
+          <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-md p-6">
+            <h2 class="text-lg font-semibold text-theme-text">
+              {{ memoryModal.mode === 'create' ? $t('agents_page.create_memory_title') : $t('agents_page.edit_memory_title') }}
+            </h2>
+            <form class="mt-4 space-y-4" @submit.prevent="saveMemory">
+              <div>
+                <label class="form-label" for="memory-kind">{{ $t('agents_page.memory_kind_label') }}</label>
+                <select id="memory-kind" v-model="memoryForm.kind" class="input-field" :disabled="memorySaving">
+                  <option value="summary">{{ $t('agents_page.memory_kind_summary') }}</option>
+                  <option value="fact">{{ $t('agents_page.memory_kind_fact') }}</option>
+                  <option value="preference">{{ $t('agents_page.memory_kind_preference') }}</option>
+                  <option value="short_lived">{{ $t('agents_page.memory_kind_short_lived') }}</option>
+                  <option value="long_lived">{{ $t('agents_page.memory_kind_long_lived') }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label" for="memory-content">{{ $t('agents_page.memory_content_label') }}</label>
+                <textarea
+                  id="memory-content"
+                  v-model="memoryForm.content"
+                  rows="4"
+                  class="input-field"
+                  required
+                  :disabled="memorySaving"
+                ></textarea>
+              </div>
+              <p v-if="memoryError" class="text-sm text-red-600">{{ memoryError }}</p>
+              <div class="flex gap-3 justify-end">
+                <button type="button" class="btn-secondary" :disabled="memorySaving" @click="closeMemoryModal">{{ $t('common.cancel') }}</button>
+                <button type="submit" class="btn-primary" :disabled="memorySaving">
+                  {{ memorySaving ? $t('agents_page.saving') : (memoryModal.mode === 'create' ? $t('common.create') : $t('common.save')) }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
@@ -254,6 +317,11 @@ const openMemoryMetaIds = ref({})
 const pendingDelete = ref(null)
 const deleting = ref(false)
 const deleteError = ref(null)
+
+const memoryModal = ref(null)
+const memoryForm = reactive({ kind: 'fact', content: '' })
+const memorySaving = ref(false)
+const memoryError = ref(null)
 
 const loading = ref(false)
 const errorMessage = ref(null)
@@ -388,6 +456,57 @@ function memoryKindLabel(kind) {
   if (kind === 'short_lived') return t('agents_page.memory_kind_short_lived')
   if (kind === 'long_lived') return t('agents_page.memory_kind_long_lived')
   return kind
+}
+
+function openCreateMemory() {
+  memoryForm.kind = 'fact'
+  memoryForm.content = ''
+  memoryError.value = null
+  memoryModal.value = { mode: 'create' }
+}
+
+function openEditMemory(memory) {
+  memoryForm.kind = memory.kind
+  memoryForm.content = memory.content
+  memoryError.value = null
+  memoryModal.value = {
+    mode: 'edit',
+    id: memory.id,
+    meta: hasMetadata(memory.meta) ? JSON.stringify(memory.meta) : undefined,
+  }
+}
+
+function closeMemoryModal() {
+  memoryModal.value = null
+  memoryError.value = null
+}
+
+async function saveMemory() {
+  memorySaving.value = true
+  memoryError.value = null
+
+  try {
+    if (memoryModal.value.mode === 'create') {
+      await memory_api.create(currentWorkspace.id, agentId.value, sessionId.value, {
+        kind: memoryForm.kind,
+        content: memoryForm.content.trim(),
+      })
+      showFlash(t('common.created'))
+    } else {
+      await memory_api.update(currentWorkspace.id, agentId.value, sessionId.value, memoryModal.value.id, {
+        kind: memoryForm.kind,
+        content: memoryForm.content.trim(),
+        meta: memoryModal.value.meta,
+      })
+      showFlash(t('common.saved'))
+    }
+    memoryModal.value = null
+    await loadMemories()
+  } catch (err) {
+    memoryError.value = err.response?.data?.errorMessage || t('agents_page.failed_save_memory')
+  } finally {
+    memorySaving.value = false
+  }
 }
 
 function openDeleteMessage(message) {
