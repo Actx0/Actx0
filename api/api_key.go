@@ -98,7 +98,7 @@ func ListUserAPIKeysAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"apiKeys": result.APIKeys,
+		"keys": result.APIKeys,
 		"_meta": map[string]interface{}{
 			"limit":  limit,
 			"offset": offset,

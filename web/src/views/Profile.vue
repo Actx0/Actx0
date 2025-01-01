@@ -441,7 +441,7 @@ async function loadApiKeys() {
 
   try {
     const res = await apiKeysAPI.list({ limit: 100, offset: 0 })
-    apiKeys.value = res.data.apiKeys ?? []
+    apiKeys.value = res.data.keys ?? []
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('profile.failed_load_api_keys')
   } finally {
