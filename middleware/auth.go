@@ -98,16 +98,16 @@ func Auth() func(http.Handler) http.Handler {
 				return
 			}
 
-			sessionManager := module.NewSessionManager(
+			sm := module.NewSessionManager(
 				db.NewSessionRepository(db.GetDB()),
 				db.NewUserRepository(db.GetDB()),
 			)
 
-			user, _, err := sessionManager.ValidateSession(sessionToken)
+			user, _, err := sm.ValidateSession(sessionToken)
 			if err != nil {
 				util.DeleteCookie(w, "_actx0_session")
 				if user != nil {
-					sessionManager.RevokeUserSessions(user.Id)
+					sm.RevokeUserSessions(user.Id)
 				}
 
 				log.Info().
