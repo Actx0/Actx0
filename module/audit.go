@@ -93,11 +93,11 @@ func (a *Audit) Record(ctx context.Context, event *RecordAuditEvent) {
 		case p.IsUser():
 			row.ActorId = &p.User.Id
 			row.ActorName = &p.User.Name
-			row.ActorType = lo.ToPtr(AuditActorUser)
+			row.ActorType = new(AuditActorUser)
 		case p.IsAccessKey():
 			row.ActorId = &p.AccessKey.Id
 			row.ActorName = &p.AccessKey.Name
-			row.ActorType = lo.ToPtr(AuditActorAccessKey)
+			row.ActorType = new(AuditActorAccessKey)
 		}
 	}
 
