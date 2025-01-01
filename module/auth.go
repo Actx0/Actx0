@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clivern/actx0/configs"
+	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
 
@@ -122,7 +122,7 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 		return nil, fmt.Errorf("update last login: %w", err)
 	}
 
-	duration := lo.Ternary(req.RememberMe, configs.RememberMeSessionDuration, configs.DefaultSessionDuration)
+	duration := lo.Ternary(req.RememberMe, conf.RememberMeSessionDuration, conf.DefaultSessionDuration)
 
 	token, err := util.GenerateSecureToken(32)
 	if err != nil {
@@ -164,7 +164,7 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 		util.SecureCookieOptions(),
 		util.DefaultCookieOptions(),
 	)
-	cookieOptions.MaxAge = lo.Ternary(req.RememberMe, int(configs.RememberMeSessionDuration/time.Second), 0)
+	cookieOptions.MaxAge = lo.Ternary(req.RememberMe, int(conf.RememberMeSessionDuration/time.Second), 0)
 
 	return &LoginResult{
 		User:          user,
@@ -217,7 +217,7 @@ func (a *Auth) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) e
 	resetToken := &db.PasswordResetToken{
 		UserId:    user.Id,
 		Token:     token.String(),
-		ExpiresAt: time.Now().UTC().Add(configs.PasswordResetTokenTTL),
+		ExpiresAt: time.Now().UTC().Add(conf.PasswordResetTokenTTL),
 	}
 
 	err = a.PasswordResetTokenRepository.Create(resetToken)

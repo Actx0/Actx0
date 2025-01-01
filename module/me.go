@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/clivern/actx0/db"
+
+	"github.com/samber/lo"
 )
 
 // Me resolves API key and access key principals for /me.
@@ -74,17 +76,6 @@ func (m *Me) GetByAPIKey(key string) (*MeAPIKeyResponse, error) {
 		return nil, ErrAPIKeyNotFound
 	}
 
-	info := MeAPIKeyInfo{
-		Id:        apiKey.Id,
-		Name:      apiKey.Name,
-		CreatedAt: apiKey.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt: apiKey.UpdatedAt.UTC().Format(time.RFC3339),
-	}
-	if apiKey.ExpiresAt != nil {
-		formatted := apiKey.ExpiresAt.UTC().Format(time.RFC3339)
-		info.ExpiresAt = &formatted
-	}
-
 	return &MeAPIKeyResponse{
 		PrincipalType: "api_key",
 		Owner: MeAPIKeyOwner{
@@ -93,7 +84,17 @@ func (m *Me) GetByAPIKey(key string) (*MeAPIKeyResponse, error) {
 			Name:  owner.Name,
 			Role:  owner.Role,
 		},
-		APIKey: info,
+		APIKey: MeAPIKeyInfo{
+			Id:        apiKey.Id,
+			Name:      apiKey.Name,
+			CreatedAt: apiKey.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt: apiKey.UpdatedAt.UTC().Format(time.RFC3339),
+			ExpiresAt: lo.TernaryF(
+				apiKey.ExpiresAt != nil,
+				func() *string { return new(apiKey.ExpiresAt.UTC().Format(time.RFC3339)) },
+				func() *string { return nil },
+			),
+		},
 	}, nil
 }
 
@@ -113,21 +114,20 @@ func (m *Me) GetByAccessKey(key string) (*MeAccessKeyResponse, error) {
 		return nil, err
 	}
 
-	resp := AccessKeyResponse{
-		Id:          accessKey.Id,
-		WorkspaceId: accessKey.WorkspaceId,
-		Name:        accessKey.Name,
-		Permissions: meta.Permissions,
-		CreatedAt:   accessKey.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   accessKey.UpdatedAt.UTC().Format(time.RFC3339),
-	}
-	if accessKey.ExpiresAt != nil {
-		formatted := accessKey.ExpiresAt.UTC().Format(time.RFC3339)
-		resp.ExpiresAt = &formatted
-	}
-
 	return &MeAccessKeyResponse{
 		PrincipalType: "access_key",
-		AccessKey:     resp,
+		AccessKey: AccessKeyResponse{
+			Id:          accessKey.Id,
+			WorkspaceId: accessKey.WorkspaceId,
+			Name:        accessKey.Name,
+			Permissions: meta.Permissions,
+			CreatedAt:   accessKey.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:   accessKey.UpdatedAt.UTC().Format(time.RFC3339),
+			ExpiresAt: lo.TernaryF(
+				accessKey.ExpiresAt != nil,
+				func() *string { return new(accessKey.ExpiresAt.UTC().Format(time.RFC3339)) },
+				func() *string { return nil },
+			),
+		},
 	}, nil
 }

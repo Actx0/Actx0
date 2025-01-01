@@ -7,7 +7,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/clivern/actx0/configs"
+	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/locale"
 	"github.com/clivern/actx0/module"
@@ -213,7 +213,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 
 	limit := req.Limit
 	if limit == 0 {
-		limit = configs.DefaultSearchLimit
+		limit = conf.DefaultSearchLimit
 	}
 
 	store, err := storage.New()

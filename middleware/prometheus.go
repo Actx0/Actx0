@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clivern/actx0/configs"
+	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -333,7 +333,7 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 			status,
 		).Observe(float64(wrapped.size))
 
-		if elapsed >= configs.SlowRequestThreshold {
+		if elapsed >= conf.SlowRequestThreshold {
 			httpSlowRequestsTotal.WithLabelValues(
 				r.Method,
 				path,

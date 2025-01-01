@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clivern/actx0/configs"
+	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
 
@@ -133,7 +134,7 @@ func (i *Invite) CreateInvite(workspaceId db.Id, req *CreateInviteRequest, invit
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateInvite, err)
 	}
 
-	expiresAt := time.Now().UTC().Add(configs.InviteExpiry)
+	expiresAt := time.Now().UTC().Add(conf.InviteExpiry)
 	invite := &db.UserInvite{
 		Email:         req.Email,
 		Role:          req.Role,
@@ -215,10 +216,11 @@ func (i *Invite) ListInvites(workspaceId db.Id, limit, offset int) (*ListInvites
 			ExpiresAt:     inv.ExpiresAt.UTC().Format(time.RFC3339),
 			CreatedAt:     inv.CreatedAt.UTC().Format(time.RFC3339),
 			UpdatedAt:     inv.UpdatedAt.UTC().Format(time.RFC3339),
-		}
-		if inv.AcceptedAt != nil {
-			formatted := inv.AcceptedAt.UTC().Format(time.RFC3339)
-			resp.AcceptedAt = &formatted
+			AcceptedAt: lo.TernaryF(
+				inv.AcceptedAt != nil,
+				func() *string { return new(inv.AcceptedAt.UTC().Format(time.RFC3339)) },
+				func() *string { return nil },
+			),
 		}
 		list = append(list, resp)
 	}
@@ -258,10 +260,11 @@ func (i *Invite) ListUserInvites(user *db.User, limit, offset int) (*ListInvites
 			ExpiresAt:     inv.ExpiresAt.UTC().Format(time.RFC3339),
 			CreatedAt:     inv.CreatedAt.UTC().Format(time.RFC3339),
 			UpdatedAt:     inv.UpdatedAt.UTC().Format(time.RFC3339),
-		}
-		if inv.AcceptedAt != nil {
-			formatted := inv.AcceptedAt.UTC().Format(time.RFC3339)
-			resp.AcceptedAt = &formatted
+			AcceptedAt: lo.TernaryF(
+				inv.AcceptedAt != nil,
+				func() *string { return new(inv.AcceptedAt.UTC().Format(time.RFC3339)) },
+				func() *string { return nil },
+			),
 		}
 		list = append(list, resp)
 	}
@@ -304,10 +307,11 @@ func (i *Invite) GetInvite(workspaceId, inviteId db.Id) (*InviteResponse, error)
 		ExpiresAt:     invite.ExpiresAt.UTC().Format(time.RFC3339),
 		CreatedAt:     invite.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:     invite.UpdatedAt.UTC().Format(time.RFC3339),
-	}
-	if invite.AcceptedAt != nil {
-		formatted := invite.AcceptedAt.UTC().Format(time.RFC3339)
-		resp.AcceptedAt = &formatted
+		AcceptedAt: lo.TernaryF(
+			invite.AcceptedAt != nil,
+			func() *string { return new(invite.AcceptedAt.UTC().Format(time.RFC3339)) },
+			func() *string { return nil },
+		),
 	}
 
 	return resp, nil
@@ -375,10 +379,11 @@ func (i *Invite) GetUserInviteByToken(token string) (*InviteResponse, error) {
 		ExpiresAt:     invite.ExpiresAt.UTC().Format(time.RFC3339),
 		CreatedAt:     invite.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:     invite.UpdatedAt.UTC().Format(time.RFC3339),
-	}
-	if invite.AcceptedAt != nil {
-		formatted := invite.AcceptedAt.UTC().Format(time.RFC3339)
-		resp.AcceptedAt = &formatted
+		AcceptedAt: lo.TernaryF(
+			invite.AcceptedAt != nil,
+			func() *string { return new(invite.AcceptedAt.UTC().Format(time.RFC3339)) },
+			func() *string { return nil },
+		),
 	}
 
 	return resp, nil
@@ -423,10 +428,11 @@ func (i *Invite) GetAuthenticatedUserInviteByToken(token string, user *db.User) 
 		ExpiresAt:     invite.ExpiresAt.UTC().Format(time.RFC3339),
 		CreatedAt:     invite.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:     invite.UpdatedAt.UTC().Format(time.RFC3339),
-	}
-	if invite.AcceptedAt != nil {
-		formatted := invite.AcceptedAt.UTC().Format(time.RFC3339)
-		resp.AcceptedAt = &formatted
+		AcceptedAt: lo.TernaryF(
+			invite.AcceptedAt != nil,
+			func() *string { return new(invite.AcceptedAt.UTC().Format(time.RFC3339)) },
+			func() *string { return nil },
+		),
 	}
 
 	return resp, nil
@@ -495,9 +501,8 @@ func (i *Invite) AcceptInvite(workspaceId db.Id, token string, user *db.User) (*
 		ExpiresAt:     invite.ExpiresAt.UTC().Format(time.RFC3339),
 		CreatedAt:     invite.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:     invite.UpdatedAt.UTC().Format(time.RFC3339),
+		AcceptedAt:    new(invite.AcceptedAt.UTC().Format(time.RFC3339)),
 	}
-	formatted := invite.AcceptedAt.UTC().Format(time.RFC3339)
-	resp.AcceptedAt = &formatted
 
 	return resp, nil
 }
@@ -563,9 +568,8 @@ func (i *Invite) AcceptUserInviteByToken(token string, user *db.User) (*InviteRe
 		ExpiresAt:     invite.ExpiresAt.UTC().Format(time.RFC3339),
 		CreatedAt:     invite.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:     invite.UpdatedAt.UTC().Format(time.RFC3339),
+		AcceptedAt:    new(invite.AcceptedAt.UTC().Format(time.RFC3339)),
 	}
-	formatted := invite.AcceptedAt.UTC().Format(time.RFC3339)
-	resp.AcceptedAt = &formatted
 
 	return resp, nil
 }
