@@ -19,6 +19,7 @@ import (
 func GetMeAction(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.Header.Get("X-API-Key")
 	accessKey := r.Header.Get("X-Access-Key")
+
 	if apiKey == "" && accessKey == "" {
 		util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
 			"errorMessage": locale.TR(r, "me_requires_key_header"),
