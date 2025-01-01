@@ -197,7 +197,7 @@ func SetupServer(Static embed.FS) http.Handler {
 	})
 
 	r.Group(func(r chi.Router) { // demo weather tools
-		r.Use(middleware.Protect(middleware.Config{Roles: []string{db.UserRoleAdmin, db.UserRoleRegular}}))
+		r.Use(middleware.Protect(middleware.Config{Roles: []string{db.UserRoleAdmin}}))
 		r.Post("/api/v1/tool/getCityInformation", api.GetCityInformationAction)           // get city info by name
 		r.Post("/api/v1/tool/getWeatherByCity", api.GetWeatherByCityAction)               // get weather by city name
 		r.Post("/api/v1/tool/getWeatherByCoordinates", api.GetWeatherByCoordinatesAction) // get weather by coordinates
