@@ -110,3 +110,54 @@ func (h *Handlers) HandleAgentSessionMemoryDelete(ctx context.Context, task *db.
 		"status": "deleted",
 	})
 }
+
+// HandleAgentSessionMessageIndex embeds a session message into Qdrant.
+func (h *Handlers) HandleAgentSessionMessageIndex(ctx context.Context, task *db.AsyncTask) (string, error) {
+	payload, err := DecodePayload(task.Payload)
+	if err != nil {
+		return "", err
+	}
+
+	err = h.agent.IndexSessionMessage(ctx, db.Id(payload["messageId"]))
+	if err != nil {
+		return "", err
+	}
+
+	return EncodeResult(map[string]string{
+		"status": "indexed",
+	})
+}
+
+// HandleAgentSessionMemoryIndex embeds a session memory into Qdrant.
+func (h *Handlers) HandleAgentSessionMemoryIndex(ctx context.Context, task *db.AsyncTask) (string, error) {
+	payload, err := DecodePayload(task.Payload)
+	if err != nil {
+		return "", err
+	}
+
+	err = h.agent.IndexSessionMemory(ctx, db.Id(payload["memoryId"]))
+	if err != nil {
+		return "", err
+	}
+
+	return EncodeResult(map[string]string{
+		"status": "indexed",
+	})
+}
+
+// HandleAgentSessionMemoryGenerate extracts memory from a session message.
+func (h *Handlers) HandleAgentSessionMemoryGenerate(ctx context.Context, task *db.AsyncTask) (string, error) {
+	payload, err := DecodePayload(task.Payload)
+	if err != nil {
+		return "", err
+	}
+
+	err = h.agent.GenerateMemoryFromMessage(ctx, db.Id(payload["messageId"]))
+	if err != nil {
+		return "", err
+	}
+
+	return EncodeResult(map[string]string{
+		"status": "generated",
+	})
+}

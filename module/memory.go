@@ -98,6 +98,11 @@ func (m *Memory) CreateSessionMemory(workspaceId, agentId, sessionId db.Id, req 
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
 	}
 
+	err = m.EnqueueIndexTask(workspaceId, memory.Id)
+	if err != nil {
+		return nil, err
+	}
+
 	return &SessionMemoryResponse{
 		Id:        memory.Id,
 		SessionId: memory.SessionId,
@@ -128,6 +133,11 @@ func (m *Memory) BatchCreateSessionMemories(workspaceId, agentId, sessionId db.I
 		err = m.MemoryRepository.Create(memory)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
+		}
+
+		err = m.EnqueueIndexTask(workspaceId, memory.Id)
+		if err != nil {
+			return nil, err
 		}
 
 		responses = append(responses, &SessionMemoryResponse{
@@ -227,16 +237,7 @@ func (m *Memory) DeleteSessionMemory(workspaceId, agentId, sessionId, memoryId d
 		return fmt.Errorf("%w: %v", ErrFailedDeleteSessionMemory, err)
 	}
 
-	_, err = GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
-		WorkspaceId: workspaceId,
-		Type:        "task.agent.session.memory.delete",
-		Priority:    AsyncPriorityLow,
-		Payload: map[string]string{
-			"memoryId": memoryId.String(),
-		},
-	})
-
-	return err
+	return m.EnqueueDeleteTask(workspaceId, memoryId)
 }
 
 // BatchDeleteSessionMemories deletes multiple memories by id.
@@ -262,14 +263,7 @@ func (m *Memory) BatchDeleteSessionMemories(workspaceId, agentId, sessionId db.I
 			return fmt.Errorf("%w: %v", ErrFailedDeleteSessionMemory, err)
 		}
 
-		_, err = GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
-			WorkspaceId: workspaceId,
-			Type:        "task.agent.session.memory.delete",
-			Priority:    AsyncPriorityLow,
-			Payload: map[string]string{
-				"memoryId": id,
-			},
-		})
+		err = m.EnqueueDeleteTask(workspaceId, memoryId)
 		if err != nil {
 			return err
 		}
@@ -309,4 +303,32 @@ func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limi
 	}
 
 	return &ListSessionMemoriesResponse{Memories: list, Total: total}, nil
+}
+
+// EnqueueIndexTask enqueues an async task to index a session memory.
+func (m *Memory) EnqueueIndexTask(workspaceId, memoryId db.Id) error {
+	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+		WorkspaceId: workspaceId,
+		Type:        "task.agent.session.memory.index",
+		Priority:    AsyncPriorityLow,
+		Payload: map[string]string{
+			"memoryId": memoryId.String(),
+		},
+	})
+
+	return err
+}
+
+// EnqueueDeleteTask enqueues an async task to delete session memory vectors.
+func (m *Memory) EnqueueDeleteTask(workspaceId, memoryId db.Id) error {
+	_, err := GetAsyncMgr().CreateTask(&CreateAsyncTaskOptions{
+		WorkspaceId: workspaceId,
+		Type:        "task.agent.session.memory.delete",
+		Priority:    AsyncPriorityLow,
+		Payload: map[string]string{
+			"memoryId": memoryId.String(),
+		},
+	})
+
+	return err
 }

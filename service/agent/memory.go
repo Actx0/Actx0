@@ -33,6 +33,21 @@ func (s *Service) ListMemories(ctx context.Context, sessionId db.Id, limit, offs
 	return nil, ErrNotImplemented
 }
 
+// IndexSessionMessage embeds a session message into Qdrant.
+func (s *Service) IndexSessionMessage(ctx context.Context, messageId db.Id) error {
+	return ErrNotImplemented
+}
+
+// IndexSessionMemory embeds a session memory into Qdrant.
+func (s *Service) IndexSessionMemory(ctx context.Context, memoryId db.Id) error {
+	return ErrNotImplemented
+}
+
+// GenerateMemoryFromMessage extracts and stores memory from a session message.
+func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id) error {
+	return ErrNotImplemented
+}
+
 // DeleteSessionMemory deletes vectors for one memory item.
 func (s *Service) DeleteSessionMemory(ctx context.Context, memoryId db.Id) error {
 	err := s.vectors.DeleteByFilter(ctx, migration.AgentSessionMemoriesCollection, map[string]string{
