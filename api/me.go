@@ -4,14 +4,70 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/locale"
+	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/rs/zerolog/log"
 )
 
-// GetMeAction returns the authenticated principal and its permissions.
+// GetMeAction returns the authenticated API key or access key principal.
 func GetMeAction(w http.ResponseWriter, r *http.Request) {
-	util.WriteJSON(w, http.StatusNotImplemented, map[string]interface{}{
-		"errorMessage": "not implemented",
-	})
+	apiKey := r.Header.Get("X-API-Key")
+	accessKey := r.Header.Get("X-Access-Key")
+	if apiKey == "" && accessKey == "" {
+		util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
+			"errorMessage": locale.TR(r, "me_requires_key_header"),
+		})
+		return
+	}
+
+	mm := module.NewMe(
+		db.NewAPIKeyRepository(db.GetDB()),
+		db.NewUserRepository(db.GetDB()),
+		db.NewWorkspaceAccessKeyRepository(db.GetDB()),
+	)
+
+	if apiKey != "" {
+		me, err := mm.GetByAPIKey(apiKey)
+		if err != nil {
+			switch {
+			case errors.Is(err, module.ErrAPIKeyNotFound):
+				util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+					"errorMessage": locale.TR(r, "invalid_api_key"),
+				})
+			default:
+				log.Error().Err(err).Msg("Failed to resolve API key for /me")
+				util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+					"errorMessage": locale.TR(r, "failed_get_me"),
+				})
+			}
+			return
+		}
+
+		util.WriteJSON(w, http.StatusOK, me)
+		return
+	}
+
+	me, err := mm.GetByAccessKey(accessKey)
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrAccessKeyNotFound):
+			util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+				"errorMessage": locale.TR(r, "invalid_access_key"),
+			})
+		default:
+			log.Error().Err(err).Msg("Failed to resolve access key for /me")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"errorMessage": locale.TR(r, "failed_get_me"),
+			})
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, me)
 }

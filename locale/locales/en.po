@@ -192,6 +192,9 @@ msgstr "Failed to get workspace stats."
 msgid "failed_get_profile"
 msgstr "Failed to get profile."
 
+msgid "failed_get_me"
+msgstr "Failed to get authenticated principal."
+
 msgid "failed_list_access_keys"
 msgstr "Failed to list access keys."
 
@@ -279,6 +282,9 @@ msgstr "If an account exists for this email, you will receive a password reset l
 msgid "invalid_access_key_id"
 msgstr "Invalid access key ID."
 
+msgid "invalid_access_key"
+msgstr "Invalid access key."
+
 msgid "invalid_agent_id"
 msgstr "Invalid agent ID."
 
@@ -299,6 +305,9 @@ msgstr "Invalid access key permissions."
 
 msgid "invalid_api_key_id"
 msgstr "Invalid API key ID."
+
+msgid "invalid_api_key"
+msgstr "Invalid API key."
 
 msgid "invalid_expires_at_format"
 msgstr "Invalid expiresAt format."
@@ -374,6 +383,9 @@ msgstr "Login successful."
 
 msgid "logout_successful"
 msgstr "Logout successful."
+
+msgid "me_requires_key_header"
+msgstr "X-API-Key or X-Access-Key header is required."
 
 msgid "maintenance_mode_enabled"
 msgstr "Maintenance mode is enabled."

@@ -192,6 +192,9 @@ msgstr "Impossible de récupérer les statistiques de l'espace."
 msgid "failed_get_profile"
 msgstr "Impossible de récupérer le profil."
 
+msgid "failed_get_me"
+msgstr "Impossible de récupérer le principal authentifié."
+
 msgid "failed_list_access_keys"
 msgstr "Impossible de lister les clés d'accès."
 
@@ -279,6 +282,9 @@ msgstr "Si un compte existe pour cet e-mail, vous recevrez bientôt un lien de r
 msgid "invalid_access_key_id"
 msgstr "ID de clé d'accès invalide."
 
+msgid "invalid_access_key"
+msgstr "Clé d'accès invalide."
+
 msgid "invalid_agent_id"
 msgstr "ID d'agent invalide."
 
@@ -299,6 +305,9 @@ msgstr "Permissions de clé d'accès invalides."
 
 msgid "invalid_api_key_id"
 msgstr "ID de clé API invalide."
+
+msgid "invalid_api_key"
+msgstr "Clé API invalide."
 
 msgid "invalid_expires_at_format"
 msgstr "Format expiresAt invalide."
@@ -371,6 +380,9 @@ msgstr "Invitation introuvable."
 
 msgid "login_successful"
 msgstr "Connexion réussie."
+
+msgid "me_requires_key_header"
+msgstr "L'en-tête X-API-Key ou X-Access-Key est requis."
 
 msgid "logout_successful"
 msgstr "Déconnexion réussie."
