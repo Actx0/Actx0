@@ -123,9 +123,11 @@ func (a *Access) CreateAccessKey(workspaceId db.Id, req *CreateAccessKeyRequest)
 		CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
 		Key:         token.String(),
-	}
-	if item.ExpiresAt != nil {
-		resp.ExpiresAt = new(item.ExpiresAt.UTC().Format(time.RFC3339))
+		ExpiresAt: lo.TernaryF(
+			item.ExpiresAt != nil,
+			func() *string { return new(item.ExpiresAt.UTC().Format(time.RFC3339)) },
+			func() *string { return nil },
+		),
 	}
 
 	return resp, nil
@@ -169,9 +171,11 @@ func (a *Access) ListAccessKeys(workspaceId db.Id, limit, offset int) (*ListAcce
 			Permissions: meta.Permissions,
 			CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
 			UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
-		}
-		if item.ExpiresAt != nil {
-			resp.ExpiresAt = new(item.ExpiresAt.UTC().Format(time.RFC3339))
+			ExpiresAt: lo.TernaryF(
+				item.ExpiresAt != nil,
+				func() *string { return new(item.ExpiresAt.UTC().Format(time.RFC3339)) },
+				func() *string { return nil },
+			),
 		}
 		list = append(list, resp)
 	}
@@ -213,9 +217,11 @@ func (a *Access) GetAccessKey(workspaceId, id db.Id) (*AccessKeyResponse, error)
 		Permissions: meta.Permissions,
 		CreatedAt:   item.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:   item.UpdatedAt.UTC().Format(time.RFC3339),
-	}
-	if item.ExpiresAt != nil {
-		resp.ExpiresAt = new(item.ExpiresAt.UTC().Format(time.RFC3339))
+		ExpiresAt: lo.TernaryF(
+			item.ExpiresAt != nil,
+			func() *string { return new(item.ExpiresAt.UTC().Format(time.RFC3339)) },
+			func() *string { return nil },
+		),
 	}
 
 	return resp, nil
