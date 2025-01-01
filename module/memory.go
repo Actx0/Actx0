@@ -98,7 +98,15 @@ func (m *Memory) CreateSessionMemory(workspaceId, agentId, sessionId db.Id, req 
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
 	}
 
-	return sessionMemoryResponse(memory), nil
+	return &SessionMemoryResponse{
+		Id:        memory.Id,
+		SessionId: memory.SessionId,
+		Kind:      memory.Kind,
+		Content:   memory.Content,
+		Meta:      util.JSONRawFromString(memory.Meta),
+		CreatedAt: memory.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt: memory.UpdatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // BatchCreateSessionMemories creates multiple memories in a session.
@@ -122,7 +130,15 @@ func (m *Memory) BatchCreateSessionMemories(workspaceId, agentId, sessionId db.I
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMemory, err)
 		}
 
-		responses = append(responses, sessionMemoryResponse(memory))
+		responses = append(responses, &SessionMemoryResponse{
+			Id:        memory.Id,
+			SessionId: memory.SessionId,
+			Kind:      memory.Kind,
+			Content:   memory.Content,
+			Meta:      util.JSONRawFromString(memory.Meta),
+			CreatedAt: memory.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt: memory.UpdatedAt.UTC().Format(time.RFC3339),
+		})
 	}
 
 	return responses, nil
@@ -293,16 +309,4 @@ func (m *Memory) ListSessionMemories(workspaceId, agentId, sessionId db.Id, limi
 	}
 
 	return &ListSessionMemoriesResponse{Memories: list, Total: total}, nil
-}
-
-func sessionMemoryResponse(memory *db.SessionMemory) *SessionMemoryResponse {
-	return &SessionMemoryResponse{
-		Id:        memory.Id,
-		SessionId: memory.SessionId,
-		Kind:      memory.Kind,
-		Content:   memory.Content,
-		Meta:      util.JSONRawFromString(memory.Meta),
-		CreatedAt: memory.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt: memory.UpdatedAt.UTC().Format(time.RFC3339),
-	}
 }
