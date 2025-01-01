@@ -87,8 +87,8 @@ func Auth() func(http.Handler) http.Handler {
 			}
 
 			// Session Token Check
-			sessionToken := util.GetCookie(r, "_actx0_session")
-			if lo.IsEmpty(sessionToken) {
+			token := util.GetCookie(r, "_actx0_session")
+			if lo.IsEmpty(token) {
 				log.Info().
 					Str("path", r.URL.Path).
 					Msg("No session cookie found")
@@ -103,7 +103,7 @@ func Auth() func(http.Handler) http.Handler {
 				db.NewUserRepository(db.GetDB()),
 			)
 
-			user, _, err := sm.ValidateSession(sessionToken)
+			user, _, err := sm.ValidateSession(token)
 			if err != nil {
 				util.DeleteCookie(w, "_actx0_session")
 				if user != nil {
