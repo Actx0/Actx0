@@ -46,7 +46,8 @@
           <p class="text-sm text-theme-textLight mt-1">{{ $t('workspaces_page.no_workspaces_hint') }}</p>
         </div>
 
-        <table v-else class="min-w-full divide-y divide-theme-border">
+        <div v-else class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-theme-border">
           <thead class="bg-theme-hover">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">
@@ -127,6 +128,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
 
         <!-- Pagination footer -->
         <div

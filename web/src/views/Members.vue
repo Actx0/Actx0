@@ -65,7 +65,8 @@
           <div v-else-if="members.length === 0" class="p-12 text-center text-sm text-theme-textLight">
             {{ $t('members_page.no_members') }}
           </div>
-          <table v-else class="min-w-full divide-y divide-theme-border">
+          <div v-else class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-theme-border">
             <thead class="bg-theme-hover">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('members_page.name') }}</th>
@@ -107,6 +108,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </section>
 
         <section class="rounded-xl border border-theme-border bg-white shadow-sm overflow-hidden">
@@ -123,7 +125,8 @@
           <div v-else-if="invites.length === 0" class="p-12 text-center text-sm text-theme-textLight">
             {{ $t('members_page.no_invites') }}
           </div>
-          <table v-else class="min-w-full divide-y divide-theme-border">
+          <div v-else class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-theme-border">
             <thead class="bg-theme-hover">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('members_page.email') }}</th>
@@ -152,6 +155,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </section>
       </div>
     </main>

@@ -197,7 +197,7 @@
             <div v-else-if="accessKeys.length === 0" class="rounded-lg border border-dashed border-theme-border bg-theme-bg/30 px-6 py-10 text-center text-sm text-theme-textLight">
               {{ $t('workspace_settings_page.no_keys_yet') }}
             </div>
-            <div v-else class="border border-theme-border rounded-lg overflow-hidden">
+            <div v-else class="border border-theme-border rounded-lg overflow-x-auto">
               <table class="min-w-full divide-y divide-theme-border">
                 <thead class="bg-theme-bg">
                   <tr>

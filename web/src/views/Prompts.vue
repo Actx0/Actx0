@@ -35,7 +35,8 @@
           <p v-if="canEdit" class="text-sm text-theme-textLight mt-1">{{ $t('prompts_page.no_prompts_hint') }}</p>
         </div>
 
-        <table v-else class="min-w-full divide-y divide-theme-border">
+        <div v-else class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-theme-border">
           <thead class="bg-theme-hover">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.name') }}</th>
@@ -95,6 +96,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
 
         <div v-if="total > 0" class="bg-white px-6 py-4 border-t border-theme-border flex items-center justify-between">
           <div class="text-sm text-theme-textLight">

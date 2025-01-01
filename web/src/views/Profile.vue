@@ -249,7 +249,7 @@
             <div v-else-if="apiKeys.length === 0" class="text-sm text-theme-textLight py-4">
               {{ $t('profile.no_api_keys_yet') }}
             </div>
-            <div v-else class="border border-theme-border rounded-lg overflow-hidden">
+            <div v-else class="border border-theme-border rounded-lg overflow-x-auto">
               <table class="min-w-full divide-y divide-theme-border">
                 <thead class="bg-theme-bg">
                   <tr>
