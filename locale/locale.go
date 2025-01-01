@@ -58,9 +58,9 @@ func T(lang, key string) string {
 	}
 
 	if lang != defaultLang {
-		poEn := locales[defaultLang]
-		if poEn != nil {
-			if msg := getMsg(poEn, key); lo.IsNotEmpty(msg) {
+		en := locales[defaultLang]
+		if en != nil {
+			if msg := getMsg(en, key); lo.IsNotEmpty(msg) {
 				return msg
 			}
 		}
