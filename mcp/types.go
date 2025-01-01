@@ -1,0 +1,79 @@
+// Copyright 2026 Clivern. All rights reserved.
+// License can be found in the LICENSE file.
+
+package mcp
+
+type AddMemoryInput struct {
+	Kind     string         `json:"kind,omitempty" jsonschema:"Memory kind: summary, fact, preference, short_lived, or long_lived"`
+	Content  string         `json:"content" jsonschema:"required,Text content to store"`
+	Metadata map[string]any `json:"metadata,omitempty" jsonschema:"Optional metadata"`
+}
+
+type AddMemoryOutput struct {
+	MemoryID string `json:"memory_id"`
+	Status   string `json:"status"`
+	Message  string `json:"message"`
+}
+
+type SearchMemoriesInput struct {
+	Query string `json:"query" jsonschema:"required,Semantic search query"`
+	Limit int    `json:"limit,omitempty" jsonschema:"Maximum number of results"`
+}
+
+type MemoryRecord struct {
+	MemoryID  string         `json:"memory_id"`
+	Kind      string         `json:"kind,omitempty"`
+	Memory    string         `json:"memory"`
+	Score     float32        `json:"score,omitempty"`
+	Metadata  map[string]any `json:"metadata,omitempty"`
+	CreatedAt string         `json:"created_at,omitempty"`
+	UpdatedAt string         `json:"updated_at,omitempty"`
+}
+
+type SearchMemoriesOutput struct {
+	Results []MemoryRecord `json:"results"`
+}
+
+type GetMemoriesInput struct {
+	Limit  int `json:"limit,omitempty" jsonschema:"Page size"`
+	Offset int `json:"offset,omitempty" jsonschema:"Page offset"`
+}
+
+type GetMemoriesOutput struct {
+	Memories []MemoryRecord `json:"memories"`
+	Total    int64          `json:"total"`
+	Limit    int            `json:"limit"`
+	Offset   int            `json:"offset"`
+}
+
+type GetMemoryInput struct {
+	MemoryID string `json:"memory_id" jsonschema:"required,Memory identifier"`
+}
+
+type UpdateMemoryInput struct {
+	MemoryID string         `json:"memory_id" jsonschema:"required,Memory identifier"`
+	Kind     string         `json:"kind,omitempty" jsonschema:"Memory kind: summary, fact, preference, short_lived, or long_lived"`
+	Content  string         `json:"content" jsonschema:"required,Updated memory text"`
+	Metadata map[string]any `json:"metadata,omitempty" jsonschema:"Optional metadata"`
+}
+
+type UpdateMemoryOutput struct {
+	MemoryID string `json:"memory_id"`
+	Status   string `json:"status"`
+	Message  string `json:"message"`
+}
+
+type DeleteMemoryInput struct {
+	MemoryID string `json:"memory_id" jsonschema:"required,Memory identifier"`
+}
+
+type DeleteMemoryOutput struct {
+	MemoryID string `json:"memory_id"`
+	Status   string `json:"status"`
+	Message  string `json:"message"`
+}
+
+type DeleteSessionOutput struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
