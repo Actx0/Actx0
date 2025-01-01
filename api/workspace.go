@@ -47,13 +47,20 @@ func CreateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 	)
 	workspace, err := wm.CreateWorkspace(&req, user)
 	if err != nil {
-		log.Error().
-			Err(err).
-			Str("userId", user.Id.String()).
-			Msg("Failed to create workspace")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
-			"errorMessage": locale.TR(r, "failed_create_workspace"),
-		})
+		switch {
+		case errors.Is(err, module.ErrWorkspaceLimitReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_limit_reached"),
+			})
+		default:
+			log.Error().
+				Err(err).
+				Str("userId", user.Id.String()).
+				Msg("Failed to create workspace")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+				"errorMessage": locale.TR(r, "failed_create_workspace"),
+			})
+		}
 		return
 	}
 

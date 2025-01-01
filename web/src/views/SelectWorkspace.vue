@@ -173,7 +173,8 @@ async function handleCreate() {
     createForm.name = ''
     router.push('/dashboard')
   } catch (err) {
-    createModalError.value = err.response?.data?.errorMessage || t('select_workspace.failed_create')
+    createModalError.value = err.response?.data?.errorMessage
+      || (err.response?.status === 403 ? t('select_workspace.limit_reached') : t('select_workspace.failed_create'))
   } finally {
     createLoading.value = false
   }

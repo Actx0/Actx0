@@ -552,6 +552,9 @@ msgstr "Workspace subscription not found."
 msgid "workspace_capacity_reached"
 msgstr "Workspace capacity reached for the current plan."
 
+msgid "workspace_limit_reached"
+msgstr "Upgrade a workspace to a paid plan to create more workspaces."
+
 msgid "api_calls_capacity_reached"
 msgstr "API calls capacity reached for the current plan."
 
