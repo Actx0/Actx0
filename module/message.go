@@ -119,9 +119,11 @@ func (m *Message) CreateSessionMessage(workspaceId, agentId, sessionId db.Id, re
 		return nil, err
 	}
 
-	err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
-	if err != nil {
-		return nil, err
+	if message.Role == "user" {
+		err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &SessionMessageResponse{
@@ -171,9 +173,11 @@ func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.
 			return nil, err
 		}
 
-		err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
-		if err != nil {
-			return nil, err
+		if message.Role == "user" {
+			err = m.EnqueueGenerateMemoryTask(workspaceId, message.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
