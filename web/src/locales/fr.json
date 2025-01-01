@@ -122,15 +122,9 @@
   "audits_page": {
     "title": "Audits",
     "subtitle": "Consultez l'activité de l'espace.",
-    "coming_soon": "Bientôt disponible",
-    "coming_soon_desc": "La journalisation d'audit est en cours de développement. Vous pourrez bientôt consulter l'activité de l'espace ici.",
     "event_log": "Journal des événements",
     "event_log_desc": "Historique chronologique des actions dans cet espace.",
-    "filter_category": "Catégorie",
-    "filter_action": "Action",
-    "all_categories": "Toutes les catégories",
-    "all_actions": "Toutes les actions",
-    "no_events": "Aucun événement ne correspond aux filtres.",
+    "no_events": "Aucun événement enregistré pour le moment.",
     "time": "Heure",
     "action": "Action",
     "actor": "Acteur",
@@ -150,7 +144,10 @@
     "cat_prompt": "Prompts",
     "cat_access": "Clés d'accès",
     "cat_member": "Membres",
-    "cat_workspace": "Espace"
+    "cat_workspace": "Espace",
+    "actor_user": "Utilisateur",
+    "actor_access_key": "Clé d'accès",
+    "failed_load": "Échec du chargement des événements d'audit."
   },
   "integrations_page": {
     "title": "Intégrations",

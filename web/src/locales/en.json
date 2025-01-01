@@ -122,15 +122,9 @@
   "audits_page": {
     "title": "Audits",
     "subtitle": "Review workspace activity.",
-    "coming_soon": "Coming soon",
-    "coming_soon_desc": "Audit logging is under development. You'll be able to review workspace activity here soon.",
     "event_log": "Event log",
     "event_log_desc": "Chronological record of actions in this workspace.",
-    "filter_category": "Category",
-    "filter_action": "Action",
-    "all_categories": "All categories",
-    "all_actions": "All actions",
-    "no_events": "No events match your filters.",
+    "no_events": "No events recorded yet.",
     "time": "Time",
     "action": "Action",
     "actor": "Actor",
@@ -150,7 +144,10 @@
     "cat_prompt": "Prompts",
     "cat_access": "Access keys",
     "cat_member": "Members",
-    "cat_workspace": "Workspace"
+    "cat_workspace": "Workspace",
+    "actor_user": "User",
+    "actor_access_key": "Access key",
+    "failed_load": "Failed to load audit events."
   },
   "integrations_page": {
     "title": "Integrations",
