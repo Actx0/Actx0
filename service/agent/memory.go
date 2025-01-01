@@ -20,7 +20,7 @@ import (
 )
 
 // ConsolidateMemory summarizes and compacts session memory.
-func (s *Service) ConsolidateMemory(ctx context.Context, req ConsolidateMemoryRequest) error {
+func (s *Service) ConsolidateMemory(ctx context.Context, sessionId db.Id) error {
 	return ErrNotImplemented
 }
 
