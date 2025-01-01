@@ -33,7 +33,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		}
 
 		return nil, AddMemoryOutput{
-			MemoryID: memory.Id,
+			MemoryId: memory.Id,
 			Status:   "completed",
 			Message:  "Memory saved",
 		}, nil
@@ -53,7 +53,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		records := make([]MemoryRecord, 0, len(result.Results))
 		for _, hit := range result.Results {
 			records = append(records, MemoryRecord{
-				MemoryID: hit.Id,
+				MemoryId: hit.Id,
 				Kind:     hit.Kind,
 				Memory:   hit.Text,
 				Score:    hit.Score,
@@ -77,7 +77,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 		records := make([]MemoryRecord, 0, len(list.Memories))
 		for _, item := range list.Memories {
 			record := MemoryRecord{
-				MemoryID:  item.Id,
+				MemoryId:  item.Id,
 				Kind:      item.Kind,
 				Memory:    item.Content,
 				CreatedAt: item.CreatedAt,
@@ -103,13 +103,13 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input GetMemoryInput) (*mcpsdk.CallToolResult, MemoryRecord, error) {
 		scope := ScopeFrom(ctx)
 
-		memory, err := api.GetMemory(ctx, scope, input.MemoryID)
+		memory, err := api.GetMemory(ctx, scope, input.MemoryId)
 		if err != nil {
 			return nil, MemoryRecord{}, err
 		}
 
 		record := MemoryRecord{
-			MemoryID:  memory.Id,
+			MemoryId:  memory.Id,
 			Kind:      memory.Kind,
 			Memory:    memory.Content,
 			CreatedAt: memory.CreatedAt,
@@ -133,13 +133,13 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 			return nil, UpdateMemoryOutput{}, err
 		}
 
-		memory, err := api.UpdateMemory(ctx, scope, input.MemoryID, input.Kind, input.Content, meta)
+		memory, err := api.UpdateMemory(ctx, scope, input.MemoryId, input.Kind, input.Content, meta)
 		if err != nil {
 			return nil, UpdateMemoryOutput{}, err
 		}
 
 		return nil, UpdateMemoryOutput{
-			MemoryID: memory.Id,
+			MemoryId: memory.Id,
 			Status:   "completed",
 			Message:  "Memory updated",
 		}, nil
@@ -151,13 +151,13 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input DeleteMemoryInput) (*mcpsdk.CallToolResult, DeleteMemoryOutput, error) {
 		scope := ScopeFrom(ctx)
 
-		err := api.DeleteMemory(ctx, scope, input.MemoryID)
+		err := api.DeleteMemory(ctx, scope, input.MemoryId)
 		if err != nil {
 			return nil, DeleteMemoryOutput{}, err
 		}
 
 		return nil, DeleteMemoryOutput{
-			MemoryID: input.MemoryID,
+			MemoryId: input.MemoryId,
 			Status:   "completed",
 			Message:  "Memory deleted",
 		}, nil

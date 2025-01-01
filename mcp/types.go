@@ -57,7 +57,7 @@ type AddMemoryInput struct {
 }
 
 type AddMemoryOutput struct {
-	MemoryID string `json:"memory_id"`
+	MemoryId string `json:"memory_id"`
 	Status   string `json:"status"`
 	Message  string `json:"message"`
 }
@@ -68,7 +68,7 @@ type SearchMemoriesInput struct {
 }
 
 type MemoryRecord struct {
-	MemoryID  string         `json:"memory_id"`
+	MemoryId  string         `json:"memory_id"`
 	Kind      string         `json:"kind,omitempty"`
 	Memory    string         `json:"memory"`
 	Score     float32        `json:"score,omitempty"`
@@ -94,28 +94,28 @@ type GetMemoriesOutput struct {
 }
 
 type GetMemoryInput struct {
-	MemoryID string `json:"memory_id" jsonschema:"required,Memory identifier"`
+	MemoryId string `json:"memory_id" jsonschema:"required,Memory identifier"`
 }
 
 type UpdateMemoryInput struct {
-	MemoryID string         `json:"memory_id" jsonschema:"required,Memory identifier"`
+	MemoryId string         `json:"memory_id" jsonschema:"required,Memory identifier"`
 	Kind     string         `json:"kind,omitempty" jsonschema:"Memory kind: summary, fact, preference, short_lived, or long_lived"`
 	Content  string         `json:"content" jsonschema:"required,Updated memory text"`
 	Metadata map[string]any `json:"metadata,omitempty" jsonschema:"Optional metadata"`
 }
 
 type UpdateMemoryOutput struct {
-	MemoryID string `json:"memory_id"`
+	MemoryId string `json:"memory_id"`
 	Status   string `json:"status"`
 	Message  string `json:"message"`
 }
 
 type DeleteMemoryInput struct {
-	MemoryID string `json:"memory_id" jsonschema:"required,Memory identifier"`
+	MemoryId string `json:"memory_id" jsonschema:"required,Memory identifier"`
 }
 
 type DeleteMemoryOutput struct {
-	MemoryID string `json:"memory_id"`
+	MemoryId string `json:"memory_id"`
 	Status   string `json:"status"`
 	Message  string `json:"message"`
 }
