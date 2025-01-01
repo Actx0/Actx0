@@ -235,14 +235,9 @@ func SetupServer(Static embed.FS) http.Handler {
 	return r
 }
 
-// InitDatabase initializes the database connection from configuration
-func InitDatabase() error {
-	return db.InitDB(ReadWriteDatabase(), ReadOnlyDatabase()...)
-}
-
 // Run starts the HTTP server with graceful shutdown support
 func RunServer(handler http.Handler) error {
-	err := InitDatabase()
+	err := db.InitDB(ReadWriteDatabase(), ReadOnlyDatabase()...)
 	if err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
 	}
