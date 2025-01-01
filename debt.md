@@ -96,18 +96,15 @@ Mark done: `- [x] path/to/file.go`
 
 ## middleware/
 
-- [ ] middleware/auth.go
-- [ ] middleware/basicauth.go
-- [ ] middleware/ctx.go
-- [ ] middleware/helpers.go
-- [ ] middleware/logger.go
-- [ ] middleware/permission.go
-- [ ] middleware/prometheus.go
-- [ ] middleware/request_id.go
-- [ ] middleware/request_size.go
-- [ ] middleware/role.go
-- [ ] middleware/usage.go
-- [ ] middleware/workspace.go
+- [x] middleware/auth.go
+- [x] middleware/ctx.go
+- [x] middleware/helpers.go
+- [x] middleware/logger.go
+- [x] middleware/prometheus.go
+- [x] middleware/protect.go
+- [x] middleware/request_id.go
+- [x] middleware/request_size.go
+- [x] middleware/usage.go
 
 ## migration/
 

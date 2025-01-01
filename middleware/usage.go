@@ -12,14 +12,14 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type statusRecorder struct {
+type StatusRecorder struct {
 	http.ResponseWriter
 	status int
 }
 
-func (rw *statusRecorder) WriteHeader(code int) {
-	rw.status = code
-	rw.ResponseWriter.WriteHeader(code)
+func (s *StatusRecorder) WriteHeader(code int) {
+	s.status = code
+	s.ResponseWriter.WriteHeader(code)
 }
 
 // TrackWorkspaceAPICall increments workspace API usage after authenticated, authorized
@@ -27,7 +27,7 @@ func (rw *statusRecorder) WriteHeader(code int) {
 func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+			recorder := &StatusRecorder{ResponseWriter: w, status: http.StatusOK}
 			next.ServeHTTP(recorder, r)
 
 			if recorder.status < http.StatusOK || recorder.status >= http.StatusMultipleChoices {
