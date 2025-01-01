@@ -107,6 +107,39 @@ func ParsePagination(r *http.Request) (limit, offset int) {
 	return limit, offset
 }
 
+// RandomHandle returns a handle like abcd-1234 (min–max letters, dash, min–max digits).
+func RandomHandle(min, max int) (string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyz"
+	const digits = "0123456789"
+
+	letterLen, err := RandInt(min, max)
+	if err != nil {
+		return "", err
+	}
+	digitLen, err := RandInt(min, max)
+	if err != nil {
+		return "", err
+	}
+
+	handle := make([]byte, letterLen+1+digitLen)
+	for i := 0; i < letterLen; i++ {
+		idx, err := RandInt(0, len(letters)-1)
+		if err != nil {
+			return "", err
+		}
+		handle[i] = letters[idx]
+	}
+	handle[letterLen] = '-'
+	for i := 0; i < digitLen; i++ {
+		idx, err := RandInt(0, len(digits)-1)
+		if err != nil {
+			return "", err
+		}
+		handle[letterLen+1+i] = digits[idx]
+	}
+	return string(handle), nil
+}
+
 // HandleFromName derives a dash-separated lowercase handle from a display name.
 // maxLength limits the result; pass 0 or a negative value to disable truncation.
 func HandleFromName(name string, maxLength int) string {
