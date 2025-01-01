@@ -423,7 +423,8 @@ async function handleCreate() {
     await loadPage()
     showFlash(t('common.created'))
   } catch (err) {
-    createError.value = err.response?.data?.errorMessage || t('workspaces_page.failed_create')
+    createError.value = err.response?.data?.errorMessage
+      || (err.response?.status === 403 ? t('workspaces_page.limit_reached') : t('workspaces_page.failed_create'))
   } finally {
     createLoading.value = false
   }

@@ -640,7 +640,8 @@
     "workspace_name_placeholder": "Mon espace",
     "invalid_response": "Réponse invalide",
     "failed_load": "Échec du chargement des espaces",
-    "failed_create": "Échec de la création de l'espace"
+    "failed_create": "Échec de la création de l'espace",
+    "limit_reached": "Passez un espace de travail à un forfait payant pour en créer d'autres."
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -994,6 +995,7 @@
     "workspace_deleted": "Espace supprimé.",
     "failed_switch": "Échec du changement d'espace",
     "failed_create": "Échec de la création de l'espace",
+    "limit_reached": "Passez un espace de travail à un forfait payant pour en créer d'autres.",
     "failed_update": "Échec de la mise à jour du nom",
     "failed_load": "Échec du chargement",
     "failed_delete": "Échec de la suppression"

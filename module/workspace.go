@@ -17,6 +17,7 @@ var (
 	ErrWorkspaceUserNotFound = errors.New("workspace user not found")
 	ErrWorkspaceAccessDenied = errors.New("workspace access denied")
 	ErrWorkspaceCheckAccess  = errors.New("failed check workspace access")
+	ErrWorkspaceLimitReached = errors.New("workspace limit reached")
 )
 
 // Workspace is the module for workspace CRUD and members.
@@ -66,6 +67,21 @@ type ListWorkspacesResponse struct {
 
 // CreateWorkspace creates a workspace and adds the user as owner.
 func (w *Workspace) CreateWorkspace(req *CreateWorkspaceRequest, user *db.User) (*WorkspaceResponse, error) {
+	ownedCount, err := w.WorkspaceUserRepository.CountOwnedByUserId(user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if ownedCount >= 1 {
+		hasPaid, err := w.SubscriptionRepository.HasOwnedPaidWorkspace(user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if !hasPaid {
+			return nil, ErrWorkspaceLimitReached
+		}
+	}
+
 	var handle string
 	for {
 		h, err := util.RandomHandle(4, 8)
@@ -87,7 +103,7 @@ func (w *Workspace) CreateWorkspace(req *CreateWorkspaceRequest, user *db.User) 
 		Handle: handle,
 	}
 
-	err := w.WorkspaceRepository.Create(workspace)
+	err = w.WorkspaceRepository.Create(workspace)
 	if err != nil {
 		return nil, err
 	}

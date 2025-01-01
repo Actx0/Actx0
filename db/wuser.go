@@ -29,6 +29,7 @@ type WorkspaceUserRepository interface {
 	Count() (int64, error)
 	ListByWorkspaceId(workspaceId Id, limit, offset int) ([]*WorkspaceUser, error)
 	CountByWorkspaceId(workspaceId Id) (int64, error)
+	CountOwnedByUserId(userId Id) (int64, error)
 }
 
 // WorkspaceUserRepositoryPostgres implements WorkspaceUserRepository for PostgreSQL
@@ -215,6 +216,19 @@ func (r *WorkspaceUserRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (in
 		FROM workspace_users
 		WHERE workspace_id = $1`,
 		workspaceId.String(),
+	).Scan(&count)
+	return count, err
+}
+
+// CountOwnedByUserId returns the number of workspaces the user owns.
+func (r *WorkspaceUserRepositoryPostgres) CountOwnedByUserId(userId Id) (int64, error) {
+	var count int64
+	err := r.db.QueryRow(
+		`SELECT COUNT(*)
+		FROM workspace_users
+		WHERE user_id = $1 AND role = $2`,
+		userId.String(),
+		UserRoleOwner,
 	).Scan(&count)
 	return count, err
 }

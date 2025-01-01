@@ -30,6 +30,7 @@ type SubscriptionRepository interface {
 	GetByWorkspaceId(workspaceId Id) (*Subscription, error)
 	GetByProviderSubscriptionId(providerSubscriptionId string) (*Subscription, error)
 	Update(subscription *Subscription) error
+	HasOwnedPaidWorkspace(userId Id) (bool, error)
 }
 
 type SubscriptionRepositoryPostgres struct {
@@ -211,6 +212,24 @@ func (r *SubscriptionRepositoryPostgres) Update(subscription *Subscription) erro
 		subscription.Id.String(),
 	)
 	return err
+}
+
+// HasOwnedPaidWorkspace reports whether the user owns a workspace on a paid plan.
+func (r *SubscriptionRepositoryPostgres) HasOwnedPaidWorkspace(userId Id) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(
+		`SELECT EXISTS (
+			SELECT 1
+			FROM workspace_users wu
+			JOIN subscriptions s ON s.workspace_id = wu.workspace_id
+			WHERE wu.user_id = $1
+				AND wu.role = $2
+				AND s.plan IN ('starter', 'growth', 'pro')
+		)`,
+		userId.String(),
+		UserRoleOwner,
+	).Scan(&exists)
+	return exists, err
 }
 
 // NewSubscriptionMetaRepository returns the repository for subscription metadata.

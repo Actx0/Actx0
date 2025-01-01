@@ -640,7 +640,8 @@
     "workspace_name_placeholder": "My Workspace",
     "invalid_response": "Invalid response",
     "failed_load": "Failed to load workspaces",
-    "failed_create": "Failed to create workspace"
+    "failed_create": "Failed to create workspace",
+    "limit_reached": "Upgrade a workspace to a paid plan to create more workspaces."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -994,6 +995,7 @@
     "workspace_deleted": "Workspace deleted successfully.",
     "failed_switch": "Failed to switch into workspace",
     "failed_create": "Failed to create workspace",
+    "limit_reached": "Upgrade a workspace to a paid plan to create more workspaces.",
     "failed_update": "Failed to update workspace name",
     "failed_load": "Failed to load workspaces",
     "failed_delete": "Failed to delete workspace"
