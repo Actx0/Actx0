@@ -111,8 +111,8 @@ func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -123,7 +123,7 @@ func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	agent, err := am.GetAgent(workspaceId, db.Id(agentIdStr))
+	agent, err := am.GetAgent(workspaceId, db.Id(agentId))
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -135,7 +135,7 @@ func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to get agent")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to get agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_get_agent"),
 			})
@@ -157,8 +157,8 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -175,7 +175,7 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	agent, err := am.UpdateAgent(workspaceId, db.Id(agentIdStr), &req)
+	agent, err := am.UpdateAgent(workspaceId, db.Id(agentId), &req)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -187,7 +187,7 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to update agent")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to update agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_update_agent"),
 			})
@@ -209,8 +209,8 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	agentIdStr := chi.URLParam(r, "agentId")
-	if lo.IsEmpty(agentIdStr) {
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
@@ -221,7 +221,7 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	err := am.DeleteAgent(workspaceId, db.Id(agentIdStr))
+	err := am.DeleteAgent(workspaceId, db.Id(agentId))
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -233,7 +233,7 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentIdStr).Msg("Failed to delete agent")
+			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to delete agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_delete_agent"),
 			})

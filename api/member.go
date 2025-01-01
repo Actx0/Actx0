@@ -102,8 +102,8 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memberUserIdStr := chi.URLParam(r, "memberUserId")
-	if lo.IsEmpty(memberUserIdStr) {
+	memberUserId := chi.URLParam(r, "memberUserId")
+	if lo.IsEmpty(memberUserId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_user_id"),
 		})
@@ -119,7 +119,7 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().
 		Str("workspaceId", wid).
-		Str("memberUserId", memberUserIdStr).
+		Str("memberUserId", memberUserId).
 		Str("userId", user.Id.String()).
 		Str("role", req.Role).
 		Msg("Updating workspace member role")
@@ -133,7 +133,7 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 
 	member, err := wm.UpdateWorkspaceMemberRole(
 		db.Id(wid),
-		db.Id(memberUserIdStr),
+		db.Id(memberUserId),
 		req.Role,
 	)
 	if err != nil {
@@ -150,7 +150,7 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 			log.Error().
 				Err(err).
 				Str("workspaceId", wid).
-				Str("memberUserId", memberUserIdStr).
+				Str("memberUserId", memberUserId).
 				Str("userId", user.Id.String()).
 				Msg("Failed to update workspace member role")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -181,8 +181,8 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memberUserIdStr := chi.URLParam(r, "memberUserId")
-	if lo.IsEmpty(memberUserIdStr) {
+	memberUserId := chi.URLParam(r, "memberUserId")
+	if lo.IsEmpty(memberUserId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_user_id"),
 		})
@@ -191,7 +191,7 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().
 		Str("workspaceId", wid).
-		Str("memberUserId", memberUserIdStr).
+		Str("memberUserId", memberUserId).
 		Str("userId", user.Id.String()).
 		Msg("Removing workspace member")
 
@@ -204,7 +204,7 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 
 	err := wm.DeleteWorkspaceMember(
 		db.Id(wid),
-		db.Id(memberUserIdStr),
+		db.Id(memberUserId),
 	)
 	if err != nil {
 		switch {
@@ -220,7 +220,7 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 			log.Error().
 				Err(err).
 				Str("workspaceId", wid).
-				Str("memberUserId", memberUserIdStr).
+				Str("memberUserId", memberUserId).
 				Str("userId", user.Id.String()).
 				Msg("Failed to delete workspace member")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{

@@ -71,8 +71,8 @@ func GetWorkspaceAuditAction(w http.ResponseWriter, r *http.Request) {
 	}
 	workspaceId := db.Id(wid)
 
-	auditIdStr := chi.URLParam(r, "auditId")
-	if lo.IsEmpty(auditIdStr) {
+	auditId := chi.URLParam(r, "auditId")
+	if lo.IsEmpty(auditId) {
 		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": locale.TR(r, "invalid_audit_id"),
 		})
@@ -83,7 +83,7 @@ func GetWorkspaceAuditAction(w http.ResponseWriter, r *http.Request) {
 		db.NewAuditEventRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	event, err := am.GetAuditEvent(workspaceId, db.Id(auditIdStr))
+	event, err := am.GetAuditEvent(workspaceId, db.Id(auditId))
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -95,7 +95,7 @@ func GetWorkspaceAuditAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "audit_event_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("auditId", auditIdStr).Msg("Failed to get audit event")
+			log.Error().Err(err).Str("auditId", auditId).Msg("Failed to get audit event")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"errorMessage": locale.TR(r, "failed_get_audit"),
 			})
