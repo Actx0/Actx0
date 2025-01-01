@@ -37,9 +37,9 @@ Mark done: `- [x] path/to/file`
 - [x] api/agent.go
 - [x] api/prompt.go
 - [x] api/knowledge.go
-- [ ] api/session.go
-- [ ] api/message.go
-- [ ] api/memory.go
+- [x] api/session.go
+- [x] api/message.go
+- [x] api/memory.go
 
 ## cli/
 
@@ -137,9 +137,9 @@ Mark done: `- [x] path/to/file`
 - [x] module/prompt.go
 - [x] module/agent.go
 - [x] module/document.go
-- [ ] module/session.go
-- [ ] module/memory.go
-- [ ] module/message.go
+- [x] module/session.go
+- [x] module/memory.go
+- [x] module/message.go
 
 ## pkg/ai/
 
@@ -225,26 +225,26 @@ Mark done: `- [x] path/to/file`
 
 ## service/agent/
 
-- [ ] service/agent/context.go
-- [ ] service/agent/errors.go
-- [ ] service/agent/memory.go
-- [ ] service/agent/service.go
-- [ ] service/agent/types.go
+- [x] service/agent/context.go
+- [x] service/agent/errors.go
+- [x] service/agent/memory.go
+- [x] service/agent/service.go
+- [x] service/agent/types.go
 
 ## service/knowledge/
 
-- [ ] service/knowledge/delete.go
-- [ ] service/knowledge/helpers.go
-- [ ] service/knowledge/index.go
-- [ ] service/knowledge/search.go
-- [ ] service/knowledge/service.go
+- [x] service/knowledge/delete.go
+- [x] service/knowledge/helpers.go
+- [x] service/knowledge/index.go
+- [x] service/knowledge/search.go
+- [x] service/knowledge/service.go
 
 ## task/
 
-- [ ] task/agent.go
-- [ ] task/doc.go
-- [ ] task/task.go
-- [ ] task/util.go
+- [x] task/agent.go
+- [x] task/doc.go
+- [x] task/task.go
+- [x] task/util.go
 
 ## web/
 
