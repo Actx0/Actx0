@@ -47,15 +47,11 @@ type MeAccessKeyResponse struct {
 }
 
 // NewMe creates a /me module with the given repositories.
-func NewMe(
-	apiKeyRepository db.APIKeyRepository,
-	userRepository db.UserRepository,
-	workspaceAccessKeyRepository db.WorkspaceAccessKeyRepository,
-) *Me {
+func NewMe(akr db.APIKeyRepository, ur db.UserRepository, war db.WorkspaceAccessKeyRepository) *Me {
 	return &Me{
-		APIKeyRepository:             apiKeyRepository,
-		UserRepository:               userRepository,
-		WorkspaceAccessKeyRepository: workspaceAccessKeyRepository,
+		APIKeyRepository:             akr,
+		UserRepository:               ur,
+		WorkspaceAccessKeyRepository: war,
 	}
 }
 
@@ -77,7 +73,7 @@ func (m *Me) GetByAPIKey(key string) (*MeAPIKeyResponse, error) {
 		return nil, ErrAPIKeyNotFound
 	}
 
-	keyInfo := MeAPIKeyInfo{
+	info := MeAPIKeyInfo{
 		Id:        apiKey.Id,
 		Name:      apiKey.Name,
 		CreatedAt: apiKey.CreatedAt.UTC().Format(time.RFC3339),
@@ -85,7 +81,7 @@ func (m *Me) GetByAPIKey(key string) (*MeAPIKeyResponse, error) {
 	}
 	if apiKey.ExpiresAt != nil {
 		formatted := apiKey.ExpiresAt.UTC().Format(time.RFC3339)
-		keyInfo.ExpiresAt = &formatted
+		info.ExpiresAt = &formatted
 	}
 
 	return &MeAPIKeyResponse{
@@ -96,7 +92,7 @@ func (m *Me) GetByAPIKey(key string) (*MeAPIKeyResponse, error) {
 			Name:  owner.Name,
 			Role:  owner.Role,
 		},
-		APIKey: keyInfo,
+		APIKey: info,
 	}, nil
 }
 
