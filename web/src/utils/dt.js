@@ -27,6 +27,25 @@ export function formatPromptDateTime(iso, locale) {
   })
 }
 
+/** 24h time with seconds (e.g. "16:32:18"). */
+export function formatAuditTime(iso, locale) {
+  return new Date(iso).toLocaleTimeString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+}
+
+/** Short audit date (e.g. "20 Jun 2026"). */
+export function formatAuditDate(iso, locale) {
+  return new Date(iso).toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
 export function formatRelative(dateString) {
   const date = new Date(dateString)
   const now = new Date()
