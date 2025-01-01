@@ -3,7 +3,7 @@
     <div class="max-w-md w-full text-center">
       <div class="mb-8">
         <router-link to="/">
-          <img src="/logo.png" alt="Ctx Logo" class="h-24 w-auto mx-auto">
+          <img src="/logo.png" :alt="$t('common.logo_alt')" class="h-24 w-auto mx-auto">
         </router-link>
       </div>
       <p class="text-6xl font-semibold text-theme-textLight mb-2">500</p>

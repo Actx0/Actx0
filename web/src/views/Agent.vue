@@ -161,7 +161,7 @@
                         {{ label }}
                       </span>
                     </div>
-                    <span v-else class="text-sm text-theme-textLight">—</span>
+                    <span v-else class="text-sm text-theme-textLight">{{ $t('common.em_dash') }}</span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatDateTime(session.createdAt) }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
@@ -204,7 +204,14 @@
 
     <!-- Delete session modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="deleteSessionTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteSessionModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.delete_session_title') }}</h2>
@@ -225,7 +232,14 @@
 
     <!-- Edit modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeEditModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.edit_title') }}</h2>
@@ -234,11 +248,11 @@
             <form class="mt-4 space-y-4" @submit.prevent="handleSave">
               <div>
                 <label for="edit-agent-name" class="form-label">{{ $t('agents_page.name') }}</label>
-                <input id="edit-agent-name" v-model="editForm.name" type="text" required class="input-field" :placeholder="$t('agents_page.name_placeholder')" />
+                <input id="edit-agent-name" v-model="editForm.name" type="text" required class="input-field" :placeholder="$t('agents_page.name_placeholder')" :disabled="saveLoading" />
               </div>
               <div>
                 <label for="edit-agent-description" class="form-label">{{ $t('agents_page.description') }}</label>
-                <textarea id="edit-agent-description" v-model="editForm.description" rows="2" required class="input-field" :placeholder="$t('agents_page.description_placeholder')" />
+                <textarea id="edit-agent-description" v-model="editForm.description" rows="2" required class="input-field" :placeholder="$t('agents_page.description_placeholder')" :disabled="saveLoading" />
               </div>
 
               <div class="flex gap-3 justify-end">
@@ -256,7 +270,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
@@ -284,7 +298,7 @@ const showEditModal = ref(false)
 const editError = ref(null)
 const saveLoading = ref(false)
 const copiedField = ref(null)
-const editForm = ref({ name: '', description: '' })
+const editForm = reactive({ name: '', description: '' })
 
 const deleteSessionTarget = ref(null)
 const deleteSessionError = ref(null)
@@ -385,10 +399,6 @@ function goToSessionsPage(offset) {
   goToSessionsOffset(offset)
 }
 
-watch(() => route.query.page, () => {
-  if (agent.value) loadSessions()
-})
-
 function sessionStatusLabel(status) {
   if (status === 'closed') return t('agents_page.session_closed')
   return t('agents_page.session_active')
@@ -401,10 +411,8 @@ function sessionStatusClass(status) {
 
 function openEditModal() {
   if (!agent.value) return
-  editForm.value = {
-    name: agent.value.name,
-    description: agent.value.description || '',
-  }
+  editForm.name = agent.value.name
+  editForm.description = agent.value.description || ''
   editError.value = null
   showEditModal.value = true
 }
@@ -415,8 +423,8 @@ function closeEditModal() {
 }
 
 async function handleSave() {
-  const name = editForm.value.name.trim()
-  const description = editForm.value.description.trim()
+  const name = editForm.name.trim()
+  const description = editForm.description.trim()
   if (!name) {
     editError.value = t('agents_page.name_required')
     return
@@ -429,7 +437,7 @@ async function handleSave() {
   saveLoading.value = true
   editError.value = null
   try {
-    const res = await agentAPI.update(currentWorkspace.id, agentId.value, buildUpdatePayload(editForm.value))
+    const res = await agentAPI.update(currentWorkspace.id, agentId.value, buildUpdatePayload(editForm))
     agent.value = res.data
     showEditModal.value = false
     showFlash(t('common.saved'))
@@ -490,16 +498,16 @@ async function confirmDeleteSession() {
   }
 }
 
-onMounted(loadAgent)
+watch(() => route.query.page, () => {
+  if (agent.value) loadSessions()
+})
+
 watch(agentId, async (newId, oldId) => {
   if (oldId && newId !== oldId) {
     await setSessionsPage(1)
   }
   await loadAgent()
 })
-</script>
 
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>
+onMounted(loadAgent)
+</script>

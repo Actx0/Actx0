@@ -56,6 +56,7 @@
                 v-model="form.rememberMe"
                 type="checkbox"
                 class="h-4 w-4 rounded text-theme-text focus:ring-theme-text border-theme-border"
+                :disabled="loading"
               >
               <label for="remember-me" class="ml-2 block text-sm text-theme-textLight">
                 {{ $t('login.remember_me') }}
@@ -162,8 +163,9 @@ const redirectQuery = computed(() => {
 })
 
 const handleOAuth = (provider) => {
-  const providerNames = { google: 'Google', github: 'GitHub' }
-  error.value = t('login.oauth_coming_soon', { provider: providerNames[provider] })
+  error.value = t('login.oauth_coming_soon', {
+    provider: provider === 'google' ? t('login.provider_google') : t('login.provider_github')
+  })
 }
 
 const handleLogin = async () => {

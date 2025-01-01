@@ -16,7 +16,7 @@
         </p>
       </header>
 
-      <section class="mb-8" aria-label="Key metrics">
+      <section class="mb-8" :aria-label="$t('dashboard.key_metrics')">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="stat-card">
             <p class="stat-label">{{ $t('dashboard.memories_stored') }}</p>
@@ -257,11 +257,11 @@
             <dl class="space-y-0">
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_name') }}</dt>
-                <dd class="text-sm font-medium text-theme-text text-right">{{ workspace?.name || '—' }}</dd>
+                <dd class="text-sm font-medium text-theme-text text-right">{{ workspace?.name || $t('common.em_dash') }}</dd>
               </div>
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_handle') }}</dt>
-                <dd class="text-sm font-medium text-theme-text text-right font-mono">{{ workspace?.handle || '—' }}</dd>
+                <dd class="text-sm font-medium text-theme-text text-right font-mono">{{ workspace?.handle || $t('common.em_dash') }}</dd>
               </div>
               <div class="flex justify-between gap-4 py-3 border-b border-theme-border">
                 <dt class="text-sm text-theme-textLight">{{ $t('dashboard.workspace_role') }}</dt>
@@ -298,20 +298,15 @@ import { saveWorkspaceToStorage } from '@/utils/storage'
 import { useWorkspaceContext } from '@/lib/permission'
 
 const { t } = useI18n()
+const { currentWorkspace, canManage } = useWorkspaceContext()
 
 const calendlyUrl = 'https://calendly.com/'
 const WHATS_NEW_KEY = 'dashboard_whats_new_v1'
 
-const { currentWorkspace, canManage } = useWorkspaceContext()
 const workspace = ref({ ...currentWorkspace })
 const loading = ref(true)
 const plan = ref('hobby')
 const showWhatsNew = ref(localStorage.getItem(WHATS_NEW_KEY) !== '1')
-
-function dismissWhatsNew() {
-  showWhatsNew.value = false
-  localStorage.setItem(WHATS_NEW_KEY, '1')
-}
 
 const topAgents = [
   { id: 'agt_support', name: 'Support bot', handle: 'support-bot', sessions: 1842, memories: 9210 },
@@ -328,20 +323,16 @@ const stats = ref({
   prompts: 0,
 })
 
-const PLAN_LABELS = {
-  hobby: 'Hobby',
-  starter: 'Starter',
-  growth: 'Growth',
-  pro: 'Pro',
-}
+const planLabel = computed(() => t(`billing_page.plans.${plan.value}.name`))
 
-const planLabel = computed(() => PLAN_LABELS[plan.value] || plan.value || 'Hobby')
-
-const roleLabel = computed(() => workspace.value?.role || '—')
+const roleLabel = computed(() => {
+  const role = workspace.value?.role
+  return role ? t(`members_page.role_${role}`) : t('common.em_dash')
+})
 
 const memberCount = computed(() => {
   const count = workspace.value?.membersCount
-  if (count == null) return loading.value ? '…' : '—'
+  if (count == null) return loading.value ? '…' : t('common.em_dash')
   return count.toLocaleString()
 })
 
@@ -460,14 +451,6 @@ const attentionItems = computed(() => [
   },
 ])
 
-function attentionDotClass(level) {
-  return {
-    error: 'bg-red-500',
-    warn: 'bg-amber-500',
-    info: 'bg-sky-500',
-  }[level] || 'bg-theme-textLight'
-}
-
 const activityIcons = {
   prompt: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
   agent: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
@@ -527,6 +510,19 @@ const recentActivity = computed(() => [
     time: t('dashboard.activity_time_1d'),
   },
 ])
+
+function dismissWhatsNew() {
+  showWhatsNew.value = false
+  localStorage.setItem(WHATS_NEW_KEY, '1')
+}
+
+function attentionDotClass(level) {
+  return {
+    error: 'bg-red-500',
+    warn: 'bg-amber-500',
+    info: 'bg-sky-500',
+  }[level] || 'bg-theme-textLight'
+}
 
 async function loadDashboard() {
   loading.value = true

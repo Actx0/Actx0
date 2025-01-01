@@ -24,8 +24,8 @@
         >
           <button
             type="button"
-            @click="selectWorkspace(workspace)"
             class="flex-1 flex items-center justify-between px-4 py-3 text-left hover:bg-theme-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary-800 focus:ring-inset min-w-0"
+            @click="selectWorkspace(workspace)"
           >
             <div class="flex min-w-0 flex-1 items-center gap-3">
               <div class="min-w-0 flex-1">
@@ -49,11 +49,11 @@
       <div class="mt-6">
         <button
           type="button"
-          @click="openCreateModal"
           :class="[
             'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-800 focus:ring-offset-1 transition-colors',
             workspaces.length ? 'border border-theme-border bg-white text-theme-text hover:bg-theme-hover' : 'border-2 border-dashed border-primary-400 bg-primary-50/50 text-primary-800 hover:bg-primary-100'
           ]"
+          @click="openCreateModal"
         >
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -66,9 +66,16 @@
     </div>
 
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div
-          v-show="showCreateModal"
+          v-if="showCreateModal"
           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
           role="dialog"
           aria-modal="true"
@@ -81,22 +88,23 @@
             <div v-if="createModalError" class="mt-4 rounded-md border border-red-200 bg-red-50 p-3" role="alert">
               <p class="text-sm text-red-800">{{ createModalError }}</p>
             </div>
-            <form @submit.prevent="handleCreate" class="mt-4 space-y-4">
+            <form class="mt-4 space-y-4" @submit.prevent="handleCreate">
               <div>
                 <label for="workspace-name" class="form-label">{{ $t('select_workspace.workspace_name') }}</label>
                 <input
                   id="workspace-name"
-                  v-model="newWorkspaceName"
+                  v-model="createForm.name"
                   type="text"
                   required
                   class="input-field"
                   :placeholder="$t('select_workspace.workspace_name_placeholder')"
+                  :disabled="createLoading"
                   autofocus
-                />
+                >
               </div>
               <div class="flex gap-3 justify-end">
-                <button type="button" @click="closeCreateModal" class="btn-secondary">{{ $t('common.cancel') }}</button>
-                <button type="submit" :disabled="createLoading || !newWorkspaceName.trim()" class="btn-primary">
+                <button type="button" class="btn-secondary" :disabled="createLoading" @click="closeCreateModal">{{ $t('common.cancel') }}</button>
+                <button type="submit" class="btn-primary" :disabled="createLoading || !createForm.name.trim()">
                   {{ createLoading ? $t('common.loading') : $t('common.create') }}
                 </button>
               </div>
@@ -109,19 +117,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { workspaceAPI } from '@/api'
 import { loadWorkspaceFromStorage, saveWorkspaceToStorage } from '@/utils/storage'
 
+const { t } = useI18n()
 const router = useRouter()
+
 const storedWorkspace = loadWorkspaceFromStorage()
 const workspaces = ref([])
 const error = ref(null)
 const showCreateModal = ref(false)
 const createModalError = ref(null)
-const newWorkspaceName = ref('')
 const createLoading = ref(false)
+const createForm = reactive({ name: '' })
 
 function formatDate(iso) {
   if (!iso) return ''
@@ -138,9 +149,10 @@ function openCreateModal() {
 }
 
 function closeCreateModal() {
+  if (createLoading.value) return
   showCreateModal.value = false
   createModalError.value = null
-  newWorkspaceName.value = ''
+  createForm.name = ''
 }
 
 function selectWorkspace(workspace) {
@@ -154,7 +166,7 @@ async function loadWorkspaces() {
     const res = await workspaceAPI.list({})
     workspaces.value = res.data?.workspaces ?? []
   } catch (err) {
-    error.value = err.response?.data?.errorMessage || 'Failed to load workspaces'
+    error.value = err.response?.data?.errorMessage || t('select_workspace.failed_load')
     workspaces.value = []
   }
 }
@@ -164,16 +176,18 @@ async function handleCreate() {
   createModalError.value = null
 
   try {
-    const res = await workspaceAPI.create({ name: newWorkspaceName.value })
+    const res = await workspaceAPI.create({ name: createForm.name })
     if (res.data?.id) {
       saveWorkspaceToStorage({ ...res.data, role: 'owner', status: 'active' })
-      closeCreateModal()
+      showCreateModal.value = false
+      createForm.name = ''
+      createModalError.value = null
       router.push('/dashboard')
     } else {
-      createModalError.value = 'Invalid response'
+      createModalError.value = t('select_workspace.invalid_response')
     }
   } catch (err) {
-    createModalError.value = err.response?.data?.errorMessage || 'Failed to create workspace'
+    createModalError.value = err.response?.data?.errorMessage || t('select_workspace.failed_create')
   } finally {
     createLoading.value = false
   }

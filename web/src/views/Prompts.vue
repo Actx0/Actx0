@@ -92,7 +92,14 @@
 
     <!-- Create modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeCreateModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('prompts_page.create_title') }}</h2>
@@ -107,6 +114,7 @@
                   required
                   class="input-field"
                   :placeholder="$t('prompts_page.name_placeholder')"
+                  :disabled="createLoading"
                 />
                 <p class="mt-1.5 text-xs text-theme-textLight">
                   <template v-if="createHandlePreview">{{ $t('prompts_page.handle_preview', { handle: createHandlePreview }) }}</template>
@@ -121,11 +129,12 @@
                   rows="2"
                   class="input-field"
                   :placeholder="$t('prompts_page.description_placeholder')"
+                  :disabled="createLoading"
                 />
               </div>
               <div>
                 <label for="create-prompt-type" class="form-label">{{ $t('prompts_page.type') }}</label>
-                <select id="create-prompt-type" v-model="form.type" class="input-field">
+                <select id="create-prompt-type" v-model="form.type" class="input-field" :disabled="createLoading">
                   <option value="text">{{ $t('prompts_page.type_text') }}</option>
                   <option value="chat">{{ $t('prompts_page.type_chat') }}</option>
                 </select>
@@ -144,6 +153,7 @@
                   rows="8"
                   class="input-field font-mono text-sm"
                   :placeholder="`${$t('prompts_page.content_placeholder')}\n${PROMPT_VARIABLE_EXAMPLE}`"
+                  :disabled="createLoading"
                 />
                 <p v-if="createFormVariables.length" class="mt-2 text-xs text-theme-textLight">
                   {{ $t('prompts_page.variables_available') }}
@@ -159,13 +169,15 @@
                   rows="4"
                   class="input-field font-mono text-sm"
                   placeholder="{}"
+                  :disabled="createLoading"
                 />
               </div>
-              <label class="flex items-center gap-2 text-sm text-theme-text cursor-pointer">
+              <label class="flex items-center gap-2 text-sm text-theme-text" :class="createLoading ? 'opacity-50' : 'cursor-pointer'">
                 <input
                   v-model="form.production"
                   type="checkbox"
                   class="rounded border-theme-border text-primary-600 focus:ring-primary-800"
+                  :disabled="createLoading"
                 />
                 {{ $t('prompts_page.set_production') }}
               </label>
@@ -177,6 +189,7 @@
                   rows="2"
                   class="input-field"
                   :placeholder="$t('prompts_page.commit_message_placeholder')"
+                  :disabled="createLoading"
                 />
               </div>
               <div class="flex gap-3 justify-end">
@@ -191,7 +204,14 @@
 
     <!-- Delete modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-show="deleteModalPrompt" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('prompts_page.delete_title') }}</h2>
@@ -213,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
@@ -244,7 +264,7 @@ const errorMessage = ref(null)
 const showCreateModal = ref(false)
 const createLoading = ref(false)
 const createModalError = ref(null)
-const form = ref(emptyPromptForm())
+const form = reactive(emptyPromptForm())
 
 const deleteModalPrompt = ref(null)
 const deleteConfirmName = ref('')
@@ -257,8 +277,8 @@ const canConfirmDelete = computed(() => {
   return name && deleteConfirmName.value.trim() === name
 })
 
-const createFormVariables = computed(() => extractPromptVariables(form.value.content))
-const createHandlePreview = computed(() => handleFromName(form.value.name))
+const createFormVariables = computed(() => extractPromptVariables(form.content))
+const createHandlePreview = computed(() => handleFromName(form.name))
 
 async function loadPage() {
   loading.value = true
@@ -280,10 +300,8 @@ function goToPage(newOffset) {
   goToOffset(newOffset)
 }
 
-watch(() => route.query.page, loadPage)
-
 function openCreateModal() {
-  form.value = emptyPromptForm()
+  Object.assign(form, emptyPromptForm())
   createModalError.value = null
   showCreateModal.value = true
 }
@@ -294,8 +312,8 @@ function closeCreateModal() {
 }
 
 async function handleCreate() {
-  const name = form.value.name.trim()
-  const content = form.value.content.trim()
+  const name = form.name.trim()
+  const content = form.content.trim()
   if (!name) {
     createModalError.value = t('prompts_page.name_required')
     return
@@ -308,7 +326,7 @@ async function handleCreate() {
   createLoading.value = true
   createModalError.value = null
   try {
-    const created = await promptAPI.create(currentWorkspace.id, buildCreatePayload(form.value))
+    const created = await promptAPI.create(currentWorkspace.id, buildCreatePayload(form))
     showCreateModal.value = false
     await loadPage()
     showFlash(t('common.saved'))
@@ -354,10 +372,7 @@ async function confirmDelete() {
   }
 }
 
+watch(() => route.query.page, loadPage)
+
 onMounted(loadPage)
 </script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>

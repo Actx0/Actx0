@@ -23,7 +23,7 @@
               <div class="flex-shrink-0">
                 <img
                   :src="user?.avatar ?? ''"
-                  :alt="user?.email ?? 'Avatar'"
+                  :alt="user?.email ?? $t('profile.avatar_alt')"
                   class="h-20 w-20 rounded-full border-2 border-theme-border object-cover"
                 >
               </div>
@@ -177,11 +177,11 @@
           <div class="p-6 space-y-6">
             <div class="space-y-4">
               <div class="flex flex-wrap items-end gap-3">
-                <div class="min-w-0 flex-1" style="min-width: 200px;">
+                <div class="flex-1 min-w-[200px]">
                   <label for="new-key-name" class="block text-sm font-medium text-theme-text mb-1.5">{{ $t('profile.new_key_name') }}</label>
                   <input
                     id="new-key-name"
-                    v-model="newKeyName"
+                    v-model="keyForm.name"
                     type="text"
                     class="input-field"
                     :placeholder="$t('profile.new_key_name_placeholder')"
@@ -189,11 +189,11 @@
                     @keydown.enter.prevent="handleCreateKey"
                   >
                 </div>
-                <div class="min-w-0 flex-1" style="min-width: 200px;">
+                <div class="flex-1 min-w-[200px]">
                   <label for="new-key-expires" class="block text-sm font-medium text-theme-text mb-1.5">{{ $t('profile.expires_at_optional') }}</label>
                   <input
                     id="new-key-expires"
-                    v-model="newKeyExpiresAt"
+                    v-model="keyForm.expiresAt"
                     type="datetime-local"
                     class="input-field"
                     :disabled="apiKeysLoading || creatingKey"
@@ -351,7 +351,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, watchEffect, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref, watch, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { apiKeysAPI, authAPI } from '@/api'
 import AppNav from '@/components/AppNav.vue'
@@ -360,9 +360,9 @@ import { user, saveUser } from '@/lib/auth'
 import { applyUserPreferences, USER_LANGUAGE_EN, USER_THEME_DEFAULT } from '@/lib/preferences'
 
 const { t } = useI18n()
+
 const loading = ref(false)
 const errorMessage = ref(null)
-
 const form = reactive({
   name: user.value?.name,
   email: user.value?.email,
@@ -376,12 +376,14 @@ const form = reactive({
 const apiKeys = ref([])
 const apiKeysLoading = ref(false)
 const creatingKey = ref(false)
-const newKeyName = ref('')
-const newKeyExpiresAt = ref('')
 const newlyCreatedKey = ref(null)
 const keyCopied = ref(false)
 const deletingId = ref(null)
 const revokeModalKey = ref(null)
+const keyForm = reactive({
+  name: '',
+  expiresAt: ''
+})
 
 const minExpiresAt = computed(() => {
   const d = new Date()
@@ -394,31 +396,8 @@ const needsCurrentPassword = computed(() => {
   return emailChanged || !!form.newPassword.trim()
 })
 
-watch(user, (userData) => {
-  if (userData) {
-    form.name = userData.name
-    form.email = userData.email
-    form.language = userData.language ?? USER_LANGUAGE_EN
-    form.theme = userData.theme ?? USER_THEME_DEFAULT
-  }
-}, { immediate: true, deep: true })
-
-watchEffect(() => {
-  if (!revokeModalKey.value) {
-    document.body.style.overflow = ''
-    return
-  }
-  document.body.style.overflow = 'hidden'
-  const onEsc = (e) => { if (e.key === 'Escape') closeRevokeModal() }
-  document.addEventListener('keydown', onEsc)
-  return () => {
-    document.body.style.overflow = ''
-    document.removeEventListener('keydown', onEsc)
-  }
-})
-
 function formatDate(iso) {
-  if (!iso) return '—'
+  if (!iso) return t('common.em_dash')
   try {
     return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' })
   } catch {
@@ -427,7 +406,7 @@ function formatDate(iso) {
 }
 
 function formatDateTime(iso) {
-  if (!iso) return '—'
+  if (!iso) return t('common.em_dash')
   try {
     return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
   } catch {
@@ -450,7 +429,7 @@ async function loadApiKeys() {
 }
 
 async function handleCreateKey() {
-  const name = newKeyName.value.trim()
+  const name = keyForm.name.trim()
   errorMessage.value = null
   newlyCreatedKey.value = null
 
@@ -462,13 +441,13 @@ async function handleCreateKey() {
 
   try {
     const res = await apiKeysAPI.create({
-      name: name,
-      expiresAt: newKeyExpiresAt.value ? new Date(newKeyExpiresAt.value).toISOString() : ''
+      name,
+      expiresAt: keyForm.expiresAt ? new Date(keyForm.expiresAt).toISOString() : ''
     })
 
     newlyCreatedKey.value = res.data.key
-    newKeyName.value = ''
-    newKeyExpiresAt.value = ''
+    keyForm.name = ''
+    keyForm.expiresAt = ''
     await loadApiKeys()
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('profile.failed_create_key')
@@ -485,7 +464,10 @@ function copyKeyToClipboard() {
   })
 }
 
-function openRevokeModal(key) { revokeModalKey.value = key }
+function openRevokeModal(key) {
+  revokeModalKey.value = key
+}
+
 function closeRevokeModal() {
   if (!deletingId.value) revokeModalKey.value = null
 }
@@ -536,6 +518,29 @@ async function handleSave() {
     loading.value = false
   }
 }
+
+watch(user, (userData) => {
+  if (userData) {
+    form.name = userData.name
+    form.email = userData.email
+    form.language = userData.language ?? USER_LANGUAGE_EN
+    form.theme = userData.theme ?? USER_THEME_DEFAULT
+  }
+}, { immediate: true, deep: true })
+
+watchEffect(() => {
+  if (!revokeModalKey.value) {
+    document.body.style.overflow = ''
+    return
+  }
+  document.body.style.overflow = 'hidden'
+  const onEsc = (e) => { if (e.key === 'Escape') closeRevokeModal() }
+  document.addEventListener('keydown', onEsc)
+  return () => {
+    document.body.style.overflow = ''
+    document.removeEventListener('keydown', onEsc)
+  }
+})
 
 onMounted(loadApiKeys)
 </script>

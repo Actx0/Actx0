@@ -54,16 +54,16 @@
                       <span class="font-medium text-theme-text">{{ event.actorName }}</span>
                       <span class="ml-1.5 text-xs text-theme-textLight">{{ actorTypeLabel(event.actorType) }}</span>
                     </template>
-                    <span v-else class="text-theme-textLight">—</span>
+                    <span v-else class="text-theme-textLight">{{ $t('common.em_dash') }}</span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm">
                     <template v-if="event.resourceType">
                       <span class="capitalize text-theme-text">{{ event.resourceType }}</span>
                       <span v-if="event.resourceId" class="ml-1.5 font-mono text-xs text-theme-textLight">{{ shortId(event.resourceId) }}</span>
                     </template>
-                    <span v-else class="text-theme-textLight">—</span>
+                    <span v-else class="text-theme-textLight">{{ $t('common.em_dash') }}</span>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-theme-textLight">{{ event.ipAddress || '—' }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-theme-textLight">{{ event.ipAddress || $t('common.em_dash') }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                     <button
                       type="button"
@@ -88,11 +88,11 @@
                       </div>
                       <div>
                         <dt class="text-xs font-medium uppercase tracking-wider text-theme-textLight">{{ $t('audits_page.resource_type') }}</dt>
-                        <dd class="mt-1 text-theme-text capitalize">{{ event.resourceType || '—' }}</dd>
+                        <dd class="mt-1 text-theme-text capitalize">{{ event.resourceType || $t('common.em_dash') }}</dd>
                       </div>
                       <div>
                         <dt class="text-xs font-medium uppercase tracking-wider text-theme-textLight">{{ $t('audits_page.source') }}</dt>
-                        <dd class="mt-1 text-theme-text break-all">{{ event.userAgent || '—' }}</dd>
+                        <dd class="mt-1 text-theme-text break-all">{{ event.userAgent || $t('common.em_dash') }}</dd>
                       </div>
                     </dl>
                     <div v-if="hasMetadata(event.meta)" class="mt-4">

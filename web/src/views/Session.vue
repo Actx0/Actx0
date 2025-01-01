@@ -192,7 +192,14 @@
 
     <!-- Delete confirmation -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="pendingDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">
@@ -422,11 +429,7 @@ async function confirmDelete() {
   }
 }
 
-onMounted(loadSession)
 watch([() => currentWorkspace?.id, agentId, sessionId], loadSession)
-</script>
 
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>
+onMounted(loadSession)
+</script>

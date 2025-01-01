@@ -53,7 +53,7 @@
                     v-if="version.production"
                     class="inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-800"
                   >
-                    production
+                    {{ $t('prompts_page.production') }}
                   </span>
                   <span
                     v-for="label in parsePromptLabels(version.labels)"
@@ -143,13 +143,20 @@
 
     <!-- New version modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-if="showVersionModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeVersionModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('prompts_page.new_version_title', { name: promptName }) }}</h2>
             <div v-if="versionModalError" class="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ versionModalError }}</div>
             <form @submit.prevent="handleSaveVersion" class="mt-4 space-y-4">
-              <PromptFormFields v-model="form" :is-new-version="true" />
+              <PromptFormFields v-model="form" :is-new-version="true" :disabled="versionLoading" />
               <div class="flex gap-3 justify-end">
                 <button type="button" class="btn-secondary" @click="closeVersionModal" :disabled="versionLoading">{{ $t('common.cancel') }}</button>
                 <button type="submit" class="btn-primary" :disabled="versionLoading">{{ versionLoading ? $t('prompts_page.creating') : $t('prompts_page.save_version') }}</button>
@@ -162,7 +169,14 @@
 
     <!-- Promote to production modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-show="promoteVersion" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closePromoteProductionModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('prompts_page.promote_production_title') }}</h2>
@@ -183,7 +197,14 @@
 
     <!-- Delete version modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div v-show="deleteVersion" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteVersionModal">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('prompts_page.delete_version_title') }}</h2>
@@ -205,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
@@ -223,7 +244,6 @@ import {
   serializePromptConfigForApi,
   parsePromptLabels,
   extractPromptVariables,
-  hasPromptLabel,
 } from '@/lib/prompt'
 
 const { t } = useI18n()
@@ -231,10 +251,6 @@ const route = useRoute()
 const router = useRouter()
 const { currentWorkspace, canManage: canEdit } = useWorkspaceContext()
 
-const promptId = computed(() => route.params.promptId || '')
-const promptName = computed(() => selectedVersion.value?.name || versions.value[0]?.name || '')
-const promptHandle = computed(() => selectedVersion.value?.handle || versions.value[0]?.handle || '')
-const promptDescription = computed(() => selectedVersion.value?.description || versions.value[0]?.description || '')
 const versions = ref([])
 const selectedVersion = ref(null)
 const loading = ref(false)
@@ -244,7 +260,7 @@ const activeTab = ref('prompt')
 const showVersionModal = ref(false)
 const versionLoading = ref(false)
 const versionModalError = ref(null)
-const form = ref(emptyPromptForm())
+const form = reactive(emptyPromptForm())
 
 const deleteVersion = ref(null)
 const deleteConfirmName = ref('')
@@ -254,6 +270,10 @@ const promoteVersion = ref(null)
 const promotingProduction = ref(false)
 const promoteProductionError = ref(null)
 
+const promptId = computed(() => route.params.promptId || '')
+const promptName = computed(() => selectedVersion.value?.name || versions.value[0]?.name || '')
+const promptHandle = computed(() => selectedVersion.value?.handle || versions.value[0]?.handle || '')
+const promptDescription = computed(() => selectedVersion.value?.description || versions.value[0]?.description || '')
 const promptVariables = computed(() => extractPromptVariables(selectedVersion.value?.content))
 const formattedConfig = computed(() => formatPromptConfig(selectedVersion.value?.config))
 
@@ -298,7 +318,7 @@ async function loadVersions(selectLatest = false) {
 }
 
 function openNewVersionModal() {
-  form.value = formFromPrompt(selectedVersion.value)
+  Object.assign(form, formFromPrompt(selectedVersion.value))
   versionModalError.value = null
   showVersionModal.value = true
 }
@@ -309,7 +329,7 @@ function closeVersionModal() {
 }
 
 async function handleSaveVersion() {
-  const content = form.value.content.trim()
+  const content = form.content.trim()
   if (!content) {
     versionModalError.value = t('prompts_page.content_required')
     return
@@ -318,7 +338,7 @@ async function handleSaveVersion() {
   versionLoading.value = true
   versionModalError.value = null
   try {
-    const created = await promptAPI.createVersion(currentWorkspace.id, promptId.value, buildCreatePayload(form.value, { omitName: true }))
+    const created = await promptAPI.createVersion(currentWorkspace.id, promptId.value, buildCreatePayload(form, { omitName: true }))
     showVersionModal.value = false
     await loadVersions(true)
     selectedVersion.value = versions.value.find((v) => v.id === created.data.id) || versions.value[0]
@@ -410,8 +430,3 @@ watch(() => route.params.promptId, () => {
 
 onMounted(() => loadVersions(true))
 </script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>
