@@ -54,7 +54,7 @@ func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "agent.create",
 		ResourceType: "agent",
@@ -203,7 +203,7 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "agent.update",
 		ResourceType: "agent",
@@ -257,7 +257,7 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "agent.delete",
 		ResourceType: "agent",

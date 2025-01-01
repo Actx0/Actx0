@@ -171,7 +171,7 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(workspaceId),
 		Action:       "billing.checkout",
 		ResourceType: "subscription",
@@ -226,7 +226,7 @@ func CreateBillingPortalAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(workspaceId),
 		Action:       "billing.portal",
 		ResourceType: "subscription",

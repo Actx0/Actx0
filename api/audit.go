@@ -106,8 +106,8 @@ func GetWorkspaceAuditAction(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, http.StatusOK, event)
 }
 
-// Record persists an audit event for the request.
-func Record(r *http.Request, event *module.RecordAuditEvent) {
+// record persists an audit event for the request.
+func record(r *http.Request, event *module.RecordAuditEvent) {
 	a := module.NewAudit(
 		db.NewAuditEventRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),

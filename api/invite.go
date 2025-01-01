@@ -85,7 +85,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(workspaceId),
 		Action:       "invite.create",
 		ResourceType: "invite",
@@ -263,7 +263,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(workspaceId),
 		Action:       "invite.delete",
 		ResourceType: "invite",
@@ -493,7 +493,7 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  invite.WorkspaceId,
 		Action:       "invite.accept",
 		ResourceType: "invite",
@@ -573,7 +573,7 @@ func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  invite.WorkspaceId,
 		Action:       "invite.reject",
 		ResourceType: "invite",

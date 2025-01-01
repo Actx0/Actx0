@@ -97,7 +97,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "session.create",
 		ResourceType: "session",
@@ -398,7 +398,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "session.update",
 		ResourceType: "session",
@@ -480,7 +480,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "session.delete",
 		ResourceType: "session",

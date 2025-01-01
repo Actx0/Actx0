@@ -88,7 +88,7 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "memory.create",
 		ResourceType: "memory",
@@ -170,7 +170,7 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "memory.batch_create",
 		ResourceType: "session",
@@ -425,7 +425,7 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "memory.update",
 		ResourceType: "memory",
@@ -513,7 +513,7 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "memory.delete",
 		ResourceType: "memory",
@@ -599,7 +599,7 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer Record(r, &module.RecordAuditEvent{
+	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
 		Action:       "memory.batch_delete",
 		ResourceType: "session",
