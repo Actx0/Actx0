@@ -206,22 +206,22 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/util/
 
-- [ ] pkg/util/cookies.go
-- [ ] pkg/util/cookies_test.go
-- [ ] pkg/util/file_sys.go
-- [ ] pkg/util/file_sys_test.go
-- [ ] pkg/util/fvalidate.go
-- [ ] pkg/util/gavatar.go
-- [ ] pkg/util/gavatar_test.go
-- [ ] pkg/util/handle_test.go
-- [ ] pkg/util/hashing.go
-- [ ] pkg/util/hashing_test.go
-- [ ] pkg/util/helpers.go
-- [ ] pkg/util/loader.go
-- [ ] pkg/util/loader_test.go
-- [ ] pkg/util/validation.go
-- [ ] pkg/util/validation_test.go
-- [ ] pkg/util/validators.go
+- [x] pkg/util/cookies.go
+- [x] pkg/util/cookies_test.go
+- [x] pkg/util/file_sys.go
+- [x] pkg/util/file_sys_test.go
+- [x] pkg/util/fvalidate.go
+- [x] pkg/util/gavatar.go
+- [x] pkg/util/gavatar_test.go
+- [x] pkg/util/handle_test.go
+- [x] pkg/util/hashing.go
+- [x] pkg/util/hashing_test.go
+- [x] pkg/util/helpers.go
+- [x] pkg/util/loader.go
+- [x] pkg/util/loader_test.go
+- [x] pkg/util/validation.go
+- [x] pkg/util/validation_test.go
+- [x] pkg/util/validators.go
 
 ## service/agent/
 
