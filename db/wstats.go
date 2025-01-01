@@ -21,6 +21,16 @@ type WorkspaceStats struct {
 	APICallsMonth  int64
 	ActiveAgents   int64
 	Prompts        int64
+	TopAgents      []*TopAgentStats
+}
+
+// TopAgentStats is an agent ranked by session and memory counts.
+type TopAgentStats struct {
+	Id       Id
+	Name     string
+	Handle   string
+	Sessions int64
+	Memories int64
 }
 
 // WorkspaceStatsRepository loads workspace dashboard metrics.
@@ -93,6 +103,57 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		workspaceId.String(),
 	).Scan(&stats.Prompts)
 	if err != nil {
+		return nil, err
+	}
+
+	rows, err := r.db.Query(
+		`SELECT
+			a.id,
+			a.name,
+			a.handle,
+			COALESCE(sc.sessions_count, 0) AS sessions_count,
+			COALESCE(mc.memories_count, 0) AS memories_count
+		FROM agents a
+		LEFT JOIN (
+			SELECT agent_id, COUNT(*) AS sessions_count
+			FROM sessions
+			WHERE workspace_id = $1
+			GROUP BY agent_id
+		) sc ON sc.agent_id = a.id
+		LEFT JOIN (
+			SELECT s.agent_id, COUNT(*) AS memories_count
+			FROM session_memories sm
+			INNER JOIN sessions s ON s.id = sm.session_id
+			WHERE s.workspace_id = $1
+			GROUP BY s.agent_id
+		) mc ON mc.agent_id = a.id
+		WHERE a.workspace_id = $1
+			AND (COALESCE(sc.sessions_count, 0) > 0 OR COALESCE(mc.memories_count, 0) > 0)
+		ORDER BY sessions_count DESC, memories_count DESC, a.name ASC
+		LIMIT 5`,
+		workspaceId.String(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats.TopAgents = []*TopAgentStats{}
+	for rows.Next() {
+		agent := &TopAgentStats{}
+		err = rows.Scan(
+			&agent.Id,
+			&agent.Name,
+			&agent.Handle,
+			&agent.Sessions,
+			&agent.Memories,
+		)
+		if err != nil {
+			return nil, err
+		}
+		stats.TopAgents = append(stats.TopAgents, agent)
+	}
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
