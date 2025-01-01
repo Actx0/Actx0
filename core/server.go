@@ -142,17 +142,17 @@ func SetupServer(Static embed.FS) http.Handler {
 		})
 
 		r.Route("/prompts", func(r chi.Router) {
-			r.With(middleware.Protect(middleware.Config{Perm: module.CanListPrompts})).Get("/", api.ListPromptsAction)                            // list prompts
-			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanCreatePrompt})).Post("/", api.CreatePromptAction)             // create prompt
-			r.With(middleware.Protect(middleware.Config{Perm: module.CanGetPrompt})).Get("/{promptId}", api.GetPromptAction)                      // get prompt
-			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanDeletePrompt})).Delete("/{promptId}", api.DeletePromptAction) // delete prompt
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanListPrompts})).Get("/", api.ListPromptsAction)                // list prompts
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanCreatePrompt})).Post("/", api.CreatePromptAction)             // create prompt
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanGetPrompt})).Get("/{promptId}", api.GetPromptAction)          // get prompt
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanDeletePrompt})).Delete("/{promptId}", api.DeletePromptAction) // delete prompt
 
 			r.Route("/{promptId}/versions", func(r chi.Router) {
-				r.With(middleware.Protect(middleware.Config{Perm: module.CanListPrompts})).Get("/", api.ListPromptVersionsAction)                                   // list prompt versions
-				r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanCreatePrompt})).Post("/", api.CreatePromptVersionAction)                    // create prompt version
-				r.With(middleware.Protect(middleware.Config{Perm: module.CanGetPrompt})).Get("/{promptVersionId}", api.GetPromptVersionAction)                      // get prompt version
-				r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanUpdatePrompt})).Put("/{promptVersionId}", api.UpdatePromptVersionAction)    // update prompt version
-				r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanDeletePrompt})).Delete("/{promptVersionId}", api.DeletePromptVersionAction) // delete prompt version
+				r.With(middleware.Protect(middleware.Config{Perm: module.CanListPrompts})).Get("/", api.ListPromptVersionsAction)                       // list prompt versions
+				r.With(middleware.Protect(middleware.Config{Perm: module.CanCreatePrompt})).Post("/", api.CreatePromptVersionAction)                    // create prompt version
+				r.With(middleware.Protect(middleware.Config{Perm: module.CanGetPrompt})).Get("/{promptVersionId}", api.GetPromptVersionAction)          // get prompt version
+				r.With(middleware.Protect(middleware.Config{Perm: module.CanUpdatePrompt})).Put("/{promptVersionId}", api.UpdatePromptVersionAction)    // update prompt version
+				r.With(middleware.Protect(middleware.Config{Perm: module.CanDeletePrompt})).Delete("/{promptVersionId}", api.DeletePromptVersionAction) // delete prompt version
 			})
 		})
 
@@ -169,7 +169,7 @@ func SetupServer(Static embed.FS) http.Handler {
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanListAgents})).Get("/", api.ListAgentsAction)                        // list agents
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateAgent})).Post("/", api.CreateAgentAction)                     // create agent
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanGetAgent})).Get("/{agentId}", api.GetAgentAction)                   // get agent
-			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanUpdateAgent})).Put("/{agentId}", api.UpdateAgentAction) // update agent
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanUpdateAgent})).Put("/{agentId}", api.UpdateAgentAction)          // update agent
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteAgent})).Delete("/{agentId}", api.DeleteAgentAction)          // delete agent
 
 			r.Route("/{agentId}/sessions", func(r chi.Router) {

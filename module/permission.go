@@ -90,6 +90,9 @@ var (
 var AccessKeyPermissions = map[string]bool{
 	CanListPrompts:             true,
 	CanGetPrompt:               true,
+	CanCreatePrompt:            true,
+	CanUpdatePrompt:            true,
+	CanDeletePrompt:            true,
 	CanListWorkspaceDocuments:  true,
 	CanQueryWorkspaceDocuments: true,
 	CanCreateWorkspaceDocument: true,
@@ -97,6 +100,7 @@ var AccessKeyPermissions = map[string]bool{
 	CanListAgents:              true,
 	CanGetAgent:                true,
 	CanCreateAgent:             true,
+	CanUpdateAgent:             true,
 	CanDeleteAgent:             true,
 	CanListAgentSessions:       true,
 	CanGetAgentSession:         true,
