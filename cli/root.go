@@ -18,7 +18,7 @@ var rootCmd = &cobra.Command{
 
 
 If you have any suggestions, bug reports, or annoyances please report
-them to our issue tracker at <https://github.com/clivern/actx0/issues>`,
+them to our issue tracker at <https://github.com/actx0/Actx0/issues>`,
 }
 
 // Execute runs cmd tool

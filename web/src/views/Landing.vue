@@ -107,7 +107,7 @@ curl -X POST "https://your-instance/api/v1/memory/search" \\
     "agent_id": "support-bot",
     "limit": 5
   }'`,
-  go: `// go get github.com/clivern/actx0/sdk/go
+  go: `// go get github.com/actx0/Actx0/sdk/go
 client, _ := actx0.New(actx0.Config{
     APIKey:    "your-access-key",
     Workspace: "your-workspace",
@@ -501,7 +501,7 @@ onUnmounted(() => {
               <ul class="mt-3 space-y-2 text-sm text-muted">
                 <li><router-link to="/docs" class="hover:text-theme-text">Docs</router-link></li>
                 <li><router-link to="/status" class="hover:text-theme-text">Status</router-link></li>
-                <li><a href="https://github.com/Clivern/actx0/issues" class="hover:text-theme-text" target="_blank" rel="noopener">Support</a></li>
+                <li><a href="https://github.com/actx0/Actx0/issues" class="hover:text-theme-text" target="_blank" rel="noopener">Support</a></li>
               </ul>
             </div>
             <div>
