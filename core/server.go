@@ -50,160 +50,160 @@ func SetupServer(Static embed.FS) http.Handler {
 		int64(10 * 1024 * 1024),
 	))
 	r.Use(middleware.SessionAuth())
-	r.Get("/favicon.ico", func(w http.ResponseWriter, _ *http.Request) {
+	r.Get("/favicon.ico", func(w http.ResponseWriter, _ *http.Request) { // suppress browser favicon requests
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	r.Group(func(r chi.Router) {
-		r.Get("/api/v1/public/_health", api.HealthAction)
-		r.Get("/api/v1/public/_ready", api.ReadyAction)
-		r.Post("/api/v1/public/action/setup", api.SetupAction)
-		r.Get("/api/v1/public/action/setup/status", api.SetupStatusAction)
-		r.Post("/api/v1/public/action/login", api.LoginAction)
-		r.Post("/api/v1/public/action/logout", api.LogoutAction)
-		r.Post("/api/v1/public/action/forgot-password", api.ForgotPasswordAction)
-		r.Post("/api/v1/public/action/reset-password", api.ResetPasswordAction)
-		r.Post("/api/v1/public/action/register", api.RegisterAction)
-		r.Post("/api/v1/public/action/stripe/webhook", api.StripeWebhookAction)
+	r.Group(func(r chi.Router) { // public — no auth required
+		r.Get("/api/v1/public/_health", api.HealthAction)                         // liveness probe
+		r.Get("/api/v1/public/_ready", api.ReadyAction)                           // readiness probe (db, deps)
+		r.Post("/api/v1/public/action/setup", api.SetupAction)                    // initial app setup
+		r.Get("/api/v1/public/action/setup/status", api.SetupStatusAction)        // setup completion status
+		r.Post("/api/v1/public/action/login", api.LoginAction)                    // user login
+		r.Post("/api/v1/public/action/logout", api.LogoutAction)                  // user logout
+		r.Post("/api/v1/public/action/forgot-password", api.ForgotPasswordAction) // request password reset email
+		r.Post("/api/v1/public/action/reset-password", api.ResetPasswordAction)   // reset password with token
+		r.Post("/api/v1/public/action/register", api.RegisterAction)              // user registration
+		r.Post("/api/v1/public/action/stripe/webhook", api.StripeWebhookAction)   // Stripe billing webhook
 	})
-	r.Get("/api/v1/me", api.GetMeAction)
-	r.Group(func(r chi.Router) {
+	r.Get("/api/v1/me", api.GetMeAction) // current authenticated user
+	r.Group(func(r chi.Router) {         // user profile and workspace invites
 		r.Use(middleware.RequireUser())
 		r.Use(middleware.RequireRole(db.UserRoleAdmin, db.UserRoleRegular))
-		r.Get("/api/v1/action/profile", api.GetProfileAction)
-		r.Put("/api/v1/action/profile", api.UpdateProfileAction)
-		r.Get("/api/v1/action/invites", api.ListUserInvitesAction)
-		r.Get("/api/v1/action/invite-by-token/{token}", api.GetAuthenticatedUserInviteByTokenAction)
-		r.Post("/api/v1/action/accept-invite/{token}", api.AcceptUserInviteByTokenAction)
-		r.Post("/api/v1/action/reject-invite/{token}", api.RejectUserInviteByTokenAction)
+		r.Get("/api/v1/action/profile", api.GetProfileAction)                                        // get user profile
+		r.Put("/api/v1/action/profile", api.UpdateProfileAction)                                     // update user profile
+		r.Get("/api/v1/action/invites", api.ListUserInvitesAction)                                   // list pending workspace invites
+		r.Get("/api/v1/action/invite-by-token/{token}", api.GetAuthenticatedUserInviteByTokenAction) // get invite details by token
+		r.Post("/api/v1/action/accept-invite/{token}", api.AcceptUserInviteByTokenAction)            // accept workspace invite
+		r.Post("/api/v1/action/reject-invite/{token}", api.RejectUserInviteByTokenAction)            // reject workspace invite
 	})
-	r.Group(func(r chi.Router) {
+	r.Group(func(r chi.Router) { // app settings — admin only
 		r.Use(middleware.RequireUser())
 		r.Use(middleware.RequireRole(db.UserRoleAdmin))
-		r.Put("/api/v1/action/settings", api.UpdateSettingsAction)
-		r.Get("/api/v1/action/settings", api.GetSettingsAction)
+		r.Put("/api/v1/action/settings", api.UpdateSettingsAction) // update app settings
+		r.Get("/api/v1/action/settings", api.GetSettingsAction)    // get app settings
 	})
-	r.Group(func(r chi.Router) {
+	r.Group(func(r chi.Router) { // user API keys
 		r.Use(middleware.RequireUser())
 		r.Use(middleware.RequireRole(db.UserRoleAdmin, db.UserRoleRegular))
-		r.Post("/api/v1/apiKeys", api.CreateUserAPIKeyAction)
-		r.Get("/api/v1/apiKeys", api.ListUserAPIKeysAction)
-		r.Get("/api/v1/apiKeys/{apiKeyId}", api.GetUserAPIKeyAction)
-		r.Delete("/api/v1/apiKeys/{apiKeyId}", api.DeleteUserAPIKeyAction)
+		r.Post("/api/v1/apiKeys", api.CreateUserAPIKeyAction)              // create user API key
+		r.Get("/api/v1/apiKeys", api.ListUserAPIKeysAction)                // list user API keys
+		r.Get("/api/v1/apiKeys/{apiKeyId}", api.GetUserAPIKeyAction)       // get user API key
+		r.Delete("/api/v1/apiKeys/{apiKeyId}", api.DeleteUserAPIKeyAction) // delete user API key
 	})
-	r.Group(func(r chi.Router) {
+	r.Group(func(r chi.Router) { // workspaces
 		r.Use(middleware.RequireUser())
 		r.Use(middleware.RequireRole(db.UserRoleAdmin, db.UserRoleRegular))
-		r.Post("/api/v1/workspaces", api.CreateWorkspaceAction)
-		r.Get("/api/v1/workspaces", api.ListWorkspacesAction)
+		r.Post("/api/v1/workspaces", api.CreateWorkspaceAction) // create workspace
+		r.Get("/api/v1/workspaces", api.ListWorkspacesAction)   // list user workspaces
 	})
 
-	r.Route("/api/v1/workspaces/{workspaceId}", func(r chi.Router) {
+	r.Route("/api/v1/workspaces/{workspaceId}", func(r chi.Router) { // workspace-scoped resources
 		r.Use(middleware.RequireWorkspace())
 		r.Use(middleware.TrackWorkspaceAPICall())
 
-		r.With(middleware.UserWorkspacePerm(module.CanGetWorkspace)...).Get("/", api.GetWorkspaceAction)
-		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspace)...).Put("/", api.UpdateWorkspaceAction)
-		r.With(middleware.UserWorkspacePerm(module.CanDeleteWorkspace)...).Delete("/", api.DeleteWorkspaceAction)
+		r.With(middleware.UserWorkspacePerm(module.CanGetWorkspace)...).Get("/", api.GetWorkspaceAction)          // get workspace
+		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspace)...).Put("/", api.UpdateWorkspaceAction)    // update workspace
+		r.With(middleware.UserWorkspacePerm(module.CanDeleteWorkspace)...).Delete("/", api.DeleteWorkspaceAction) // delete workspace
 
 		r.Route("/invites", func(r chi.Router) {
-			r.With(middleware.UserWorkspacePerm(module.CanInviteMember)...).Post("/", api.CreateInviteAction)
-			r.With(middleware.UserWorkspacePerm(module.CanListWorkspaceInvites)...).Get("/", api.ListInvitesAction)
-			r.With(middleware.UserWorkspacePerm(module.CanGetWorkspaceInvite)...).Get("/{inviteId}", api.GetInviteAction)
-			r.With(middleware.UserWorkspacePerm(module.CanRemoveInvite)...).Delete("/{inviteId}", api.DeleteInviteAction)
+			r.With(middleware.UserWorkspacePerm(module.CanInviteMember)...).Post("/", api.CreateInviteAction)             // create member invite
+			r.With(middleware.UserWorkspacePerm(module.CanListWorkspaceInvites)...).Get("/", api.ListInvitesAction)       // list member invites
+			r.With(middleware.UserWorkspacePerm(module.CanGetWorkspaceInvite)...).Get("/{inviteId}", api.GetInviteAction) // get member invite
+			r.With(middleware.UserWorkspacePerm(module.CanRemoveInvite)...).Delete("/{inviteId}", api.DeleteInviteAction) // revoke member invite
 		})
 
 		r.Route("/members", func(r chi.Router) {
-			r.With(middleware.UserWorkspacePerm(module.CanListWorkspaceMembers)...).Get("/", api.ListWorkspaceMembersAction)
-			r.With(middleware.UserWorkspacePerm(module.CanUpdateMemberRole)...).Put("/{memberUserId}", api.UpdateWorkspaceMemberRoleAction)
-			r.With(middleware.UserWorkspacePerm(module.CanRemoveMember)...).Delete("/{memberUserId}", api.DeleteWorkspaceMemberAction)
+			r.With(middleware.UserWorkspacePerm(module.CanListWorkspaceMembers)...).Get("/", api.ListWorkspaceMembersAction)                // list workspace members
+			r.With(middleware.UserWorkspacePerm(module.CanUpdateMemberRole)...).Put("/{memberUserId}", api.UpdateWorkspaceMemberRoleAction) // update member role
+			r.With(middleware.UserWorkspacePerm(module.CanRemoveMember)...).Delete("/{memberUserId}", api.DeleteWorkspaceMemberAction)      // remove member
 		})
 
 		r.Route("/keys", func(r chi.Router) {
-			r.With(middleware.UserWorkspacePerm(module.CanCreateWorkspaceAccessKey)...).Post("/", api.CreateWorkspaceAccessKeyAction)
-			r.With(middleware.UserWorkspacePerm(module.CanListWorkspaceAccessKeys)...).Get("/", api.ListWorkspaceAccessKeysAction)
-			r.With(middleware.UserWorkspacePerm(module.CanGetWorkspaceAccessKey)...).Get("/{keyId}", api.GetWorkspaceAccessKeyAction)
-			r.With(middleware.UserWorkspacePerm(module.CanDeleteWorkspaceAccessKey)...).Delete("/{keyId}", api.DeleteWorkspaceAccessKeyAction)
+			r.With(middleware.UserWorkspacePerm(module.CanCreateWorkspaceAccessKey)...).Post("/", api.CreateWorkspaceAccessKeyAction)          // create workspace access key
+			r.With(middleware.UserWorkspacePerm(module.CanListWorkspaceAccessKeys)...).Get("/", api.ListWorkspaceAccessKeysAction)             // list workspace access keys
+			r.With(middleware.UserWorkspacePerm(module.CanGetWorkspaceAccessKey)...).Get("/{keyId}", api.GetWorkspaceAccessKeyAction)          // get workspace access key
+			r.With(middleware.UserWorkspacePerm(module.CanDeleteWorkspaceAccessKey)...).Delete("/{keyId}", api.DeleteWorkspaceAccessKeyAction) // delete workspace access key
 		})
 
-		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspaceBilling)).Get("/billing", api.GetBillingStatusAction)
-		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspaceBilling)).Get("/billing/usage", api.GetBillingUsageAction)
-		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspaceBilling)...).Post("/billing/checkout", api.CreateBillingCheckoutAction)
-		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspaceBilling)...).Post("/billing/portal", api.CreateBillingPortalAction)
+		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspaceBilling)).Get("/billing", api.GetBillingStatusAction)             // get billing status
+		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspaceBilling)).Get("/billing/usage", api.GetBillingUsageAction)        // get billing usage
+		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspaceBilling)...).Post("/billing/checkout", api.CreateBillingCheckoutAction) // start Stripe checkout
+		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspaceBilling)...).Post("/billing/portal", api.CreateBillingPortalAction)     // open Stripe customer portal
 
-		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspace)).Get("/stats", api.GetWorkspaceStatsAction)
+		r.With(middleware.RequireWorkspacePermission(module.CanGetWorkspace)).Get("/stats", api.GetWorkspaceStatsAction) // get workspace stats
 
 		r.Route("/prompts", func(r chi.Router) {
-			r.With(middleware.RequireWorkspacePermission(module.CanListPrompts)).Get("/", api.ListPromptsAction)
-			r.With(middleware.UserWorkspacePerm(module.CanCreatePrompt)...).Post("/", api.CreatePromptAction)
-			r.With(middleware.RequireWorkspacePermission(module.CanGetPrompt)).Get("/{promptId}", api.GetPromptAction)
-			r.With(middleware.UserWorkspacePerm(module.CanDeletePrompt)...).Delete("/{promptId}", api.DeletePromptAction)
+			r.With(middleware.RequireWorkspacePermission(module.CanListPrompts)).Get("/", api.ListPromptsAction)          // list prompts
+			r.With(middleware.UserWorkspacePerm(module.CanCreatePrompt)...).Post("/", api.CreatePromptAction)             // create prompt
+			r.With(middleware.RequireWorkspacePermission(module.CanGetPrompt)).Get("/{promptId}", api.GetPromptAction)    // get prompt
+			r.With(middleware.UserWorkspacePerm(module.CanDeletePrompt)...).Delete("/{promptId}", api.DeletePromptAction) // delete prompt
 
 			r.Route("/{promptId}/versions", func(r chi.Router) {
-				r.With(middleware.RequireWorkspacePermission(module.CanListPrompts)).Get("/", api.ListPromptVersionsAction)
-				r.With(middleware.UserWorkspacePerm(module.CanCreatePrompt)...).Post("/", api.CreatePromptVersionAction)
-				r.With(middleware.RequireWorkspacePermission(module.CanGetPrompt)).Get("/{promptVersionId}", api.GetPromptVersionAction)
-				r.With(middleware.UserWorkspacePerm(module.CanUpdatePrompt)...).Put("/{promptVersionId}", api.UpdatePromptVersionAction)
-				r.With(middleware.UserWorkspacePerm(module.CanDeletePrompt)...).Delete("/{promptVersionId}", api.DeletePromptVersionAction)
+				r.With(middleware.RequireWorkspacePermission(module.CanListPrompts)).Get("/", api.ListPromptVersionsAction)                 // list prompt versions
+				r.With(middleware.UserWorkspacePerm(module.CanCreatePrompt)...).Post("/", api.CreatePromptVersionAction)                    // create prompt version
+				r.With(middleware.RequireWorkspacePermission(module.CanGetPrompt)).Get("/{promptVersionId}", api.GetPromptVersionAction)    // get prompt version
+				r.With(middleware.UserWorkspacePerm(module.CanUpdatePrompt)...).Put("/{promptVersionId}", api.UpdatePromptVersionAction)    // update prompt version
+				r.With(middleware.UserWorkspacePerm(module.CanDeletePrompt)...).Delete("/{promptVersionId}", api.DeletePromptVersionAction) // delete prompt version
 			})
 		})
 
-		r.With(middleware.RequireWorkspacePermission(module.CanGetPrompt)).Get("/promptsByName/{promptName}", api.GetPromptByNameAction)
+		r.With(middleware.RequireWorkspacePermission(module.CanGetPrompt)).Get("/promptsByName/{promptName}", api.GetPromptByNameAction) // get prompt by name
 
 		r.Route("/documents", func(r chi.Router) {
-			r.With(middleware.RequireWorkspacePermission(module.CanListWorkspaceDocuments)).Get("/", api.ListDocumentsAction)
-			r.With(middleware.RequireWorkspacePermission(module.CanQueryWorkspaceDocuments)).Post("/search", api.SearchDocumentsAction)
-			r.With(middleware.UserWorkspacePerm(module.CanCreateWorkspaceDocument)...).Post("/", api.UploadDocumentAction)
-			r.With(middleware.UserWorkspacePerm(module.CanDeleteWorkspaceDocument)...).Delete("/{documentId}", api.DeleteDocumentAction)
+			r.With(middleware.RequireWorkspacePermission(module.CanListWorkspaceDocuments)).Get("/", api.ListDocumentsAction)            // list knowledge documents
+			r.With(middleware.RequireWorkspacePermission(module.CanQueryWorkspaceDocuments)).Post("/search", api.SearchDocumentsAction)  // semantic document search
+			r.With(middleware.UserWorkspacePerm(module.CanCreateWorkspaceDocument)...).Post("/", api.UploadDocumentAction)               // upload knowledge document
+			r.With(middleware.UserWorkspacePerm(module.CanDeleteWorkspaceDocument)...).Delete("/{documentId}", api.DeleteDocumentAction) // delete knowledge document
 		})
 
 		r.Route("/agents", func(r chi.Router) {
-			r.With(middleware.RequireWorkspacePermission(module.CanListAgents)).Get("/", api.ListAgentsAction)
-			r.With(middleware.RequireWorkspacePermission(module.CanCreateAgent)).Post("/", api.CreateAgentAction)
-			r.With(middleware.RequireWorkspacePermission(module.CanGetAgent)).Get("/{agentId}", api.GetAgentAction)
-			r.With(middleware.UserWorkspacePerm(module.CanUpdateAgent)...).Put("/{agentId}", api.UpdateAgentAction)
-			r.With(middleware.RequireWorkspacePermission(module.CanDeleteAgent)).Delete("/{agentId}", api.DeleteAgentAction)
+			r.With(middleware.RequireWorkspacePermission(module.CanListAgents)).Get("/", api.ListAgentsAction)               // list agents
+			r.With(middleware.RequireWorkspacePermission(module.CanCreateAgent)).Post("/", api.CreateAgentAction)            // create agent
+			r.With(middleware.RequireWorkspacePermission(module.CanGetAgent)).Get("/{agentId}", api.GetAgentAction)          // get agent
+			r.With(middleware.UserWorkspacePerm(module.CanUpdateAgent)...).Put("/{agentId}", api.UpdateAgentAction)          // update agent
+			r.With(middleware.RequireWorkspacePermission(module.CanDeleteAgent)).Delete("/{agentId}", api.DeleteAgentAction) // delete agent
 
 			r.Route("/{agentId}/sessions", func(r chi.Router) {
-				r.With(middleware.RequireWorkspacePermission(module.CanListAgentSessions)).Get("/", api.ListAgentSessionsAction)
-				r.With(middleware.RequireWorkspacePermission(module.CanGetAgentSession)).Get("/by-labels", api.GetAgentSessionByLabelsAction)
-				r.With(middleware.RequireWorkspacePermission(module.CanGetAgentSession)).Get("/{sessionId}", api.GetAgentSessionAction)
-				r.With(middleware.RequireWorkspacePermission(module.CanCreateAgentSession)).Post("/", api.CreateAgentSessionAction)
-				r.With(middleware.RequireWorkspacePermission(module.CanUpdateAgentSession)).Put("/by-labels", api.UpdateAgentSessionByLabelsAction)
-				r.With(middleware.RequireWorkspacePermission(module.CanDeleteAgentSession)).Delete("/by-labels", api.DeleteAgentSessionByLabelsAction)
+				r.With(middleware.RequireWorkspacePermission(module.CanListAgentSessions)).Get("/", api.ListAgentSessionsAction)                       // list agent sessions
+				r.With(middleware.RequireWorkspacePermission(module.CanGetAgentSession)).Get("/by-labels", api.GetAgentSessionByLabelsAction)          // get session by labels
+				r.With(middleware.RequireWorkspacePermission(module.CanGetAgentSession)).Get("/{sessionId}", api.GetAgentSessionAction)                // get agent session
+				r.With(middleware.RequireWorkspacePermission(module.CanCreateAgentSession)).Post("/", api.CreateAgentSessionAction)                    // create agent session
+				r.With(middleware.RequireWorkspacePermission(module.CanUpdateAgentSession)).Put("/by-labels", api.UpdateAgentSessionByLabelsAction)    // update session by labels
+				r.With(middleware.RequireWorkspacePermission(module.CanDeleteAgentSession)).Delete("/by-labels", api.DeleteAgentSessionByLabelsAction) // delete session by labels
 
 				r.Route("/{sessionId}/messages", func(r chi.Router) {
-					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMessages)).Get("/", api.ListSessionMessagesAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMessage)).Post("/", api.CreateSessionMessageAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMessage)).Get("/{messageId}", api.GetSessionMessageAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMessage)).Put("/{messageId}", api.UpdateSessionMessageAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMessage)).Delete("/{messageId}", api.DeleteSessionMessageAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMessages)).Get("/", api.ListSessionMessagesAction)                 // list session messages
+					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMessage)).Post("/", api.CreateSessionMessageAction)              // create session message
+					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMessage)).Get("/{messageId}", api.GetSessionMessageAction)          // get session message
+					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMessage)).Put("/{messageId}", api.UpdateSessionMessageAction)    // update session message
+					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMessage)).Delete("/{messageId}", api.DeleteSessionMessageAction) // delete session message
 				})
 
 				r.Route("/{sessionId}/memories", func(r chi.Router) {
-					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMemories)).Get("/", api.ListSessionMemoriesAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMemory)).Post("/", api.CreateSessionMemoryAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMemory)).Get("/{memoryId}", api.GetSessionMemoryAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMemory)).Put("/{memoryId}", api.UpdateSessionMemoryAction)
-					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMemory)).Delete("/{memoryId}", api.DeleteSessionMemoryAction)
+					r.With(middleware.RequireWorkspacePermission(module.CanListSessionMemories)).Get("/", api.ListSessionMemoriesAction)              // list session memories
+					r.With(middleware.RequireWorkspacePermission(module.CanCreateSessionMemory)).Post("/", api.CreateSessionMemoryAction)             // create session memory
+					r.With(middleware.RequireWorkspacePermission(module.CanGetSessionMemory)).Get("/{memoryId}", api.GetSessionMemoryAction)          // get session memory
+					r.With(middleware.RequireWorkspacePermission(module.CanUpdateSessionMemory)).Put("/{memoryId}", api.UpdateSessionMemoryAction)    // update session memory
+					r.With(middleware.RequireWorkspacePermission(module.CanDeleteSessionMemory)).Delete("/{memoryId}", api.DeleteSessionMemoryAction) // delete session memory
 				})
 			})
 		})
 	})
 
-	r.Group(func(r chi.Router) {
+	r.Group(func(r chi.Router) { // demo weather tools
 		r.Use(middleware.RequireUser())
 		r.Use(middleware.RequireRole(db.UserRoleAdmin, db.UserRoleRegular))
-		r.Post("/api/v1/tool/getCityInformation", api.GetCityInformationAction)
-		r.Post("/api/v1/tool/getWeatherByCity", api.GetWeatherByCityAction)
-		r.Post("/api/v1/tool/getWeatherByCoordinates", api.GetWeatherByCoordinatesAction)
+		r.Post("/api/v1/tool/getCityInformation", api.GetCityInformationAction)           // get city info by name
+		r.Post("/api/v1/tool/getWeatherByCity", api.GetWeatherByCityAction)               // get weather by city name
+		r.Post("/api/v1/tool/getWeatherByCoordinates", api.GetWeatherByCoordinatesAction) // get weather by coordinates
 	})
 
 	r.With(middleware.BasicAuth(
 		viper.GetString("app.metrics.username"),
 		viper.GetString("app.metrics.secret"),
 	)).Get(
-		"/api/v1/public/_metrics", promhttp.Handler().ServeHTTP,
+		"/api/v1/public/_metrics", promhttp.Handler().ServeHTTP, // Prometheus metrics
 	)
 
 	dist, err := fs.Sub(Static, "web/dist")
@@ -214,8 +214,8 @@ func SetupServer(Static embed.FS) http.Handler {
 		))
 	}
 
-	r.Handle("/assets/*", http.StripPrefix("/", http.FileServer(http.FS(dist))))
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+	r.Handle("/assets/*", http.StripPrefix("/", http.FileServer(http.FS(dist)))) // static frontend assets
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {                    // SPA fallback — serve index.html
 		indexFile, err := dist.Open("index.html")
 		if err != nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
