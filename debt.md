@@ -32,8 +32,8 @@ Mark done: `- [x] path/to/file`
 - [x] api/access.go
 - [x] api/invite.go
 - [x] api/member.go
-- [ ] api/billing.go
 - [x] api/workspace.go
+- [x] api/billing.go
 
 - [ ] api/agent.go
 - [ ] api/prompt.go
@@ -117,18 +117,18 @@ Mark done: `- [x] path/to/file`
 
 - [x] module/access.go
 - [x] module/api_key.go
-- [ ] module/async.go
+- [x] module/async.go
 - [x] module/auth.go
-- [ ] module/billing.go
+- [x] module/billing.go
 - [x] module/ctx.go
 - [x] module/events.go
 - [x] module/invite.go
 - [x] module/me.go
-- [ ] module/permission.go
+- [x] module/permission.go
 - [x] module/profile.go
 - [x] module/register.go
-- [ ] module/session.go
-- [ ] module/settings.go
+- [x] module/session.go
+- [x] module/settings.go
 - [x] module/setup.go
 - [x] module/stats.go
 - [x] module/tools.go

@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/clivern/actx0/db"
+
+	"github.com/samber/lo"
 )
 
 // Settings manages app settings.
@@ -24,7 +26,7 @@ func NewSettings(config db.ConfigRepository) *Settings {
 func (s *Settings) Update(platformEmail string, maintenanceMode bool) error {
 	updates := map[string]string{
 		"platform_email":   strings.TrimSpace(platformEmail),
-		"maintenance_mode": boolToConfig(maintenanceMode),
+		"maintenance_mode": lo.Ternary(maintenanceMode, "1", "0"),
 	}
 
 	for key, value := range updates {
@@ -35,14 +37,6 @@ func (s *Settings) Update(platformEmail string, maintenanceMode bool) error {
 	}
 
 	return nil
-}
-
-// boolToConfig converts a bool to a config string value.
-func boolToConfig(value bool) string {
-	if value {
-		return "1"
-	}
-	return "0"
 }
 
 // GetSettings retrieves the current settings from the config repository.
