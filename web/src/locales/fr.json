@@ -1041,6 +1041,7 @@
     "code": {
       "tabs": {
         "python": "Python",
+        "nodejs": "Node.js",
         "curl": "cURL",
         "go": "Go"
       }

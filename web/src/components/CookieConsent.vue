@@ -4,35 +4,33 @@
     <Transition name="cookie-banner">
       <div
         v-if="showCookieBanner"
-        class="fixed inset-x-0 bottom-0 z-[150] p-4 sm:p-6 pointer-events-none"
+        class="fixed bottom-4 right-4 z-[150] w-[min(100%-2rem,20rem)] sm:bottom-6 sm:right-6"
         role="dialog"
         aria-labelledby="cookie-banner-title"
         aria-describedby="cookie-banner-desc"
       >
-        <div
-          class="cookie-consent-panel pointer-events-auto mx-auto flex max-w-4xl flex-col gap-4 rounded-lg border border-theme-border p-5 shadow-lg sm:flex-row sm:items-center sm:gap-6 sm:p-6"
-        >
-          <div class="min-w-0 flex-1">
-            <p id="cookie-banner-title" class="text-sm font-semibold text-theme-text">
-              {{ $t('cookies.banner_title') }}
-            </p>
-            <p id="cookie-banner-desc" class="mt-1.5 text-sm leading-relaxed text-theme-textLight">
-              {{ $t('cookies.banner_desc') }}
-              <router-link to="/docs" class="font-medium text-primary-800 hover:text-primary-900 underline-offset-2 hover:underline">
-                {{ $t('cookies.learn_more') }}
-              </router-link>
-            </p>
-          </div>
-          <div class="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-            <button type="button" class="btn-secondary whitespace-nowrap px-4 py-2" @click="onCustomize">
-              {{ $t('cookies.customize') }}
-            </button>
-            <button type="button" class="btn-secondary whitespace-nowrap px-4 py-2" @click="onReject">
-              {{ $t('cookies.reject_optional') }}
-            </button>
-            <button type="button" class="btn-primary whitespace-nowrap px-4 py-2" @click="onAcceptAll">
+        <div class="cookie-consent-panel rounded-lg border border-theme-border p-4 shadow-lg">
+          <p id="cookie-banner-title" class="text-sm font-semibold text-theme-text">
+            {{ $t('cookies.banner_title') }}
+          </p>
+          <p id="cookie-banner-desc" class="mt-1.5 text-xs leading-relaxed text-theme-textLight">
+            {{ $t('cookies.banner_desc') }}
+            <router-link to="/docs" class="font-medium text-primary-800 hover:text-primary-900 underline-offset-2 hover:underline">
+              {{ $t('cookies.learn_more') }}
+            </router-link>
+          </p>
+          <div class="mt-3 flex flex-col gap-2">
+            <button type="button" class="btn-primary w-full px-3 py-1.5 text-sm" @click="onAcceptAll">
               {{ $t('cookies.accept_all') }}
             </button>
+            <div class="flex gap-2">
+              <button type="button" class="btn-secondary flex-1 px-3 py-1.5 text-sm" @click="onCustomize">
+                {{ $t('cookies.customize') }}
+              </button>
+              <button type="button" class="btn-secondary flex-1 px-3 py-1.5 text-sm" @click="onReject">
+                {{ $t('cookies.reject_optional') }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -202,6 +200,6 @@ initCookieConsent()
 .cookie-banner-enter-from,
 .cookie-banner-leave-to {
   opacity: 0;
-  transform: translateY(1rem);
+  transform: translateY(0.75rem) translateX(0.5rem);
 }
 </style>

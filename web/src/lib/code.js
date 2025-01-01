@@ -67,10 +67,22 @@ const curlSpecs = [
   { pattern: /^\s+/, cls: null },
 ]
 
+const nodejsSpecs = [
+  { pattern: /^\/\/.*$/, cls: 'token-comment' },
+  { pattern: /^"(\\.|[^"])*"/, cls: 'token-string' },
+  { pattern: /^'(\\.|[^'])*'/, cls: 'token-string' },
+  { pattern: /^(import|from|const|await|new|console)\b/, cls: 'token-keyword' },
+  { pattern: /^\d+\b/, cls: 'token-var' },
+  { pattern: /^\.[a-zA-Z_]+(?=\()/, cls: 'token-fn' },
+  { pattern: /^[a-zA-Z_][a-zA-Z0-9_]*(?=\()/, cls: 'token-fn' },
+  { pattern: /^\s+/, cls: null },
+]
+
 const languageSpecs = {
   python: pythonSpecs,
   go: goSpecs,
   curl: curlSpecs,
+  nodejs: nodejsSpecs,
 }
 
 export function highlightCode(code, language) {
