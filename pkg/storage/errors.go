@@ -8,6 +8,6 @@ import (
 )
 
 var (
-	ErrUnsupportedProvider = errors.New("unsupported document storage provider")
+	ErrUnsupportedProvider = errors.New("unsupported storage provider")
 	ErrDocumentNotFound    = errors.New("document not found")
 )

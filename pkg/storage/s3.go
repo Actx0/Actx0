@@ -17,13 +17,13 @@ import (
 	smithy "github.com/aws/smithy-go"
 )
 
-type s3Store struct {
+type S3Store struct {
 	api    *awss3.Client
 	config Config
 }
 
-// newS3Store creates an S3-backed document store.
-func newS3Store(config Config) (*s3Store, error) {
+// NewS3Store creates an S3-backed document store.
+func NewS3Store(config Config) (*S3Store, error) {
 	awsCfg, err := awsconfig.LoadDefaultConfig(
 		context.Background(),
 		awsconfig.WithRegion(config.S3.Region),
@@ -44,19 +44,19 @@ func newS3Store(config Config) (*s3Store, error) {
 		options.UsePathStyle = config.S3.UsePathStyle
 	})
 
-	return &s3Store{
+	return &S3Store{
 		api:    client,
 		config: config,
 	}, nil
 }
 
 // Config returns the store configuration.
-func (s *s3Store) Config() Config {
+func (s *S3Store) Config() Config {
 	return s.config
 }
 
 // PutDocument writes document bytes to storage.
-func (s *s3Store) PutDocument(ctx context.Context, id string, text string) (string, error) {
+func (s *S3Store) PutDocument(ctx context.Context, id string, text string) (string, error) {
 	key := s.objectKey(id)
 
 	_, err := s.api.PutObject(ctx, &awss3.PutObjectInput{
@@ -73,13 +73,14 @@ func (s *s3Store) PutDocument(ctx context.Context, id string, text string) (stri
 }
 
 // GetDocument reads document bytes from storage.
-func (s *s3Store) GetDocument(ctx context.Context, id string) (string, error) {
+func (s *S3Store) GetDocument(ctx context.Context, id string) (string, error) {
 	key := s.objectKey(id)
 
 	output, err := s.api.GetObject(ctx, &awss3.GetObjectInput{
 		Bucket: aws.String(s.config.S3.Bucket),
 		Key:    aws.String(key),
 	})
+
 	if err != nil {
 		if isS3NotFound(err) {
 			return "", ErrDocumentNotFound
@@ -97,7 +98,7 @@ func (s *s3Store) GetDocument(ctx context.Context, id string) (string, error) {
 }
 
 // DeleteDocument removes a document from storage.
-func (s *s3Store) DeleteDocument(ctx context.Context, id string) error {
+func (s *S3Store) DeleteDocument(ctx context.Context, id string) error {
 	key := s.objectKey(id)
 
 	_, err := s.api.DeleteObject(ctx, &awss3.DeleteObjectInput{
@@ -115,17 +116,17 @@ func (s *s3Store) DeleteDocument(ctx context.Context, id string) error {
 }
 
 // DocumentURI returns the URI for a stored document.
-func (s *s3Store) DocumentURI(id string) (string, error) {
+func (s *S3Store) DocumentURI(id string) (string, error) {
 	return s.documentURI(s.objectKey(id))
 }
 
 // objectKey returns the S3 object key for a document.
-func (s *s3Store) objectKey(id string) string {
+func (s *S3Store) objectKey(id string) string {
 	return s.config.S3.Prefix + "/" + DocumentKey(id)
 }
 
 // documentURI builds the URI for a stored document.
-func (s *s3Store) documentURI(key string) (string, error) {
+func (s *S3Store) documentURI(key string) (string, error) {
 	return fmt.Sprintf("s3://%s/%s", s.config.S3.Bucket, key), nil
 }
 

@@ -26,9 +26,9 @@ func New() (Store, error) {
 func NewFromConfig(config Config) (Store, error) {
 	switch config.Provider {
 	case "local":
-		return newLocalStore(config)
+		return NewLocalStore(config)
 	case "s3":
-		return newS3Store(config)
+		return NewS3Store(config)
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedProvider, config.Provider)
 	}

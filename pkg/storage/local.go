@@ -12,27 +12,27 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 )
 
-type localStore struct {
+type LocalStore struct {
 	config Config
 }
 
-// newLocalStore creates a filesystem-backed document store.
-func newLocalStore(config Config) (*localStore, error) {
+// NewLocalStore creates a filesystem-backed document store.
+func NewLocalStore(config Config) (*LocalStore, error) {
 	err := util.EnsureDir(config.Local.Path, 0o755)
 	if err != nil {
 		return nil, fmt.Errorf("local storage ensure dir: %w", err)
 	}
 
-	return &localStore{config: config}, nil
+	return &LocalStore{config: config}, nil
 }
 
 // Config returns the store configuration.
-func (s *localStore) Config() Config {
+func (s *LocalStore) Config() Config {
 	return s.config
 }
 
 // PutDocument writes document bytes to storage.
-func (s *localStore) PutDocument(_ context.Context, id string, text string) (string, error) {
+func (s *LocalStore) PutDocument(_ context.Context, id string, text string) (string, error) {
 	key := DocumentKey(id)
 
 	path := s.objectPath(key)
@@ -50,7 +50,7 @@ func (s *localStore) PutDocument(_ context.Context, id string, text string) (str
 }
 
 // GetDocument reads document bytes from storage.
-func (s *localStore) GetDocument(_ context.Context, id string) (string, error) {
+func (s *LocalStore) GetDocument(_ context.Context, id string) (string, error) {
 	key := DocumentKey(id)
 
 	data, err := os.ReadFile(s.objectPath(key))
@@ -65,7 +65,7 @@ func (s *localStore) GetDocument(_ context.Context, id string) (string, error) {
 }
 
 // DeleteDocument removes a document from storage.
-func (s *localStore) DeleteDocument(_ context.Context, id string) error {
+func (s *LocalStore) DeleteDocument(_ context.Context, id string) error {
 	key := DocumentKey(id)
 
 	err := os.Remove(s.objectPath(key))
@@ -80,17 +80,17 @@ func (s *localStore) DeleteDocument(_ context.Context, id string) error {
 }
 
 // DocumentURI returns the URI for a stored document.
-func (s *localStore) DocumentURI(id string) (string, error) {
+func (s *LocalStore) DocumentURI(id string) (string, error) {
 	return s.documentURI(DocumentKey(id))
 }
 
 // objectPath returns the filesystem path for a document key.
-func (s *localStore) objectPath(key string) string {
+func (s *LocalStore) objectPath(key string) string {
 	return filepath.Join(s.config.Local.Path, filepath.FromSlash(key))
 }
 
 // documentURI builds the URI for a stored document.
-func (s *localStore) documentURI(key string) (string, error) {
+func (s *LocalStore) documentURI(key string) (string, error) {
 	path := s.objectPath(key)
 	return "file://" + filepath.ToSlash(path), nil
 }
