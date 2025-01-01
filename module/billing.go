@@ -67,6 +67,7 @@ type BillingWebhookResponse struct {
 
 // PlanUsageLimits are the consumption caps for a billing plan.
 type PlanUsageLimits struct {
+	Price            float64 `json:"price"`
 	APICalls         int64   `json:"apiCalls"`
 	WorkspaceMembers int64   `json:"workspaceMembers"`
 	DocumentsCount   int64   `json:"documentsCount"`
@@ -87,6 +88,7 @@ type BillingUsageResponse struct {
 
 var planUsageLimits = map[string]PlanUsageLimits{
 	stripe.PlanHobby: {
+		Price:            0,
 		APICalls:         10_000,
 		WorkspaceMembers: 1,
 		DocumentsCount:   10,
@@ -97,6 +99,7 @@ var planUsageLimits = map[string]PlanUsageLimits{
 		AITokens:         500_000,
 	},
 	stripe.PlanStarter: {
+		Price:            19,
 		APICalls:         1_000_000,
 		WorkspaceMembers: 10,
 		DocumentsCount:   500,
@@ -107,23 +110,25 @@ var planUsageLimits = map[string]PlanUsageLimits{
 		AITokens:         2_000_000,
 	},
 	stripe.PlanGrowth: {
+		Price:            69,
 		APICalls:         3_000_000,
 		WorkspaceMembers: 25,
 		DocumentsCount:   2_000,
-		PromptsCount:     1_000,
-		StorageGB:        100,
-		HistoryRecords:   100_000,
-		MemoryRecords:    50_000,
+		PromptsCount:     400,
+		StorageGB:        25,
+		HistoryRecords:   75_000,
+		MemoryRecords:    40_000,
 		AITokens:         7_300_000,
 	},
 	stripe.PlanPro: {
-		APICalls:         50_000_000,
+		Price:            219,
+		APICalls:         10_000_000,
 		WorkspaceMembers: 100,
-		DocumentsCount:   10_000,
-		PromptsCount:     5_000,
-		StorageGB:        500,
-		HistoryRecords:   1_000_000,
-		MemoryRecords:    500_000,
+		DocumentsCount:   6_500,
+		PromptsCount:     1_250,
+		StorageGB:        100,
+		HistoryRecords:   250_000,
+		MemoryRecords:    125_000,
 		AITokens:         23_200_000,
 	},
 }
