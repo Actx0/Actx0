@@ -55,18 +55,7 @@ func (id Id) String() string {
 	return string(id)
 }
 
-// ValueOrNil returns the Id as interface{} for use in queries; returns nil if id is empty (for nullable columns).
-func (id Id) ValueOrNil() interface{} {
-	if lo.IsEmpty(id) {
-		return nil
-	}
-	return string(id)
-}
-
-// ValueOrNilPtr returns the Id as interface{} for nullable columns; returns nil if the pointer is nil or Id is empty.
-func (id *Id) ValueOrNilPtr() interface{} {
-	if id == nil || lo.IsEmpty(*id) {
-		return nil
-	}
-	return string(*id)
+// IsBotUser reports whether id is the platform bot user.
+func IsBotUser(id Id) bool {
+	return id == BotUserId
 }

@@ -6,6 +6,8 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/samber/lo"
 )
 
 // AuditEvent is a single row in the audit table.
@@ -56,10 +58,10 @@ func (r *AuditEventRepositoryPostgres) Create(event *AuditEvent) error {
 		RETURNING created_at`,
 		event.Id.String(),
 		event.WorkspaceId.String(),
-		event.UserId.ValueOrNilPtr(),
+		lo.FromPtr(event.UserId),
 		event.Action,
 		event.ResourceType,
-		event.ResourceId.ValueOrNilPtr(),
+		lo.FromPtr(event.ResourceId),
 		event.IPAddress,
 		event.UserAgent,
 		event.Meta,
