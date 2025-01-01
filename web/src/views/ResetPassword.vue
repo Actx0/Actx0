@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { authAPI } from '@/api'
@@ -88,7 +88,6 @@ import { showFlash } from '@/lib/flash'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const token = computed(() => route.params.token || '')
 
 const form = reactive({
   password: '',
@@ -98,23 +97,31 @@ const loading = ref(false)
 const error = ref(null)
 
 const handleSubmit = async () => {
+  loading.value = true
+  error.value = null
+
+  const token = route.params.token || ''
+
   if (form.password !== form.confirmPassword) {
     error.value = t('reset_password.error_passwords_match')
-    return
-  }
-  if (form.password.length < 8) {
-    error.value = t('reset_password.error_password_length')
-    return
-  }
-  if (!token.value) {
-    error.value = t('reset_password.error_invalid_link')
+    loading.value = false
     return
   }
 
-  loading.value = true
-  error.value = null
+  if (form.password.length < 8) {
+    error.value = t('reset_password.error_password_length')
+    loading.value = false
+    return
+  }
+
+  if (!token) {
+    error.value = t('reset_password.error_invalid_link')
+    loading.value = false
+    return
+  }
+
   try {
-    await authAPI.resetPassword({ token: token.value, password: form.password })
+    await authAPI.resetPassword({ token, password: form.password })
     showFlash(t('common.saved'))
     setTimeout(() => router.push('/login'), 2000)
   } catch (err) {
