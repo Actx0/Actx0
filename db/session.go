@@ -33,12 +33,36 @@ type AgentSessionRepository interface {
 	TouchLastActivityAt(sessionId Id, at time.Time) error
 	Delete(id Id) error
 	ListByAgentId(agentId Id, limit, offset int) ([]*AgentSession, error)
-	ListByAgentIdAndLabels(agentId Id, labelsContains string, limit, offset int) ([]*AgentSession, error)
+	ListByAgentIdAndLabels(agentId Id, labels string, limit, offset int) ([]*AgentSession, error)
 	CountByAgentId(agentId Id) (int64, error)
-	CountByAgentIdAndLabels(agentId Id, labelsContains string) (int64, error)
+	CountByAgentIdAndLabels(agentId Id, labels string) (int64, error)
 }
 
 type AgentSessionRepositoryPostgres struct {
+	db *sql.DB
+}
+
+// AgentSessionMeta is a single row in the sessions_meta table.
+type AgentSessionMeta struct {
+	Id        Id
+	SessionId Id
+	Key       string
+	Value     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+// AgentSessionMetaRepository is the interface for agent session meta CRUD.
+type AgentSessionMetaRepository interface {
+	Create(id Id, key, value string) error
+	Get(id Id, key string) (*AgentSessionMeta, error)
+	Update(id Id, key, value string) error
+	Delete(id Id, key string) error
+	ListBySessionId(id Id) ([]*AgentSessionMeta, error)
+	Upsert(id Id, key, value string) error
+}
+
+type AgentSessionMetaRepositoryPostgres struct {
 	db *sql.DB
 }
 
@@ -251,7 +275,7 @@ func (r *AgentSessionRepositoryPostgres) ListByAgentId(agentId Id, limit, offset
 }
 
 // ListByAgentIdAndLabels lists agent session rows by agent id and labels.
-func (r *AgentSessionRepositoryPostgres) ListByAgentIdAndLabels(agentId Id, labelsContains string, limit, offset int) ([]*AgentSession, error) {
+func (r *AgentSessionRepositoryPostgres) ListByAgentIdAndLabels(agentId Id, labels string, limit, offset int) ([]*AgentSession, error) {
 	rows, err := r.db.Query(
 		`SELECT
 			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
@@ -260,7 +284,7 @@ func (r *AgentSessionRepositoryPostgres) ListByAgentIdAndLabels(agentId Id, labe
 		ORDER BY COALESCE(last_activity_at, created_at) DESC
 		LIMIT $3 OFFSET $4`,
 		agentId.String(),
-		labelsContains,
+		labels,
 		limit,
 		offset,
 	)
@@ -304,14 +328,126 @@ func (r *AgentSessionRepositoryPostgres) CountByAgentId(agentId Id) (int64, erro
 }
 
 // CountByAgentIdAndLabels counts agent session rows by agent id and labels containment.
-func (r *AgentSessionRepositoryPostgres) CountByAgentIdAndLabels(agentId Id, labelsContains string) (int64, error) {
+func (r *AgentSessionRepositoryPostgres) CountByAgentIdAndLabels(agentId Id, labels string) (int64, error) {
 	var count int64
 	err := r.db.QueryRow(
 		`SELECT COUNT(*)
 		FROM sessions
 		WHERE agent_id = $1 AND labels @> $2::jsonb`,
 		agentId.String(),
-		labelsContains,
+		labels,
 	).Scan(&count)
 	return count, err
+}
+
+// NewAgentSessionMetaRepository returns the repository for agent session meta.
+func NewAgentSessionMetaRepository(db *sql.DB) AgentSessionMetaRepository {
+	return &AgentSessionMetaRepositoryPostgres{db: db}
+}
+
+// Create inserts an agent session metadata row.
+func (r *AgentSessionMetaRepositoryPostgres) Create(id Id, key, value string) error {
+	metaId, err := NewId()
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec(
+		`INSERT INTO sessions_meta (
+			id, session_id, key, value
+		)
+		VALUES ($1, $2, $3, $4)`,
+		metaId.String(), id.String(), key, value,
+	)
+	return err
+}
+
+// Get returns agent session metadata by key.
+func (r *AgentSessionMetaRepositoryPostgres) Get(id Id, key string) (*AgentSessionMeta, error) {
+	meta := &AgentSessionMeta{}
+	err := r.db.QueryRow(
+		`SELECT
+			id, session_id, key, value, created_at, updated_at
+		FROM sessions_meta
+		WHERE session_id = $1 AND key = $2`,
+		id.String(), key,
+	).Scan(
+		&meta.Id,
+		&meta.SessionId,
+		&meta.Key,
+		&meta.Value,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
+	if isNotFound(err) {
+		return nil, nil
+	}
+	return meta, err
+}
+
+// Update updates an existing agent session metadata row.
+func (r *AgentSessionMetaRepositoryPostgres) Update(id Id, key, value string) error {
+	_, err := r.db.Exec(
+		`UPDATE sessions_meta
+		SET
+			value = $1,
+			updated_at = $2
+		WHERE session_id = $3 AND key = $4`,
+		value, time.Now().UTC(), id.String(), key,
+	)
+	return err
+}
+
+// Delete deletes an agent session metadata row.
+func (r *AgentSessionMetaRepositoryPostgres) Delete(id Id, key string) error {
+	_, err := r.db.Exec(
+		`DELETE FROM sessions_meta
+		WHERE session_id = $1 AND key = $2`,
+		id.String(), key,
+	)
+	return err
+}
+
+// ListBySessionId lists agent session metadata rows by session id.
+func (r *AgentSessionMetaRepositoryPostgres) ListBySessionId(id Id) ([]*AgentSessionMeta, error) {
+	rows, err := r.db.Query(
+		`SELECT
+			id, session_id, key, value, created_at, updated_at
+		FROM sessions_meta
+		WHERE session_id = $1
+		ORDER BY key`,
+		id.String(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var list []*AgentSessionMeta
+	for rows.Next() {
+		meta := &AgentSessionMeta{}
+		err := rows.Scan(
+			&meta.Id,
+			&meta.SessionId,
+			&meta.Key,
+			&meta.Value,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, meta)
+	}
+	return list, rows.Err()
+}
+
+// Upsert creates or updates agent session metadata.
+func (r *AgentSessionMetaRepositoryPostgres) Upsert(id Id, key, value string) error {
+	existing, err := r.Get(id, key)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return r.Create(id, key, value)
+	}
+	return r.Update(id, key, value)
 }
