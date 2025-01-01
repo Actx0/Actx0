@@ -11,6 +11,7 @@ import (
 const UsageTypeAPICalls = "api_calls"
 const UsageTypeAITokens = "ai_tokens"
 const UsageTypeAICost = "ai_cost"
+const UsageUnitCalls = "calls"
 const UsageUnitTokens = "tokens"
 const UsageUnitNanoUSD = "nano_usd"
 

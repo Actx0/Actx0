@@ -100,6 +100,7 @@ func SetupServer(Static embed.FS) http.Handler {
 
 	r.Route("/api/v1/workspaces/{workspaceId}", func(r chi.Router) {
 		r.Use(middleware.RequireWorkspace())
+		r.Use(middleware.TrackWorkspaceAPICall())
 
 		r.With(middleware.UserWorkspacePerm(module.CanGetWorkspace)...).Get("/", api.GetWorkspaceAction)
 		r.With(middleware.UserWorkspacePerm(module.CanUpdateWorkspace)...).Put("/", api.UpdateWorkspaceAction)

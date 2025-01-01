@@ -4,6 +4,8 @@
 package module
 
 import (
+	"time"
+
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/ai"
 )
@@ -68,6 +70,25 @@ func (u *Usage) AICost(ur db.UsageRepository, sr db.SubscriptionRepository, work
 	}
 
 	return float64(cost) / ai.USDToNano, nil
+}
+
+func currentMonthPeriod() (time.Time, time.Time) {
+	now := time.Now().UTC()
+	start := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	return start, start.AddDate(0, 1, 0)
+}
+
+// IncrementAPICalls records one successful workspace API call for the current month.
+func (u *Usage) IncrementAPICalls(ur db.UsageRepository, workspaceId db.Id) error {
+	start, end := currentMonthPeriod()
+	return ur.IncrementByPeriod(
+		workspaceId,
+		db.UsageTypeAPICalls,
+		start,
+		end,
+		1,
+		db.UsageUnitCalls,
+	)
 }
 
 // IncrementAIUsage adds AI token and cost usage for the workspace subscription period.
