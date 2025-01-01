@@ -41,74 +41,6 @@
           </div>
         </div>
 
-        <section class="mb-8 rounded-xl border border-theme-border bg-white shadow-sm overflow-hidden">
-          <div class="border-b border-theme-border bg-primary-50/40 px-6 py-5">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.getting_started') }}</h2>
-                <p class="mt-1 max-w-2xl text-sm text-theme-textLight leading-relaxed">
-                  {{ $t('agents_page.getting_started_desc') }}
-                </p>
-              </div>
-              <span class="rounded-full border border-theme-border bg-white px-3 py-1 text-xs font-medium text-theme-textLight">
-                {{ gettingStartedSteps.length }} {{ $t('agents_page.steps') }}
-              </span>
-            </div>
-          </div>
-
-          <ol class="divide-y divide-theme-border">
-            <li
-              v-for="(step, index) in gettingStartedSteps"
-              :key="step.title"
-              class="group flex gap-4 px-6 py-5 transition-colors hover:bg-theme-hover/40"
-            >
-              <div class="relative flex flex-col items-center">
-                <span
-                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-theme-border bg-white text-theme-text shadow-sm transition-colors group-hover:border-primary-300 group-hover:bg-primary-50"
-                  :class="stepIconClass(step.icon)"
-                >
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" :d="stepIcons[step.icon]" />
-                  </svg>
-                </span>
-                <span
-                  v-if="index < gettingStartedSteps.length - 1"
-                  class="mt-2 w-px flex-1 min-h-[1.5rem] bg-theme-border"
-                  aria-hidden="true"
-                />
-              </div>
-              <div class="min-w-0 flex-1 pb-1">
-                <span class="text-xs font-medium uppercase tracking-wide text-theme-textLight">
-                  {{ $t('agents_page.step_label', { number: step.number }) }}
-                </span>
-                <p class="mt-1 text-base font-medium text-theme-text">{{ step.title }}</p>
-                <p class="mt-1 text-sm leading-relaxed text-theme-textLight">{{ step.description }}</p>
-                <div v-if="step.code" class="mt-3 flex flex-wrap items-center gap-2">
-                  <code class="rounded-lg border border-theme-border bg-theme-bg px-3 py-2 text-xs font-mono text-theme-text break-all">{{ step.code }}</code>
-                  <button type="button" class="btn-secondary px-3 py-1.5 text-xs" @click="copyText(step.code)">
-                    {{ copiedField === step.code ? $t('agents_page.copied') : $t('agents_page.copy') }}
-                  </button>
-                </div>
-                <button
-                  v-if="step.action === 'edit' && canEdit"
-                  type="button"
-                  class="btn-secondary mt-3 inline-flex items-center px-3 py-1.5 text-sm"
-                  @click="openEditModal"
-                >
-                  {{ $t('agents_page.edit_agent') }}
-                </button>
-                <router-link
-                  v-else-if="step.link"
-                  :to="step.link.to"
-                  class="btn-secondary mt-3 inline-flex items-center px-3 py-1.5 text-sm"
-                >
-                  {{ step.link.label }}
-                </router-link>
-              </div>
-            </li>
-          </ol>
-        </section>
-
         <section class="rounded-xl border border-theme-border bg-white shadow-sm overflow-hidden">
           <div class="border-b border-theme-border px-6 py-4">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.sessions_title') }}</h2>
@@ -298,7 +230,6 @@ const sessionsTotal = ref(0)
 const showEditModal = ref(false)
 const editError = ref(null)
 const saveLoading = ref(false)
-const copiedField = ref(null)
 const editForm = reactive({ name: '', description: '' })
 
 const deleteSessionTarget = ref(null)
@@ -307,53 +238,6 @@ const deletingSession = ref(false)
 const deletingSessionId = ref(null)
 
 const agentId = computed(() => route.params.agentId)
-
-const stepIcons = {
-  settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
-  book: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
-  chat: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-  chart: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-}
-
-const gettingStartedSteps = computed(() => [
-  {
-    number: 1,
-    icon: 'settings',
-    title: t('agents_page.step_configure'),
-    description: t('agents_page.step_configure_desc'),
-    action: 'edit',
-  },
-  {
-    number: 2,
-    icon: 'book',
-    title: t('agents_page.step_knowledge'),
-    description: t('agents_page.step_knowledge_desc'),
-    link: { to: '/knowledge', label: t('agents_page.step_knowledge_link') },
-  },
-  {
-    number: 3,
-    icon: 'chat',
-    title: t('agents_page.step_session'),
-    description: t('agents_page.step_session_desc'),
-    code: agent.value.handle,
-  },
-  {
-    number: 4,
-    icon: 'chart',
-    title: t('agents_page.step_monitor'),
-    description: t('agents_page.step_monitor_desc'),
-  },
-])
-
-function stepIconClass(icon) {
-  const map = {
-    settings: 'text-sky-700',
-    book: 'text-violet-700',
-    chat: 'text-emerald-700',
-    chart: 'text-primary-800',
-  }
-  return map[icon]
-}
 
 async function loadAgent() {
   loading.value = true
@@ -449,18 +333,6 @@ async function handleSave() {
     editError.value = err.response?.data?.errorMessage || t('agents_page.failed_save')
   } finally {
     saveLoading.value = false
-  }
-}
-
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text)
-    copiedField.value = text
-    setTimeout(() => {
-      if (copiedField.value === text) copiedField.value = null
-    }, 2000)
-  } catch {
-    // clipboard unavailable
   }
 }
 
