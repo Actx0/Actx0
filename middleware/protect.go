@@ -34,10 +34,7 @@ type Config struct {
 func Protect(cfg Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// User / roles — Roles implies User so access keys are rejected
-			requireUser := cfg.User || len(cfg.Roles) > 0
-
-			if requireUser {
+			if cfg.User || len(cfg.Roles) > 0 {
 				user, ok := GetUserFromContext(r.Context())
 				if !ok || user == nil {
 					log.Info().
