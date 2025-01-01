@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { startLoading, stopLoading } from '@/lib/loading'
 import { removeUserFromStorage, removeWorkspaceFromStorage } from '@/utils/storage'
 
 const api = axios.create({
@@ -6,7 +7,18 @@ const api = axios.create({
   timeout: 10000,
 })
 
+function trackLoading(config) {
+  if (config.skipGlobalLoading) return
+  startLoading()
+  config.__globalLoading = true
+}
+
+function untrackLoading(config) {
+  if (config?.__globalLoading) stopLoading()
+}
+
 api.interceptors.request.use((config) => {
+  trackLoading(config)
   try {
     const locale = typeof localStorage !== 'undefined' && localStorage.getItem('_flocale')
     if (locale === 'en' || locale === 'fr') {
@@ -18,8 +30,12 @@ api.interceptors.request.use((config) => {
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    untrackLoading(response.config)
+    return response
+  },
   (error) => {
+    untrackLoading(error.config)
     const isLoginEndpoint = error.config?.url === 'public/action/login'
     const isProfileEndpoint = error.config?.url === '/action/profile'
     const isLogoutEndpoint = error.config?.url === 'public/action/logout'
@@ -140,7 +156,7 @@ export const promptAPI = {
 }
 
 export const documentAPI = {
-  list: (workspaceId, params) => api.get(`/workspaces/${workspaceId}/documents`, { params }),
+  list: (workspaceId, params, config) => api.get(`/workspaces/${workspaceId}/documents`, { ...config, params }),
   upload: (workspaceId, formData) => api.post(`/workspaces/${workspaceId}/documents`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 60000,
