@@ -23,7 +23,7 @@ func (rw *statusRecorder) WriteHeader(code int) {
 }
 
 // TrackWorkspaceAPICall increments workspace API usage after authenticated, authorized
-// requests complete successfully. Place on workspace routes after RequireWorkspace.
+// requests complete successfully. Place on workspace routes after Protect with Workspace: true.
 func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
