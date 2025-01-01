@@ -176,6 +176,7 @@ func SetupServer(Static embed.FS) http.Handler {
 
 				r.Route("/{sessionId}/messages", func(r chi.Router) {
 					r.With(middleware.Protect(middleware.Config{Perm: module.CanListSessionMessages})).Get("/", api.ListSessionMessagesAction)                 // list session messages
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanQuerySessionMessages})).Post("/search", api.SearchSessionMessagesAction)       // semantic session message search
 					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMessage})).Post("/", api.CreateSessionMessageAction)              // create session message
 					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMessage})).Post("/batch", api.BatchCreateSessionMessagesAction)   // batch create session messages
 					r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteSessionMessage})).Delete("/batch", api.BatchDeleteSessionMessagesAction) // batch delete session messages
@@ -185,14 +186,15 @@ func SetupServer(Static embed.FS) http.Handler {
 				})
 
 				r.Route("/{sessionId}/memories", func(r chi.Router) {
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanListSessionMemories})).Get("/", api.ListSessionMemoriesAction)                     // list session memories
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMemory})).Post("/", api.CreateSessionMemoryAction)                    // create session memory
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMemory})).Post("/batch", api.BatchCreateSessionMemoriesAction)        // batch create session memories
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteSessionMemory})).Delete("/batch", api.BatchDeleteSessionMemoriesAction)      // batch delete session memories
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMemory})).Post("/regenerate", api.RegenerateSessionMemoriesAction)    // regenerate session memories
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanGetSessionMemory})).Get("/{memoryId}", api.GetSessionMemoryAction)                 // get session memory
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanUpdateSessionMemory})).Put("/{memoryId}", api.UpdateSessionMemoryAction)           // update session memory
-					r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteSessionMemory})).Delete("/{memoryId}", api.DeleteSessionMemoryAction)        // delete session memory
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanListSessionMemories})).Get("/", api.ListSessionMemoriesAction)                  // list session memories
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanQuerySessionMemories})).Post("/search", api.SearchSessionMemoriesAction)        // semantic session memory search
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMemory})).Post("/", api.CreateSessionMemoryAction)                 // create session memory
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMemory})).Post("/batch", api.BatchCreateSessionMemoriesAction)     // batch create session memories
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteSessionMemory})).Delete("/batch", api.BatchDeleteSessionMemoriesAction)   // batch delete session memories
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateSessionMemory})).Post("/regenerate", api.RegenerateSessionMemoriesAction) // regenerate session memories
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanGetSessionMemory})).Get("/{memoryId}", api.GetSessionMemoryAction)              // get session memory
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanUpdateSessionMemory})).Put("/{memoryId}", api.UpdateSessionMemoryAction)        // update session memory
+					r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteSessionMemory})).Delete("/{memoryId}", api.DeleteSessionMemoryAction)     // delete session memory
 				})
 			})
 		})

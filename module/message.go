@@ -4,6 +4,7 @@
 package module
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,17 +12,20 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
+	"github.com/clivern/actx0/service/agent"
 
+	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
 var (
-	ErrSessionMessageNotFound     = errors.New("session message not found")
-	ErrFailedCreateSessionMessage = errors.New("failed create session message")
-	ErrFailedListSessionMessages  = errors.New("failed list session messages")
-	ErrFailedGetSessionMessage    = errors.New("failed get session message")
-	ErrFailedUpdateSessionMessage = errors.New("failed update session message")
-	ErrFailedDeleteSessionMessage = errors.New("failed delete session message")
+	ErrSessionMessageNotFound      = errors.New("session message not found")
+	ErrFailedCreateSessionMessage  = errors.New("failed create session message")
+	ErrFailedListSessionMessages   = errors.New("failed list session messages")
+	ErrFailedGetSessionMessage     = errors.New("failed get session message")
+	ErrFailedUpdateSessionMessage  = errors.New("failed update session message")
+	ErrFailedDeleteSessionMessage  = errors.New("failed delete session message")
+	ErrFailedSearchSessionMessages = errors.New("failed search session messages")
 )
 
 // CreateSessionMessageRequest is the body for creating a session message.
@@ -48,6 +52,25 @@ type UpdateSessionMessageRequest struct {
 	Meta    *string `json:"meta" validate:"omitempty,json" label:"Meta"`
 }
 
+// SearchSessionMessagesRequest is the body for searching session messages.
+type SearchSessionMessagesRequest struct {
+	Query string `json:"query" validate:"required,min=1" label:"Query"`
+	Limit int    `json:"limit" validate:"omitempty,min=1,max=100" label:"Limit"`
+}
+
+// SearchSessionMessageHit is a scored session message for API responses.
+type SearchSessionMessageHit struct {
+	Id    db.Id   `json:"id"`
+	Role  string  `json:"role"`
+	Score float32 `json:"score"`
+	Text  string  `json:"text"`
+}
+
+// SearchSessionMessagesResponse is returned when searching session messages.
+type SearchSessionMessagesResponse struct {
+	Results []SearchSessionMessageHit `json:"results"`
+}
+
 // SessionMessageResponse is a session message shaped for API responses.
 type SessionMessageResponse struct {
 	Id        db.Id           `json:"id"`
@@ -66,8 +89,11 @@ type ListSessionMessagesResponse struct {
 
 // Message is the module for session message CRUD.
 type Message struct {
-	MessageRepository db.SessionMessageRepository
-	SessionRepository db.AgentSessionRepository
+	MessageRepository      db.SessionMessageRepository
+	SessionRepository      db.AgentSessionRepository
+	Agent                  *agent.Service
+	UsageRepository        db.UsageRepository
+	SubscriptionRepository db.SubscriptionRepository
 }
 
 // NewMessage creates a session message module with the given repositories.
@@ -333,6 +359,55 @@ func (m *Message) ListSessionMessages(workspaceId, agentId, sessionId db.Id, lim
 	}
 
 	return &ListSessionMessagesResponse{Messages: list, Total: total}, nil
+}
+
+// SearchSessionMessages finds relevant session messages for a semantic query.
+func (m *Message) SearchSessionMessages(ctx context.Context, workspaceId, agentId, sessionId db.Id, query string, limit int) (*SearchSessionMessagesResponse, error) {
+	session, err := m.loadAgentSession(workspaceId, agentId, sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	hits, usage, err := m.Agent.SearchSessionMessages(ctx, agent.SearchSessionRequest{
+		WorkspaceId: workspaceId,
+		AgentId:     agentId,
+		SessionId:   session.Id,
+		Query:       query,
+		Limit:       uint64(limit),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedSearchSessionMessages, err)
+	}
+
+	err = NewUsage().IncrementAIUsage(
+		m.UsageRepository,
+		m.SubscriptionRepository,
+		workspaceId,
+		usage.TotalTokens,
+		usage.Cost,
+	)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("workspaceId", workspaceId.String()).
+			Int64("total_tokens", usage.TotalTokens).
+			Int64("total_cost", usage.Cost).
+			Msg("Failed to record AI usage for session message search")
+	}
+
+	results := make([]SearchSessionMessageHit, 0, len(hits))
+	for _, hit := range hits {
+		results = append(results, SearchSessionMessageHit{
+			Id:    hit.MessageId,
+			Role:  hit.Role,
+			Score: hit.Score,
+			Text:  hit.Text,
+		})
+	}
+
+	return &SearchSessionMessagesResponse{
+		Results: results,
+	}, nil
 }
 
 // EnqueueIndexTask enqueues an async task to index a session message.

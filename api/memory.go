@@ -7,10 +7,14 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/locale"
 	"github.com/clivern/actx0/module"
+	"github.com/clivern/actx0/pkg/ai"
+	"github.com/clivern/actx0/pkg/qdrant"
 	"github.com/clivern/actx0/pkg/util"
+	"github.com/clivern/actx0/service/agent"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
@@ -691,4 +695,110 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// SearchSessionMemoriesAction searches session memories by semantic query.
+func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
+	wid := chi.URLParam(r, "workspaceId")
+	if lo.IsEmpty(wid) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_workspace_id"),
+		})
+		return
+	}
+	workspaceId := db.Id(wid)
+
+	agentId := chi.URLParam(r, "agentId")
+	if lo.IsEmpty(agentId) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_agent_id"),
+		})
+		return
+	}
+
+	sessionId := chi.URLParam(r, "sessionId")
+	if lo.IsEmpty(sessionId) {
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
+			"errorMessage": locale.TR(r, "invalid_session_reference"),
+		})
+		return
+	}
+
+	var req module.SearchSessionMemoriesRequest
+	if err := util.DecodeAndValidate(r, &req); err != nil {
+		util.WriteValidationError(w, err)
+		return
+	}
+
+	limit := lo.Ternary(req.Limit == 0, conf.DefaultSearchLimit, req.Limit)
+
+	vdb, err := qdrant.New()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to initialize qdrant")
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+			"errorMessage": locale.TR(r, "failed_process_request"),
+		})
+		return
+	}
+	defer func() {
+		if err := vdb.Close(); err != nil {
+			log.Error().Err(err).Msg("Failed to close qdrant client")
+		}
+	}()
+
+	asvc := agent.New(agent.Dependencies{
+		Embed:    ai.NewEmbedClient(),
+		Vectors:  vdb,
+		Agents:   db.NewAgentRepository(db.GetDB()),
+		Sessions: db.NewAgentSessionRepository(db.GetDB()),
+		Messages: db.NewSessionMessageRepository(db.GetDB()),
+		Memories: db.NewSessionMemoryRepository(db.GetDB()),
+	})
+
+	mm := module.NewMemory(
+		db.NewSessionMemoryRepository(db.GetDB()),
+		db.NewSessionMessageRepository(db.GetDB()),
+		module.NewAgentSession(
+			db.NewAgentSessionRepository(db.GetDB()),
+			db.NewAgentRepository(db.GetDB()),
+			db.NewWorkspaceRepository(db.GetDB()),
+		),
+	)
+	mm.Agent = asvc
+	mm.UsageRepository = db.NewUsageRepository(db.GetDB())
+	mm.SubscriptionRepository = db.NewSubscriptionRepository(db.GetDB())
+
+	result, err := mm.SearchSessionMemories(
+		r.Context(),
+		workspaceId,
+		db.Id(agentId),
+		db.Id(sessionId),
+		req.Query,
+		limit,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrWorkspaceNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "agent_not_found"),
+			})
+		case errors.Is(err, module.ErrAgentSessionNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		default:
+			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to search session memories")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+				"errorMessage": locale.TR(r, "failed_search_session_memories"),
+			})
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, result)
 }

@@ -66,6 +66,23 @@ type MemoryHit struct {
 	Score    float32
 }
 
+// SearchSessionRequest finds session vectors relevant to a query.
+type SearchSessionRequest struct {
+	WorkspaceId db.Id
+	AgentId     db.Id
+	SessionId   db.Id
+	Query       string
+	Limit       uint64
+}
+
+// MessageHit is a scored session message.
+type MessageHit struct {
+	MessageId db.Id
+	Role      string
+	Score     float32
+	Text      string
+}
+
 // contextBundle is the assembled prompt context for a model call.
 type contextBundle struct {
 	Messages     []ai.Message
