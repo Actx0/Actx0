@@ -25,7 +25,7 @@
     "provider_github": "GitHub",
     "or_social": "Or continue with",
     "oauth_coming_soon": "{provider} sign-in is coming soon.",
-    "oauth_failed": "GitHub sign-in failed. Please try again.",
+    "oauth_failed": "Sign-in failed. Please try again.",
     "email": "Email",
     "email_placeholder": "Enter your email",
     "password": "Password",

@@ -12,6 +12,7 @@ import (
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/github"
+	"github.com/clivern/actx0/pkg/google"
 	"github.com/clivern/actx0/pkg/resend"
 	"github.com/clivern/actx0/pkg/util"
 
@@ -117,4 +118,92 @@ func GitHubOAuthCallbackAction(w http.ResponseWriter, r *http.Request) {
 
 	util.SetCookie(w, "_actx0_session", result.Session.Token, result.CookieOptions)
 	http.Redirect(w, r, util.AppURL("/login?oauth=github"), http.StatusFound)
+}
+
+// GoogleOAuthStartAction redirects the browser to Google's authorize URL.
+func GoogleOAuthStartAction(w http.ResponseWriter, r *http.Request) {
+	oauth := google.NewOAuth(google.OAuthConfig{
+		ClientID:     viper.GetString("app.oauth.google.client_id"),
+		ClientSecret: viper.GetString("app.oauth.google.client_secret"),
+		RedirectURL:  viper.GetString("app.oauth.google.redirect_url"),
+		Scopes:       []string{"openid", "email", "profile"},
+	})
+
+	state, err := util.GenerateSecureToken(24)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to generate oauth state")
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=google"), http.StatusFound)
+		return
+	}
+
+	authorizeURL := oauth.AuthorizeURL(state)
+
+	opts := lo.Ternary(
+		strings.HasPrefix(util.AppURL(""), "https://"),
+		util.SecureCookieOptions(),
+		util.DefaultCookieOptions(),
+	)
+	opts.SameSite = http.SameSiteLaxMode
+	opts.MaxAge = int((10 * time.Minute) / time.Second)
+	util.SetCookie(w, OauthStateCookie, state, opts)
+
+	http.Redirect(w, r, authorizeURL, http.StatusFound)
+}
+
+// GoogleOAuthCallbackAction completes Google OAuth and creates a session.
+func GoogleOAuthCallbackAction(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
+	expectedState := util.GetCookie(r, OauthStateCookie)
+
+	util.DeleteCookie(w, OauthStateCookie)
+
+	oauth := google.NewOAuth(google.OAuthConfig{
+		ClientID:     viper.GetString("app.oauth.google.client_id"),
+		ClientSecret: viper.GetString("app.oauth.google.client_secret"),
+		RedirectURL:  viper.GetString("app.oauth.google.redirect_url"),
+		Scopes:       []string{"openid", "email", "profile"},
+	})
+
+	token, err := oauth.Exchange(r.Context(), code, state, expectedState)
+	if err != nil {
+		log.Error().Err(err).Msg("Google oauth exchange failed")
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=google"), http.StatusFound)
+		return
+	}
+
+	user, err := oauth.User(r.Context(), token.AccessToken)
+	if err != nil {
+		log.Error().Err(err).Msg("Google oauth user fetch failed")
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=google"), http.StatusFound)
+		return
+	}
+
+	auth := module.NewAuth(
+		db.NewUserRepository(db.GetDB()),
+		db.NewSessionRepository(db.GetDB()),
+		db.NewConfigRepository(db.GetDB()),
+		db.NewPasswordResetTokenRepository(db.GetDB()),
+		db.NewNotificationRepository(db.GetDB()),
+		resend.NewMailer(),
+	)
+
+	result, err := auth.LoginWithOAuth(r.Context(), &module.OAuthIdentity{
+		Provider:       db.UserProviderGoogle,
+		ProviderUserID: user.Sub,
+		Email:          user.Email,
+		Name: lo.Ternary(
+			lo.IsNotEmpty(user.Name),
+			user.Name,
+			user.Email,
+		),
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("Google oauth login failed")
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=google"), http.StatusFound)
+		return
+	}
+
+	util.SetCookie(w, "_actx0_session", result.Session.Token, result.CookieOptions)
+	http.Redirect(w, r, util.AppURL("/login?oauth=google"), http.StatusFound)
 }

@@ -163,14 +163,8 @@ const redirectQuery = computed(() => {
 })
 
 const handleOAuth = (provider) => {
-  if (provider === 'github') {
-    loading.value = true
-    window.location.href = '/api/v1/public/action/oauth/github'
-    return
-  }
-  error.value = t('login.oauth_coming_soon', {
-    provider: provider === 'google' ? t('login.provider_google') : t('login.provider_github')
-  })
+  loading.value = true
+  window.location.href = `/api/v1/public/action/oauth/${provider}`
 }
 
 const finishOAuthLogin = async () => {
@@ -231,7 +225,7 @@ onMounted(async () => {
     return
   }
 
-  if (route.query.oauth === 'github') {
+  if (route.query.oauth === 'github' || route.query.oauth === 'google') {
     await finishOAuthLogin()
   }
 })

@@ -25,7 +25,7 @@
     "provider_github": "GitHub",
     "or_social": "Ou continuer avec",
     "oauth_coming_soon": "La connexion {provider} arrive bientôt.",
-    "oauth_failed": "La connexion GitHub a échoué. Veuillez réessayer.",
+    "oauth_failed": "La connexion a échoué. Veuillez réessayer.",
     "email": "E-mail",
     "email_placeholder": "Saisissez votre e-mail",
     "password": "Mot de passe",
