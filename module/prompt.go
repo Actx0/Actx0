@@ -92,9 +92,7 @@ type UpdatePromptVersionRequest struct {
 
 // PromptVersionResponse is a prompt version shaped for API responses.
 type PromptVersionResponse struct {
-	PromptId      db.Id           `json:"promptId"`
 	Id            db.Id           `json:"id"`
-	WorkspaceId   db.Id           `json:"workspaceId"`
 	Name          string          `json:"name"`
 	Handle        string          `json:"handle"`
 	Description   string          `json:"description"`
@@ -134,7 +132,7 @@ type ListPromptVersionsResponse struct {
 }
 
 // CreatePrompt creates a new prompt with its first version.
-func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*PromptVersionResponse, error) {
+func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*PromptResultResponse, error) {
 	workspace, err := p.WorkspaceRepository.GetById(workspaceId)
 	if err != nil {
 		return nil, err
@@ -160,7 +158,7 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreatePromptVersion, err)
 	}
 
-	version, err := p.CreatePromptVersion(workspaceId, promptId, &CreatePromptVersionRequest{
+	_, err = p.CreatePromptVersion(workspaceId, promptId, &CreatePromptVersionRequest{
 		Type:          req.Type,
 		Content:       req.Content,
 		Config:        req.Config,
@@ -174,7 +172,13 @@ func (p *Prompt) CreatePrompt(workspaceId db.Id, req *CreatePromptRequest) (*Pro
 		return nil, err
 	}
 
-	return version, nil
+	return &PromptResultResponse{
+		PromptId:     promptId.String(),
+		Name:         req.Name,
+		Handle:       handle,
+		Description:  req.Description,
+		VersionCount: 1,
+	}, nil
 }
 
 // CreatePromptVersion creates a new version for an existing prompt.
@@ -231,9 +235,7 @@ func (p *Prompt) CreatePromptVersion(workspaceId, promptId db.Id, req *CreatePro
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      prompt.Id,
 		Id:            version.Id,
-		WorkspaceId:   workspaceId,
 		Name:          prompt.Name,
 		Handle:        prompt.Handle,
 		Description:   prompt.Description,
@@ -296,9 +298,7 @@ func (p *Prompt) GetPromptVersionByHandle(workspaceId db.Id, handle, versionSpec
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      prompt.Id,
 		Id:            version.Id,
-		WorkspaceId:   workspaceId,
 		Name:          prompt.Name,
 		Handle:        prompt.Handle,
 		Description:   prompt.Description,
@@ -344,9 +344,7 @@ func (p *Prompt) GetPromptVersion(workspaceId, promptId, versionId db.Id) (*Prom
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      prompt.Id,
 		Id:            version.Id,
-		WorkspaceId:   workspaceId,
 		Name:          prompt.Name,
 		Handle:        prompt.Handle,
 		Description:   prompt.Description,
@@ -416,9 +414,7 @@ func (p *Prompt) UpdatePromptVersion(workspaceId, promptId, versionId db.Id, req
 	}
 
 	return &PromptVersionResponse{
-		PromptId:      prompt.Id,
 		Id:            version.Id,
-		WorkspaceId:   workspaceId,
 		Name:          prompt.Name,
 		Handle:        prompt.Handle,
 		Description:   prompt.Description,
@@ -563,9 +559,7 @@ func (p *Prompt) ListPromptVersions(workspaceId, promptId db.Id, limit, offset i
 	list := make([]*PromptVersionResponse, 0, len(versions))
 	for _, version := range versions {
 		list = append(list, &PromptVersionResponse{
-			PromptId:      prompt.Id,
 			Id:            version.Id,
-			WorkspaceId:   workspaceId,
 			Name:          prompt.Name,
 			Handle:        prompt.Handle,
 			Description:   prompt.Description,
