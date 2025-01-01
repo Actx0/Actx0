@@ -31,7 +31,7 @@ Mark done: `- [x] path/to/file`
 - [x] api/api_key.go
 - [x] api/access.go
 - [x] api/invite.go
-- [ ] api/member.go
+- [x] api/member.go
 - [ ] api/agent.go
 - [ ] api/billing.go
 - [ ] api/workspace.go
@@ -138,8 +138,8 @@ Mark done: `- [x] path/to/file`
 - [x] module/stats.go
 - [x] module/tools.go
 - [ ] module/usage.go
-- [ ] module/wspace.go
-- [ ] module/wuser.go
+- [ ] module/workspace.go
+- [x] module/member.go
 
 ## pkg/ai/
 
