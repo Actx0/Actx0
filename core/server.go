@@ -155,8 +155,8 @@ func SetupServer(Static embed.FS) http.Handler {
 		r.Route("/documents", func(r chi.Router) {
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanListWorkspaceDocuments})).Get("/", api.ListDocumentsAction)                              // list knowledge documents
 			r.With(middleware.Protect(middleware.Config{Perm: module.CanQueryWorkspaceDocuments})).Post("/search", api.SearchDocumentsAction)                    // semantic document search
-			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanCreateWorkspaceDocument})).Post("/", api.UploadDocumentAction)               // upload knowledge document
-			r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanDeleteWorkspaceDocument})).Delete("/{documentId}", api.DeleteDocumentAction) // delete knowledge document
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanCreateWorkspaceDocument})).Post("/", api.UploadDocumentAction)               // upload knowledge document
+			r.With(middleware.Protect(middleware.Config{Perm: module.CanDeleteWorkspaceDocument})).Delete("/{documentId}", api.DeleteDocumentAction) // delete knowledge document
 		})
 
 		r.Route("/agents", func(r chi.Router) {

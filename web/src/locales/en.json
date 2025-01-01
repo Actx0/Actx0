@@ -805,6 +805,8 @@
     "perm_get_prompt": "Get prompts",
     "perm_list_documents": "List documents",
     "perm_query_documents": "Query documents",
+    "perm_create_document": "Create documents",
+    "perm_delete_document": "Delete documents",
     "perm_list_agents": "List agents",
     "perm_get_agent": "Get agents",
     "perm_create_agent": "Create agents",
