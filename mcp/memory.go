@@ -5,6 +5,7 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -96,7 +97,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 			kind = "long_lived"
 		}
 
-		meta, err := encodeMeta(input.Metadata)
+		meta, err := EncodeMeta(input.Metadata)
 		if err != nil {
 			return nil, AddMemoryOutput{}, err
 		}
@@ -150,7 +151,17 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 
 		records := make([]MemoryRecord, 0, len(list.Memories))
 		for _, item := range list.Memories {
-			records = append(records, memoryRecordFromDTO(item))
+			record := MemoryRecord{
+				MemoryID:  item.ID,
+				Kind:      item.Kind,
+				Memory:    item.Content,
+				CreatedAt: item.CreatedAt,
+				UpdatedAt: item.UpdatedAt,
+			}
+			if len(item.Meta) > 0 {
+				_ = json.Unmarshal(item.Meta, &record.Metadata)
+			}
+			records = append(records, record)
 		}
 
 		return nil, GetMemoriesOutput{
@@ -172,7 +183,18 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 			return nil, MemoryRecord{}, err
 		}
 
-		return nil, memoryRecordFromDTO(*memory), nil
+		record := MemoryRecord{
+			MemoryID:  memory.ID,
+			Kind:      memory.Kind,
+			Memory:    memory.Content,
+			CreatedAt: memory.CreatedAt,
+			UpdatedAt: memory.UpdatedAt,
+		}
+		if len(memory.Meta) > 0 {
+			_ = json.Unmarshal(memory.Meta, &record.Metadata)
+		}
+
+		return nil, record, nil
 	})
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
@@ -181,7 +203,7 @@ func RegisterMemoryTools(server *mcpsdk.Server, api *APIClient) {
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, input UpdateMemoryInput) (*mcpsdk.CallToolResult, UpdateMemoryOutput, error) {
 		scope := ScopeFrom(ctx)
 
-		meta, err := encodeMeta(input.Metadata)
+		meta, err := EncodeMeta(input.Metadata)
 		if err != nil {
 			return nil, UpdateMemoryOutput{}, err
 		}
