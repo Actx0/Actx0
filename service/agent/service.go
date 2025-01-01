@@ -1,17 +1,11 @@
 // Copyright 2026 Clivern. All rights reserved.
 // License can be found in the LICENSE file.
 //
-// Agent service: session turns, context assembly, and session memory.
-//
-//	Run
-//	  → buildContext (history + knowledge.Search + RecallMemory)
-//	  → ai.ChatClient.Complete
+// Agent service: session memory, indexing, and semantic search.
 
 package agent
 
 import (
-	"context"
-
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/ai"
 	"github.com/clivern/actx0/pkg/qdrant"
@@ -31,7 +25,7 @@ type Dependencies struct {
 	Subscriptions db.SubscriptionRepository
 }
 
-// Service orchestrates agent turns, context, and session memory.
+// Service indexes session content and runs semantic search over it.
 type Service struct {
 	embed         *ai.EmbedClient
 	vectors       *qdrant.Client
@@ -59,9 +53,4 @@ func New(deps Dependencies) *Service {
 		usage:         deps.Usage,
 		subscriptions: deps.Subscriptions,
 	}
-}
-
-// Run executes one agent turn and returns the assistant reply.
-func (s *Service) Run(ctx context.Context, req RunRequest) (*RunResponse, error) {
-	return nil, ErrNotImplemented
 }

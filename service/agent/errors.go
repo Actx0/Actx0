@@ -9,7 +9,6 @@ var (
 	ErrNotImplemented    = errors.New("not implemented")
 	ErrAgentNotFound     = errors.New("agent not found")
 	ErrSessionNotFound   = errors.New("agent session not found")
-	ErrRunFailed         = errors.New("agent run failed")
 	ErrMemoryNotFound    = errors.New("session memory not found")
 	ErrMessageNotFound   = errors.New("session message not found")
 	ErrStoreFailed       = errors.New("session memory store failed")

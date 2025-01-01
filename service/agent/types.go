@@ -3,11 +3,7 @@
 
 package agent
 
-import (
-	"github.com/clivern/actx0/db"
-	"github.com/clivern/actx0/pkg/ai"
-	"github.com/clivern/actx0/service/knowledge"
-)
+import "github.com/clivern/actx0/db"
 
 const (
 	MemoryKindSummary    = "summary"
@@ -16,23 +12,6 @@ const (
 	MemoryKindShortLived = "short_lived"
 	MemoryKindLongLived  = "long_lived"
 )
-
-// RunRequest executes one agent turn.
-type RunRequest struct {
-	AgentId    db.Id
-	ExternalId string
-	Input      string
-	Labels     map[string]string
-	UseLarge   bool
-}
-
-// RunResponse is the result of an agent turn.
-type RunResponse struct {
-	Reply      string
-	SessionId  db.Id
-	ExternalId string
-	MessageId  db.Id
-}
 
 // StoreMemoryRequest persists a session memory item.
 type StoreMemoryRequest struct {
@@ -81,13 +60,4 @@ type MessageHit struct {
 	Role      string
 	Score     float32
 	Text      string
-}
-
-// contextBundle is the assembled prompt context for a model call.
-type contextBundle struct {
-	Messages     []ai.Message
-	Knowledge    []knowledge.SearchHit
-	Memories     []MemoryHit
-	SystemPrompt string
-	HistoryCount int
 }
