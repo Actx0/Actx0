@@ -58,37 +58,26 @@ func (w *Workspace) ListWorkspaceMembers(workspaceId db.Id, limit, offset int) (
 
 	members := make([]*WorkspaceMemberResponse, 0, len(list))
 	for _, member := range list {
-		resp, err := w.workspaceMemberResponse(member)
+		user, err := w.UserRepository.GetById(member.UserId)
 		if err != nil {
 			return nil, err
 		}
-		if resp != nil {
-			members = append(members, resp)
+		if user == nil {
+			continue
 		}
+		members = append(members, &WorkspaceMemberResponse{
+			Id:          member.Id,
+			WorkspaceId: member.WorkspaceId,
+			UserId:      member.UserId,
+			Name:        user.Name,
+			Email:       user.Email,
+			Role:        member.Role,
+			CreatedAt:   member.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:   member.UpdatedAt.UTC().Format(time.RFC3339),
+		})
 	}
 
 	return &ListWorkspaceMembersResult{Members: members, Total: total}, nil
-}
-
-// workspaceMemberResponse builds the API response for a workspace member.
-func (w *Workspace) workspaceMemberResponse(member *db.WorkspaceUser) (*WorkspaceMemberResponse, error) {
-	memberUser, err := w.UserRepository.GetById(member.UserId)
-	if err != nil {
-		return nil, err
-	}
-	if memberUser == nil {
-		return nil, nil
-	}
-	return &WorkspaceMemberResponse{
-		Id:          member.Id,
-		WorkspaceId: member.WorkspaceId,
-		UserId:      member.UserId,
-		Name:        memberUser.Name,
-		Email:       memberUser.Email,
-		Role:        member.Role,
-		CreatedAt:   member.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   member.UpdatedAt.UTC().Format(time.RFC3339),
-	}, nil
 }
 
 // GetWorkspaceMember returns the membership for a user in a workspace, or nil if not a member.
@@ -120,14 +109,25 @@ func (w *Workspace) UpdateWorkspaceMemberRole(workspaceId, userId db.Id, role st
 	if err != nil {
 		return nil, err
 	}
-	resp, err := w.workspaceMemberResponse(m)
+
+	user, err := w.UserRepository.GetById(m.UserId)
 	if err != nil {
 		return nil, err
 	}
-	if resp == nil {
+	if user == nil {
 		return nil, ErrWorkspaceUserNotFound
 	}
-	return resp, nil
+
+	return &WorkspaceMemberResponse{
+		Id:          m.Id,
+		WorkspaceId: m.WorkspaceId,
+		UserId:      m.UserId,
+		Name:        user.Name,
+		Email:       user.Email,
+		Role:        m.Role,
+		CreatedAt:   m.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:   m.UpdatedAt.UTC().Format(time.RFC3339),
+	}, nil
 }
 
 // DeleteWorkspaceMember removes a member from a workspace.
