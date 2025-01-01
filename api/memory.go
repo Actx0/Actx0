@@ -62,6 +62,7 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	memory, err := mm.CreateSessionMemory(
 		workspaceId,
@@ -83,6 +84,10 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentSessionNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to create session memory")
@@ -145,6 +150,7 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	memories, err := mm.BatchCreateSessionMemories(
 		workspaceId,
@@ -166,6 +172,10 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentSessionNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch create session memories")
@@ -226,6 +236,7 @@ func ListSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := mm.ListSessionMemories(
 		workspaceId,
@@ -311,6 +322,7 @@ func GetSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	memory, err := mm.GetSessionMemory(
 		workspaceId,
@@ -398,6 +410,7 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	memory, err := mm.UpdateSessionMemory(
 		workspaceId,
@@ -488,6 +501,7 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := mm.DeleteSessionMemory(
 		workspaceId,
@@ -569,6 +583,7 @@ func RegenerateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := mm.RegenerateSessionMemories(
 		workspaceId,
@@ -651,6 +666,7 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := mm.BatchDeleteSessionMemories(
 		workspaceId,
@@ -763,10 +779,10 @@ func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 			db.NewAgentRepository(db.GetDB()),
 			db.NewWorkspaceRepository(db.GetDB()),
 		),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	mm.Agent = asvc
 	mm.UsageRepository = db.NewUsageRepository(db.GetDB())
-	mm.SubscriptionRepository = db.NewSubscriptionRepository(db.GetDB())
 
 	result, err := mm.SearchSessionMemories(
 		r.Context(),
@@ -790,6 +806,10 @@ func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentSessionNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to search session memories")

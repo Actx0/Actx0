@@ -91,11 +91,17 @@ type Document struct {
 }
 
 // NewDocument creates a document module with the given repositories and store.
-func NewDocument(documents db.WorkspaceDocumentRepository, workspaces db.WorkspaceRepository, store storage.Store) *Document {
+func NewDocument(
+	documents db.WorkspaceDocumentRepository,
+	workspaces db.WorkspaceRepository,
+	store storage.Store,
+	subscriptions db.SubscriptionRepository,
+) *Document {
 	return &Document{
-		DocumentRepository:  documents,
-		WorkspaceRepository: workspaces,
-		Store:               store,
+		DocumentRepository:     documents,
+		WorkspaceRepository:    workspaces,
+		Store:                  store,
+		SubscriptionRepository: subscriptions,
 	}
 }
 
@@ -107,6 +113,34 @@ func (d *Document) UploadDocument(ctx context.Context, form *util.UploadForm, wo
 	}
 	if workspace == nil {
 		return nil, ErrWorkspaceNotFound
+	}
+
+	usage := NewUsage()
+
+	reached, err := usage.IsDocumentsCountReached(
+		d.DocumentRepository,
+		d.SubscriptionRepository,
+		workspaceId,
+		1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
+	}
+
+	reached, err = usage.IsStorageGBReached(
+		d.DocumentRepository,
+		d.SubscriptionRepository,
+		workspaceId,
+		form.Size,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
 	}
 
 	var labels *string
@@ -279,6 +313,24 @@ func (d *Document) SearchDocuments(ctx context.Context, workspaceId db.Id, query
 		return nil, ErrWorkspaceNotFound
 	}
 
+	usageMod := NewUsage()
+
+	reached, err := usageMod.IsAITokensReached(d.UsageRepository, d.SubscriptionRepository, workspaceId, 1)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
+	}
+
+	reached, err = usageMod.IsAICostReached(d.UsageRepository, d.SubscriptionRepository, workspaceId, 0)
+	if err != nil {
+		return nil, err
+	}
+	if reached {
+		return nil, ErrWorkspaceCapacityReached
+	}
+
 	hits, usage, err := d.Knowledge.Search(ctx, knowledge.SearchRequest{
 		WorkspaceId: workspaceId,
 		Query:       query,
@@ -289,7 +341,7 @@ func (d *Document) SearchDocuments(ctx context.Context, workspaceId db.Id, query
 		return nil, fmt.Errorf("%w: %v", ErrFailedSearchDocuments, err)
 	}
 
-	err = NewUsage().IncrementAIUsage(
+	err = usageMod.IncrementAIUsage(
 		d.UsageRepository,
 		d.SubscriptionRepository,
 		workspaceId,
@@ -297,6 +349,10 @@ func (d *Document) SearchDocuments(ctx context.Context, workspaceId db.Id, query
 		usage.Cost,
 	)
 	if err != nil {
+		if errors.Is(err, ErrWorkspaceCapacityReached) {
+			return nil, err
+		}
+
 		log.Warn().
 			Err(err).
 			Str("workspaceId", workspaceId.String()).

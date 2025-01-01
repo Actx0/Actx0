@@ -4,12 +4,16 @@
 package module
 
 import (
+	"errors"
+
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/ai"
 	"github.com/clivern/actx0/pkg/util"
 )
 
 const bytesPerGB = 1024 * 1024 * 1024
+
+var ErrWorkspaceCapacityReached = errors.New("workspace capacity reached")
 
 // Usage provides workspace consumption helpers.
 type Usage struct{}
@@ -48,14 +52,86 @@ func (u *Usage) MembersCount(workspaceUsers db.WorkspaceUserRepository, workspac
 	return workspaceUsers.CountByWorkspaceId(workspaceId)
 }
 
+// IsMembersCountReached reports whether adding members would exceed the plan limit.
+func (u *Usage) IsMembersCountReached(workspaceUsers db.WorkspaceUserRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.MembersCount(workspaceUsers, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).WorkspaceMembers
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
+}
+
 // DocumentsCount returns the number of documents in a workspace.
 func (u *Usage) DocumentsCount(documents db.WorkspaceDocumentRepository, workspaceId db.Id) (int64, error) {
 	return documents.CountByWorkspaceId(workspaceId)
 }
 
+// IsDocumentsCountReached reports whether adding documents would exceed the plan limit.
+func (u *Usage) IsDocumentsCountReached(documents db.WorkspaceDocumentRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.DocumentsCount(documents, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).DocumentsCount
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
+}
+
 // StorageUsed returns total document storage in bytes for a workspace.
 func (u *Usage) StorageUsed(documents db.WorkspaceDocumentRepository, workspaceId db.Id) (int64, error) {
 	return documents.SumSizeByWorkspaceId(workspaceId)
+}
+
+// IsStorageGBReached reports whether adding storage would exceed the plan limit.
+func (u *Usage) IsStorageGBReached(documents db.WorkspaceDocumentRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additionalBytes int64) (bool, error) {
+	usedBytes, err := u.StorageUsed(documents, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).StorageGB
+	if limit == 0 {
+		return false, nil
+	}
+
+	usedGB := float64(usedBytes) / bytesPerGB
+	additionalGB := float64(additionalBytes) / bytesPerGB
+
+	return usedGB+additionalGB > limit, nil
 }
 
 // APICalls returns API call usage for the current calendar month.
@@ -64,9 +140,55 @@ func (u *Usage) APICalls(usage db.UsageRepository, workspaceId db.Id) (int64, er
 	return usage.GetQuantityByPeriod(workspaceId, db.UsageTypeAPICalls, start)
 }
 
+// IsAPICallsReached reports whether adding API calls would exceed the plan limit.
+func (u *Usage) IsAPICallsReached(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.APICalls(usage, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).APICalls
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
+}
+
 // PromptsCount returns the number of prompts in a workspace.
 func (u *Usage) PromptsCount(prompts db.PromptRepository, workspaceId db.Id) (int64, error) {
 	return prompts.CountByWorkspaceId(workspaceId)
+}
+
+// IsPromptsCountReached reports whether adding prompts would exceed the plan limit.
+func (u *Usage) IsPromptsCountReached(prompts db.PromptRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.PromptsCount(prompts, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).PromptsCount
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
 }
 
 // HistoryRecords returns session message rows stored across a workspace.
@@ -74,9 +196,55 @@ func (u *Usage) HistoryRecords(messages db.SessionMessageRepository, workspaceId
 	return messages.CountByWorkspaceId(workspaceId)
 }
 
+// IsHistoryRecordsReached reports whether adding messages would exceed the plan limit.
+func (u *Usage) IsHistoryRecordsReached(messages db.SessionMessageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.HistoryRecords(messages, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).HistoryRecords
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
+}
+
 // MemoryRecords returns session memory rows stored across a workspace.
 func (u *Usage) MemoryRecords(memories db.SessionMemoryRepository, workspaceId db.Id) (int64, error) {
 	return memories.CountByWorkspaceId(workspaceId)
+}
+
+// IsMemoryRecordsReached reports whether adding memories would exceed the plan limit.
+func (u *Usage) IsMemoryRecordsReached(memories db.SessionMemoryRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.MemoryRecords(memories, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).MemoryRecords
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
 }
 
 // GetWorkspaceUsage returns all billing usage metrics for a workspace.
@@ -156,6 +324,29 @@ func (u *Usage) AITokens(usage db.UsageRepository, subscriptions db.Subscription
 	)
 }
 
+// IsAITokensReached reports whether adding tokens would exceed the plan limit.
+func (u *Usage) IsAITokensReached(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.AITokens(usage, subscriptions, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).AITokens
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
+}
+
 // AICost returns AI spend in USD for the workspace subscription period.
 func (u *Usage) AICost(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id) (float64, error) {
 	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
@@ -176,6 +367,29 @@ func (u *Usage) AICost(usage db.UsageRepository, subscriptions db.SubscriptionRe
 	}
 
 	return float64(cost) / ai.USDToNano, nil
+}
+
+// IsAICostReached reports whether adding AI spend would exceed the plan limit.
+func (u *Usage) IsAICostReached(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additionalUSD float64) (bool, error) {
+	used, err := u.AICost(usage, subscriptions, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).AICost
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additionalUSD > limit, nil
 }
 
 // IncrementAPICalls records one successful workspace API call for the current month.

@@ -87,7 +87,7 @@ type BillingUsageResponse struct {
 	Limits      PlanUsageLimits       `json:"limits"`
 }
 
-var planUsageLimits = map[string]PlanUsageLimits{
+var PlanLimits = map[string]PlanUsageLimits{
 	stripe.PlanHobby: {
 		Price:            0,
 		APICalls:         10_000,
@@ -145,6 +145,16 @@ func NewBilling(workspaces db.WorkspaceRepository, subscriptions db.Subscription
 		SubscriptionRepository: subscriptions,
 		Usage:                  usage,
 	}
+}
+
+// PlanLimits returns the default usage limits for a plan.
+func GetPlanLimits(plan string) PlanUsageLimits {
+	limits, ok := PlanLimits[plan]
+	if !ok {
+		return PlanLimits[stripe.PlanHobby]
+	}
+
+	return limits
 }
 
 // GetBillingStatus returns billing status for a workspace.
@@ -210,10 +220,7 @@ func (b *Billing) GetBillingUsage(workspaceId db.Id, deps UsageSnapshotDeps) (*B
 		return nil, err
 	}
 
-	limits, ok := planUsageLimits[subscription.Plan]
-	if !ok {
-		limits = planUsageLimits[stripe.PlanHobby]
-	}
+	limits := GetPlanLimits(subscription.Plan)
 
 	_, periodEnd := util.CurrentMonthPeriod()
 
@@ -223,59 +230,6 @@ func (b *Billing) GetBillingUsage(workspaceId db.Id, deps UsageSnapshotDeps) (*B
 		Used:        *used,
 		Limits:      limits,
 	}, nil
-}
-
-// HasReachedAnyUsagePercent reports whether any plan-capped metric has reached the given percent.
-func (b *Billing) HasReachedAnyUsagePercent(workspaceId db.Id, deps UsageSnapshotDeps, percent float64) (bool, string, error) {
-	subscription, err := b.SubscriptionRepository.GetByWorkspaceId(workspaceId)
-	if err != nil {
-		return false, "", err
-	}
-	if subscription == nil {
-		return false, "", ErrBillingSubscriptionNotFound
-	}
-
-	err = b.UpdateHobbyPlanPeriods(subscription)
-	if err != nil {
-		return false, "", err
-	}
-
-	used, err := b.Usage.GetWorkspaceUsage(deps, workspaceId)
-	if err != nil {
-		return false, "", err
-	}
-
-	limits, ok := planUsageLimits[subscription.Plan]
-	if !ok {
-		limits = planUsageLimits[stripe.PlanHobby]
-	}
-
-	checks := []struct {
-		metric string
-		used   float64
-		limit  float64
-	}{
-		{"apiCalls", float64(used.APICalls), float64(limits.APICalls)},
-		{"workspaceMembers", float64(used.WorkspaceMembers), float64(limits.WorkspaceMembers)},
-		{"documentsCount", float64(used.DocumentsCount), float64(limits.DocumentsCount)},
-		{"promptsCount", float64(used.PromptsCount), float64(limits.PromptsCount)},
-		{"storageGB", used.StorageGB, limits.StorageGB},
-		{"historyRecords", float64(used.HistoryRecords), float64(limits.HistoryRecords)},
-		{"memoryRecords", float64(used.MemoryRecords), float64(limits.MemoryRecords)},
-		{"aiTokens", float64(used.AITokens), float64(limits.AITokens)},
-		{"aiCost", used.AICost, limits.AICost},
-	}
-
-	for _, check := range checks {
-		if check.limit == 0 {
-			continue
-		}
-		if check.used/check.limit*100 >= percent {
-			return true, check.metric, nil
-		}
-	}
-
-	return false, "", nil
 }
 
 // CreateCheckoutSession starts Stripe Checkout for a paid plan.

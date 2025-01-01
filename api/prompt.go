@@ -38,6 +38,7 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	version, err := pm.CreatePrompt(workspaceId, &req)
 	if err != nil {
@@ -53,6 +54,10 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrInvalidPromptHandle):
 			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_prompt_handle"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create prompt")
@@ -103,6 +108,7 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	version, err := pm.CreatePromptVersion(workspaceId, db.Id(promptId), &req)
 	if err != nil {
@@ -152,6 +158,7 @@ func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := pm.ListPrompts(workspaceId, limit, offset)
 	if err != nil {
@@ -202,6 +209,7 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	promptVersion, err := pm.GetPromptVersionByHandle(workspaceId, name, r.URL.Query().Get("version"))
 	if err != nil {
@@ -257,6 +265,7 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	prompt, err := pm.GetPrompt(workspaceId, db.Id(promptId))
 	if err != nil {
@@ -312,6 +321,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	version, err := pm.GetPromptVersion(workspaceId, db.Id(promptId), db.Id(promptVersionId))
 	if err != nil {
@@ -373,6 +383,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	version, err := pm.UpdatePromptVersion(
 		workspaceId,
@@ -442,6 +453,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := pm.DeletePromptVersion(workspaceId, db.Id(promptId), db.Id(promptVersionId))
 	if err != nil {
@@ -498,6 +510,7 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := pm.ListPromptVersions(workspaceId, db.Id(promptId), limit, offset)
 	if err != nil {
@@ -552,6 +565,7 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 		db.NewPromptRepository(db.GetDB()),
 		db.NewPromptVersionRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := pm.DeletePrompt(workspaceId, db.Id(promptId))
 	if err != nil {

@@ -57,6 +57,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	message, err := mm.CreateSessionMessage(
 		workspaceId,
@@ -78,6 +79,10 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentSessionNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to create session message")
@@ -135,6 +140,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	messages, err := mm.BatchCreateSessionMessages(
 		workspaceId,
@@ -156,6 +162,10 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentSessionNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch create session messages")
@@ -211,6 +221,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := mm.ListSessionMessages(
 		workspaceId,
@@ -291,6 +302,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	message, err := mm.GetSessionMessage(
 		workspaceId,
@@ -373,6 +385,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	message, err := mm.UpdateSessionMessage(
 		workspaceId,
@@ -458,6 +471,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := mm.DeleteSessionMessage(
 		workspaceId,
@@ -540,6 +554,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := mm.BatchDeleteSessionMessages(
 		workspaceId,
@@ -647,10 +662,10 @@ func SearchSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
 		db.NewAgentSessionRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	mm.Agent = asvc
 	mm.UsageRepository = db.NewUsageRepository(db.GetDB())
-	mm.SubscriptionRepository = db.NewSubscriptionRepository(db.GetDB())
 
 	result, err := mm.SearchSessionMessages(
 		r.Context(),
@@ -674,6 +689,10 @@ func SearchSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrAgentSessionNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to search session messages")
