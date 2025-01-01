@@ -15,11 +15,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/samber/lo"
-)
+	"github.com/clivern/actx0/configs"
 
-const (
-	MaxUploadBytes = 2 * 1024 * 1024
+	"github.com/samber/lo"
 )
 
 // ChunkingOptions holds server-side chunking settings stored on a document.
@@ -62,7 +60,7 @@ type UploadForm struct {
 
 // ParseUploadForm reads and validates a multipart upload request.
 func ParseUploadForm(r *http.Request) (*UploadForm, error) {
-	if err := r.ParseMultipartForm(MaxUploadBytes); err != nil {
+	if err := r.ParseMultipartForm(configs.MaxUploadBytes); err != nil {
 		return nil, fmt.Errorf("Invalid multipart form: %w", err)
 	}
 
@@ -80,11 +78,11 @@ func ParseUploadForm(r *http.Request) (*UploadForm, error) {
 		return nil, fmt.Errorf("Only .txt and .md files are allowed")
 	}
 
-	bytes, err := io.ReadAll(io.LimitReader(file, MaxUploadBytes+1))
+	bytes, err := io.ReadAll(io.LimitReader(file, configs.MaxUploadBytes+1))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read uploaded file")
 	}
-	if int64(len(bytes)) > MaxUploadBytes {
+	if int64(len(bytes)) > configs.MaxUploadBytes {
 		return nil, fmt.Errorf("File must not exceed 2 MB")
 	}
 	if !utf8.Valid(bytes) {

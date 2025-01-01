@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/clivern/actx0/configs"
 	"github.com/clivern/actx0/db"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -47,6 +48,14 @@ var (
 			Name:    "http_response_size_bytes",
 			Help:    "HTTP response sizes in bytes",
 			Buckets: prometheus.ExponentialBuckets(100, 10, 7),
+		},
+		[]string{"method", "path", "status"},
+	)
+
+	httpSlowRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_slow_requests_total",
+			Help: "HTTP requests that exceeded the slow-request latency threshold",
 		},
 		[]string{"method", "path", "status"},
 	)
@@ -304,7 +313,8 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(wrapped, r)
 
-		duration := time.Since(start).Seconds()
+		elapsed := time.Since(start)
+		duration := elapsed.Seconds()
 		status := strconv.Itoa(wrapped.statusCode)
 
 		httpRequestsTotal.WithLabelValues(
@@ -322,5 +332,13 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 			path,
 			status,
 		).Observe(float64(wrapped.size))
+
+		if elapsed >= configs.SlowRequestThreshold {
+			httpSlowRequestsTotal.WithLabelValues(
+				r.Method,
+				path,
+				status,
+			).Inc()
+		}
 	})
 }

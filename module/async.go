@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/clivern/actx0/configs"
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/async"
 
@@ -29,13 +30,6 @@ const (
 	AsyncPriorityHigh   = 100
 	AsyncPriorityNormal = 50
 	AsyncPriorityLow    = 10
-
-	// AsyncTaskMaxRetries is how many times a failed
-	// task is retried before marking it failed.
-	AsyncTaskMaxRetries = 5
-
-	// CleanupCompletedTasksRetention is how long completed
-	CleanupCompletedTasksRetention = -7 * 24 * time.Hour
 )
 
 var (
@@ -83,7 +77,7 @@ func Start(atr db.AsyncTaskRepository) (*Async, error) {
 	asmgr = mgr
 
 	go func() {
-		ticker := time.NewTicker(time.Duration(10) * time.Second)
+		ticker := time.NewTicker(configs.AsyncClaimInterval)
 		defer ticker.Stop()
 		for {
 			select {
@@ -233,7 +227,7 @@ func (a *Async) executeTask(ctx context.Context, taskId db.Id) error {
 
 	var lastErr error
 	started := time.Now().UTC()
-	for retry := 0; retry <= AsyncTaskMaxRetries; retry++ {
+	for retry := 0; retry <= configs.AsyncTaskMaxRetries; retry++ {
 		if retry > 0 {
 			delay := time.Second * time.Duration(1<<(retry-1))
 			log.Warn().
@@ -299,7 +293,7 @@ func (a *Async) handler(taskType string) (AsyncTaskHandler, bool) {
 
 // CleanupCompletedTasks deletes completed tasks past the retention window.
 func (a *Async) CleanupCompletedTasks() {
-	cutoff := time.Now().UTC().Add(CleanupCompletedTasksRetention)
+	cutoff := time.Now().UTC().Add(configs.AsyncCompletedTasksRetention)
 	count, err := a.TaskRepository.DeleteCompletedOlderThan(cutoff)
 	if err != nil {
 		log.Error().
