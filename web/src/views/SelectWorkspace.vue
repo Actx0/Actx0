@@ -122,6 +122,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { workspace_api } from '@/api'
 import { loadWorkspaceFromStorage, saveWorkspaceToStorage } from '@/utils/storage'
+import { formatDate } from '@/utils/dt'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -133,15 +134,6 @@ const showCreateModal = ref(false)
 const createModalError = ref(null)
 const createLoading = ref(false)
 const createForm = reactive({ name: '' })
-
-function formatDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
-}
 
 function openCreateModal() {
   createModalError.value = null

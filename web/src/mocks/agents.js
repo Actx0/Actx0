@@ -363,26 +363,3 @@ export function agentDetailPath(agentId) {
 export function sessionDetailPath(agentId, sessionId) {
   return `/agents/${agentId}/sessions/${sessionId}`
 }
-
-export function formatDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
-}
-
-export function formatDateTime(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return iso
-  }
-}

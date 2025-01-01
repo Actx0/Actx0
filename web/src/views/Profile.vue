@@ -141,7 +141,7 @@
               </div>
               <div>
                 <p class="text-xs font-medium text-theme-textLight uppercase tracking-wide mb-1">{{ $t('profile.last_login') }}</p>
-                <p class="text-sm text-theme-text">{{ formatDate(user.lastLoginAt) }}</p>
+                <p class="text-sm text-theme-text">{{ user.lastLoginAt ? formatDate(user.lastLoginAt) : $t('common.em_dash') }}</p>
               </div>
               <div>
                 <p class="text-xs font-medium text-theme-textLight uppercase tracking-wide mb-1">{{ $t('profile.member_since') }}</p>
@@ -358,6 +358,7 @@ import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { user, saveUser } from '@/lib/auth'
 import { applyUserPreferences, USER_LANGUAGE_EN, USER_THEME_DEFAULT } from '@/lib/preferences'
+import { formatDate, formatDateTime } from '@/utils/dt'
 
 const { t } = useI18n()
 
@@ -395,24 +396,6 @@ const needsCurrentPassword = computed(() => {
   const emailChanged = form.email.trim() !== user.value?.email
   return emailChanged || !!form.newPassword.trim()
 })
-
-function formatDate(iso) {
-  if (!iso) return t('common.em_dash')
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' })
-  } catch {
-    return iso
-  }
-}
-
-function formatDateTime(iso) {
-  if (!iso) return t('common.em_dash')
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
-  } catch {
-    return iso
-  }
-}
 
 async function loadApiKeys() {
   apiKeysLoading.value = true

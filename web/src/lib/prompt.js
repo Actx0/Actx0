@@ -57,24 +57,6 @@ export function hasPromptLabel(labels, label) {
   return parsePromptLabels(labels).includes(label)
 }
 
-export function formatPromptDateTime(iso) {
-  if (!iso) return ''
-  try {
-    const d = new Date(iso)
-    return d.toLocaleString(undefined, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    })
-  } catch {
-    return iso
-  }
-}
-
 export function formatVersionCommit(version) {
   const hash = version?.commitHash?.trim()
   const message = version?.commitMessage?.trim()

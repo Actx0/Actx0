@@ -346,6 +346,7 @@ import { workspace_api, workspace_access_key_api } from '@/api'
 import { showFlash } from '@/lib/flash'
 import { WORKSPACE_KEY_PERMISSIONS, useWorkspaceContext } from '@/lib/permission'
 import { saveWorkspaceToStorage } from '@/utils/storage'
+import { formatDate, formatDateTime } from '@/utils/dt'
 
 const { t } = useI18n()
 const { currentWorkspace } = useWorkspaceContext()
@@ -380,24 +381,6 @@ const canSaveWorkspace = computed(() => {
   const name = workspaceForm.name.trim()
   return name.length >= 3 && name !== workspace.value?.name
 })
-
-function formatDate(iso) {
-  if (!iso) return t('common.em_dash')
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' })
-  } catch {
-    return iso
-  }
-}
-
-function formatDateTime(iso) {
-  if (!iso) return t('common.em_dash')
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
-  } catch {
-    return iso
-  }
-}
 
 function getPermissionLabels(permissions) {
   if (!permissions?.length) return []
@@ -529,6 +512,9 @@ async function handleCreateKey() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadWorkspace(), loadAccessKeys()])
+  await Promise.all([
+    loadWorkspace(),
+    loadAccessKeys()
+  ])
 })
 </script>

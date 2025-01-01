@@ -238,13 +238,13 @@ import {
   emptyPromptForm,
   formFromPrompt,
   buildCreatePayload,
-  formatPromptDateTime,
   formatVersionCommit,
   formatPromptConfig,
   serializePromptConfigForApi,
   parsePromptLabels,
   extractPromptVariables,
 } from '@/lib/prompt'
+import { formatPromptDateTime } from '@/utils/dt'
 
 const { t } = useI18n()
 const route = useRoute()

@@ -87,7 +87,7 @@
                 </div>
                 <div v-if="billingStatus.updatedAt" class="flex justify-between gap-4 py-3">
                   <dt class="text-sm text-theme-textLight">{{ $t('billing_page.last_updated') }}</dt>
-                  <dd class="text-sm font-medium text-theme-text">{{ formatDate(billingStatus.updatedAt) }}</dd>
+                  <dd class="text-sm font-medium text-theme-text">{{ formatDate(billingStatus.updatedAt, locale) }}</dd>
                 </div>
               </dl>
             </section>
@@ -274,6 +274,7 @@ import { useI18n } from 'vue-i18n'
 import AppNav from '@/components/AppNav.vue'
 import { billing_api } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
+import { formatDate } from '@/utils/dt'
 
 const { t, locale } = useI18n()
 const { currentWorkspace } = useWorkspaceContext()
@@ -395,12 +396,12 @@ const isCurrentPlan = (plan) => plan.id === billingStatus.value.plan
 
 const usagePeriodReset = computed(() => {
   if (usageData.value.periodReset) {
-    return formatDate(usageData.value.periodReset)
+    return formatDate(usageData.value.periodReset, locale.value)
   }
 
   const now = new Date()
   const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-  return next.toLocaleDateString(locale.value, { month: 'short', day: 'numeric', year: 'numeric' })
+  return formatDate(next, locale.value)
 })
 
 const formatNumber = (value) => value.toLocaleString(locale.value, { maximumFractionDigits: 0 })
@@ -558,15 +559,6 @@ const buildUsageMetrics = (limits, used) => {
 const usageMetrics = computed(() => {
   return buildUsageMetrics(usageData.value.limits, usageData.value.used)
 })
-
-const formatDate = (value) => {
-  if (!value) return ''
-  return new Date(value).toLocaleDateString(locale.value, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
 
 const loadBilling = async () => {
   billingLoading.value = true

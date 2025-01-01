@@ -57,7 +57,7 @@
                   </router-link>
                   <p v-if="agent.description" class="mt-0.5 text-xs text-theme-textLight line-clamp-1">{{ agent.description }}</p>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatAgentDate(agent.createdAt) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatDate(agent.createdAt) }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                   <span class="inline-flex items-center gap-3">
                     <router-link :to="agentDetailPath(agent.id)" class="text-primary-600 hover:text-primary-700 hover:underline">
@@ -168,7 +168,8 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { useWorkspaceContext } from '@/lib/permission'
 import { agent_api } from '@/api'
-import { agentDetailPath, formatAgentDate, buildCreatePayload } from '@/lib/agent'
+import { agentDetailPath, buildCreatePayload } from '@/lib/agent'
+import { formatDate } from '@/utils/dt'
 
 const { t } = useI18n()
 const route = useRoute()

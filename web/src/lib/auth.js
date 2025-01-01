@@ -3,7 +3,7 @@ import {
   loadUserFromStorage,
   saveUserToStorage,
   removeUserFromStorage
-} from '@/lib/storage'
+} from '@/utils/storage'
 
 export const user = ref(loadUserFromStorage())
 

@@ -118,7 +118,7 @@
                     {{ $t(statusMeta(doc.status).labelKey) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ fmtDate(doc.uploadedAt) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatDate(doc.uploadedAt) }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                   <button type="button" class="text-red-600 hover:text-red-700 hover:underline" @click="deleteDoc = doc">
                     {{ $t('knowledge_page.delete') }}
@@ -264,6 +264,7 @@ import { showFlash } from '@/lib/flash'
 import { useUrlPagination } from '@/lib/pagination'
 import { document_api } from '@/api'
 import { useWorkspaceContext } from '@/lib/permission'
+import { formatDate } from '@/utils/dt'
 
 const KNOWLEDGE_STATUS = {
   PROCESSING: 'processing',
@@ -360,15 +361,6 @@ function isTextFile(file) {
 
 function splitLabel(label) {
   return parseLabel(label) || { key: label, value: '' }
-}
-
-function fmtDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
 }
 
 function statusMeta(status) {
