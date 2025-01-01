@@ -30,7 +30,6 @@ var (
 	ErrInviteNoLongerValid     = errors.New("invite no longer valid")
 	ErrInviteExpired           = errors.New("invite expired")
 	ErrInviteEmailMismatch     = errors.New("invite email mismatch")
-	ErrInviteWorkspaceMismatch = errors.New("invite workspace mismatch")
 	ErrPendingInviteExists     = errors.New("pending invite already exists")
 	ErrUserWithEmailRegistered = errors.New("user with email already registered")
 	ErrFailedCreateInvite      = errors.New("failed create invite")
@@ -438,75 +437,6 @@ func (i *Invite) GetAuthenticatedUserInviteByToken(token string, user *db.User) 
 	return resp, nil
 }
 
-// AcceptInvite marks an invite as accepted and adds the caller to the workspace.
-func (i *Invite) AcceptInvite(workspaceId db.Id, token string, user *db.User) (*InviteResponse, error) {
-	count, err := i.UserInviteRepository.MarkExpiredAsExpired()
-	if err == nil && count > 0 {
-		log.Info().
-			Int64("count", count).
-			Msg("Expired invites marked")
-	}
-
-	invite, err := i.UserInviteRepository.GetByToken(token)
-	if err != nil {
-		return nil, err
-	}
-	if invite == nil {
-		return nil, ErrInviteNotFound
-	}
-	if invite.Status == InviteStatusExpired || time.Now().UTC().After(invite.ExpiresAt) {
-		return nil, ErrInviteExpired
-	}
-	if invite.Status != InviteStatusPending {
-		return nil, ErrInviteNoLongerValid
-	}
-	if invite.WorkspaceId != workspaceId {
-		return nil, ErrInviteWorkspaceMismatch
-	}
-	if !strings.EqualFold(user.Email, invite.Email) {
-		return nil, ErrInviteEmailMismatch
-	}
-
-	membership, err := i.WorkspaceUserRepository.GetByWorkspaceAndUser(invite.WorkspaceId, user.Id)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrFailedAcceptInvite, err)
-	}
-	if membership == nil {
-		err = i.WorkspaceUserRepository.Create(&db.WorkspaceUser{
-			WorkspaceId: invite.WorkspaceId,
-			UserId:      user.Id,
-			Role:        invite.Role,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrFailedAcceptInvite, err)
-		}
-	}
-
-	now := time.Now().UTC()
-	err = i.UserInviteRepository.UpdateStatus(invite.Id, InviteStatusAccepted, &now)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrFailedAcceptInvite, err)
-	}
-
-	invite.Status = InviteStatusAccepted
-	invite.AcceptedAt = &now
-
-	resp := &InviteResponse{
-		Id:            invite.Id,
-		Email:         invite.Email,
-		Role:          invite.Role,
-		Status:        invite.Status,
-		InviterUserId: invite.InviterUserId,
-		WorkspaceId:   invite.WorkspaceId,
-		ExpiresAt:     invite.ExpiresAt.UTC().Format(time.RFC3339),
-		CreatedAt:     invite.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:     invite.UpdatedAt.UTC().Format(time.RFC3339),
-		AcceptedAt:    new(invite.AcceptedAt.UTC().Format(time.RFC3339)),
-	}
-
-	return resp, nil
-}
-
 // AcceptUserInviteByToken marks an invite as accepted using only the token.
 func (i *Invite) AcceptUserInviteByToken(token string, user *db.User) (*InviteResponse, error) {
 	count, err := i.UserInviteRepository.MarkExpiredAsExpired()
@@ -572,57 +502,6 @@ func (i *Invite) AcceptUserInviteByToken(token string, user *db.User) (*InviteRe
 	}
 
 	return resp, nil
-}
-
-// RejectInvite marks an invite as rejected.
-func (i *Invite) RejectInvite(workspaceId db.Id, token string, user *db.User) (*InviteResponse, error) {
-	count, err := i.UserInviteRepository.MarkExpiredAsExpired()
-	if err == nil && count > 0 {
-		log.Info().
-			Int64("count", count).
-			Msg("Expired invites marked")
-	}
-
-	invite, err := i.UserInviteRepository.GetByToken(token)
-	if err != nil {
-		return nil, err
-	}
-	if invite == nil {
-		return nil, ErrInviteNotFound
-	}
-	if invite.Status == InviteStatusExpired || time.Now().UTC().After(invite.ExpiresAt) {
-		return nil, ErrInviteExpired
-	}
-	if invite.Status != InviteStatusPending {
-		return nil, ErrInviteNoLongerValid
-	}
-	if invite.WorkspaceId != workspaceId {
-		return nil, ErrInviteWorkspaceMismatch
-	}
-
-	if !strings.EqualFold(user.Email, invite.Email) {
-		return nil, ErrInviteEmailMismatch
-	}
-
-	err = i.UserInviteRepository.UpdateStatus(invite.Id, InviteStatusRejected, nil)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrFailedRejectInvite, err)
-	}
-
-	invite.Status = InviteStatusRejected
-	invite.AcceptedAt = nil
-
-	return &InviteResponse{
-		Id:            invite.Id,
-		Email:         invite.Email,
-		Role:          invite.Role,
-		Status:        invite.Status,
-		InviterUserId: invite.InviterUserId,
-		WorkspaceId:   invite.WorkspaceId,
-		ExpiresAt:     invite.ExpiresAt.UTC().Format(time.RFC3339),
-		CreatedAt:     invite.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:     invite.UpdatedAt.UTC().Format(time.RFC3339),
-	}, nil
 }
 
 // RejectUserInviteByToken marks an invite as rejected using only the token.

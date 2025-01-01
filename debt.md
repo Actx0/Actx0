@@ -30,6 +30,7 @@ Mark done: `- [x] path/to/file`
 - [x] api/profile.go
 - [x] api/api_key.go
 - [x] api/access.go
+- [x] api/invite.go
 - [ ] api/member.go
 - [ ] api/agent.go
 - [ ] api/billing.go
@@ -38,7 +39,6 @@ Mark done: `- [x] path/to/file`
 - [ ] api/session.go
 - [ ] api/message.go
 - [ ] api/prompt.go
-- [ ] api/invite.go
 - [ ] api/memory.go
 
 ## cli/
@@ -124,7 +124,7 @@ Mark done: `- [x] path/to/file`
 - [x] module/ctx.go
 - [ ] module/document.go
 - [x] module/events.go
-- [ ] module/invite.go
+- [x] module/invite.go
 - [x] module/me.go
 - [ ] module/memory.go
 - [ ] module/message.go
