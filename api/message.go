@@ -52,11 +52,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
-		module.NewAgentSession(
-			db.NewAgentSessionRepository(db.GetDB()),
-			db.NewAgentRepository(db.GetDB()),
-			db.NewWorkspaceRepository(db.GetDB()),
-		),
+		db.NewAgentSessionRepository(db.GetDB()),
 	)
 	message, err := mm.CreateSessionMessage(
 		workspaceId,
@@ -126,11 +122,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
-		module.NewAgentSession(
-			db.NewAgentSessionRepository(db.GetDB()),
-			db.NewAgentRepository(db.GetDB()),
-			db.NewWorkspaceRepository(db.GetDB()),
-		),
+		db.NewAgentSessionRepository(db.GetDB()),
 	)
 	messages, err := mm.BatchCreateSessionMessages(
 		workspaceId,
@@ -198,11 +190,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
-		module.NewAgentSession(
-			db.NewAgentSessionRepository(db.GetDB()),
-			db.NewAgentRepository(db.GetDB()),
-			db.NewWorkspaceRepository(db.GetDB()),
-		),
+		db.NewAgentSessionRepository(db.GetDB()),
 	)
 	result, err := mm.ListSessionMessages(
 		workspaceId,
@@ -282,11 +270,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
-		module.NewAgentSession(
-			db.NewAgentSessionRepository(db.GetDB()),
-			db.NewAgentRepository(db.GetDB()),
-			db.NewWorkspaceRepository(db.GetDB()),
-		),
+		db.NewAgentSessionRepository(db.GetDB()),
 	)
 	message, err := mm.GetSessionMessage(
 		workspaceId,
@@ -368,11 +352,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
-		module.NewAgentSession(
-			db.NewAgentSessionRepository(db.GetDB()),
-			db.NewAgentRepository(db.GetDB()),
-			db.NewWorkspaceRepository(db.GetDB()),
-		),
+		db.NewAgentSessionRepository(db.GetDB()),
 	)
 	message, err := mm.UpdateSessionMessage(
 		workspaceId,
@@ -449,11 +429,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
-		module.NewAgentSession(
-			db.NewAgentSessionRepository(db.GetDB()),
-			db.NewAgentRepository(db.GetDB()),
-			db.NewWorkspaceRepository(db.GetDB()),
-		),
+		db.NewAgentSessionRepository(db.GetDB()),
 	)
 	err := mm.DeleteSessionMessage(
 		workspaceId,
@@ -527,11 +503,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	mm := module.NewMessage(
 		db.NewSessionMessageRepository(db.GetDB()),
-		module.NewAgentSession(
-			db.NewAgentSessionRepository(db.GetDB()),
-			db.NewAgentRepository(db.GetDB()),
-			db.NewWorkspaceRepository(db.GetDB()),
-		),
+		db.NewAgentSessionRepository(db.GetDB()),
 	)
 	err := mm.BatchDeleteSessionMessages(
 		workspaceId,

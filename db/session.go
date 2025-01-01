@@ -10,16 +10,17 @@ import (
 
 // AgentSession is a single row in the sessions table for an agent conversation.
 type AgentSession struct {
-	Id          Id
-	ExternalId  string
-	WorkspaceId Id
-	AgentId     Id
-	Title       *string
-	Status      string
-	Labels      *string
-	Meta        *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	Id             Id
+	ExternalId     string
+	WorkspaceId    Id
+	AgentId        Id
+	Title          *string
+	Status         string
+	Labels         *string
+	Meta           *string
+	LastActivityAt *time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 // AgentSessionRepository is the interface for agent session CRUD.
@@ -29,6 +30,7 @@ type AgentSessionRepository interface {
 	GetByAgentIdAndExternalId(agentId Id, externalId string) (*AgentSession, error)
 	GetByAgentIdAndExactLabels(agentId Id, labels string) (*AgentSession, error)
 	Update(session *AgentSession) error
+	TouchLastActivityAt(sessionId Id, at time.Time) error
 	Delete(id Id) error
 	ListByAgentId(agentId Id, limit, offset int) ([]*AgentSession, error)
 	ListByAgentIdAndLabels(agentId Id, labelsContains string, limit, offset int) ([]*AgentSession, error)
@@ -79,7 +81,7 @@ func (r *AgentSessionRepositoryPostgres) GetById(id Id) (*AgentSession, error) {
 	item := &AgentSession{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, external_id, workspace_id, agent_id, title, status, labels, meta, created_at, updated_at
+			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE id = $1`,
 		id.String(),
@@ -92,6 +94,7 @@ func (r *AgentSessionRepositoryPostgres) GetById(id Id) (*AgentSession, error) {
 		&item.Status,
 		&item.Labels,
 		&item.Meta,
+		&item.LastActivityAt,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
@@ -106,7 +109,7 @@ func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExternalId(agentId Id, e
 	item := &AgentSession{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, external_id, workspace_id, agent_id, title, status, labels, meta, created_at, updated_at
+			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE agent_id = $1 AND external_id = $2`,
 		agentId.String(),
@@ -120,6 +123,7 @@ func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExternalId(agentId Id, e
 		&item.Status,
 		&item.Labels,
 		&item.Meta,
+		&item.LastActivityAt,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
@@ -134,7 +138,7 @@ func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExactLabels(agentId Id, 
 	item := &AgentSession{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, external_id, workspace_id, agent_id, title, status, labels, meta, created_at, updated_at
+			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE agent_id = $1 AND labels = $2::jsonb`,
 		agentId.String(),
@@ -148,6 +152,7 @@ func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExactLabels(agentId Id, 
 		&item.Status,
 		&item.Labels,
 		&item.Meta,
+		&item.LastActivityAt,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
@@ -182,6 +187,19 @@ func (r *AgentSessionRepositoryPostgres) Update(session *AgentSession) error {
 	return err
 }
 
+// TouchLastActivityAt sets last activity and updated timestamps for a session.
+func (r *AgentSessionRepositoryPostgres) TouchLastActivityAt(sessionId Id, at time.Time) error {
+	at = at.UTC()
+	_, err := r.db.Exec(
+		`UPDATE sessions
+		SET last_activity_at = $2, updated_at = $2
+		WHERE id = $1`,
+		sessionId.String(),
+		at,
+	)
+	return err
+}
+
 // Delete deletes an agent session row.
 func (r *AgentSessionRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
@@ -196,10 +214,10 @@ func (r *AgentSessionRepositoryPostgres) Delete(id Id) error {
 func (r *AgentSessionRepositoryPostgres) ListByAgentId(agentId Id, limit, offset int) ([]*AgentSession, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, external_id, workspace_id, agent_id, title, status, labels, meta, created_at, updated_at
+			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE agent_id = $1
-		ORDER BY created_at DESC
+		ORDER BY COALESCE(last_activity_at, created_at) DESC
 		LIMIT $2 OFFSET $3`,
 		agentId.String(),
 		limit,
@@ -221,6 +239,7 @@ func (r *AgentSessionRepositoryPostgres) ListByAgentId(agentId Id, limit, offset
 			&item.Status,
 			&item.Labels,
 			&item.Meta,
+			&item.LastActivityAt,
 			&item.CreatedAt,
 			&item.UpdatedAt,
 		); err != nil {
@@ -235,10 +254,10 @@ func (r *AgentSessionRepositoryPostgres) ListByAgentId(agentId Id, limit, offset
 func (r *AgentSessionRepositoryPostgres) ListByAgentIdAndLabels(agentId Id, labelsContains string, limit, offset int) ([]*AgentSession, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, external_id, workspace_id, agent_id, title, status, labels, meta, created_at, updated_at
+			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE agent_id = $1 AND labels @> $2::jsonb
-		ORDER BY created_at DESC
+		ORDER BY COALESCE(last_activity_at, created_at) DESC
 		LIMIT $3 OFFSET $4`,
 		agentId.String(),
 		labelsContains,
@@ -261,6 +280,7 @@ func (r *AgentSessionRepositoryPostgres) ListByAgentIdAndLabels(agentId Id, labe
 			&item.Status,
 			&item.Labels,
 			&item.Meta,
+			&item.LastActivityAt,
 			&item.CreatedAt,
 			&item.UpdatedAt,
 		); err != nil {

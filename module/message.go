@@ -67,20 +67,32 @@ type ListSessionMessagesResponse struct {
 // Message is the module for session message CRUD.
 type Message struct {
 	MessageRepository db.SessionMessageRepository
-	AgentSession      *AgentSession
+	SessionRepository db.AgentSessionRepository
 }
 
 // NewMessage creates a session message module with the given repositories.
-func NewMessage(mr db.SessionMessageRepository, as *AgentSession) *Message {
+func NewMessage(mr db.SessionMessageRepository, sr db.AgentSessionRepository) *Message {
 	return &Message{
 		MessageRepository: mr,
-		AgentSession:      as,
+		SessionRepository: sr,
 	}
+}
+
+func (m *Message) loadAgentSession(workspaceId, agentId, sessionId db.Id) (*db.AgentSession, error) {
+	session, err := m.SessionRepository.GetById(sessionId)
+	if err != nil {
+		return nil, err
+	}
+	if session == nil || session.AgentId != agentId || session.WorkspaceId != workspaceId {
+		return nil, ErrAgentSessionNotFound
+	}
+
+	return session, nil
 }
 
 // CreateSessionMessage creates a message in a session.
 func (m *Message) CreateSessionMessage(workspaceId, agentId, sessionId db.Id, req *CreateSessionMessageRequest) (*SessionMessageResponse, error) {
-	session, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	session, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -97,17 +109,23 @@ func (m *Message) CreateSessionMessage(workspaceId, agentId, sessionId db.Id, re
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMessage, err)
 	}
 
+	err = m.SessionRepository.TouchLastActivityAt(session.Id, message.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMessage, err)
+	}
+
 	return sessionMessageResponse(message), nil
 }
 
 // BatchCreateSessionMessages creates multiple messages in a session.
 func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.Id, req *BatchCreateSessionMessagesRequest) ([]*SessionMessageResponse, error) {
-	session, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	session, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
 
 	responses := make([]*SessionMessageResponse, 0, len(req.Messages))
+	var lastCreatedAt time.Time
 	for _, item := range req.Messages {
 		message := &db.SessionMessage{
 			SessionId: session.Id,
@@ -121,7 +139,13 @@ func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMessage, err)
 		}
 
+		lastCreatedAt = message.CreatedAt
 		responses = append(responses, sessionMessageResponse(message))
+	}
+
+	err = m.SessionRepository.TouchLastActivityAt(session.Id, lastCreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSessionMessage, err)
 	}
 
 	return responses, nil
@@ -129,7 +153,7 @@ func (m *Message) BatchCreateSessionMessages(workspaceId, agentId, sessionId db.
 
 // GetSessionMessage returns one message by id.
 func (m *Message) GetSessionMessage(workspaceId, agentId, sessionId, messageId db.Id) (*SessionMessageResponse, error) {
-	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +171,7 @@ func (m *Message) GetSessionMessage(workspaceId, agentId, sessionId, messageId d
 
 // UpdateSessionMessage updates a message by id.
 func (m *Message) UpdateSessionMessage(workspaceId, agentId, sessionId, messageId db.Id, req *UpdateSessionMessageRequest) (*SessionMessageResponse, error) {
-	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +200,7 @@ func (m *Message) UpdateSessionMessage(workspaceId, agentId, sessionId, messageI
 
 // DeleteSessionMessage deletes a message by id.
 func (m *Message) DeleteSessionMessage(workspaceId, agentId, sessionId, messageId db.Id) error {
-	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return err
 	}
@@ -208,7 +232,7 @@ func (m *Message) DeleteSessionMessage(workspaceId, agentId, sessionId, messageI
 
 // BatchDeleteSessionMessages deletes multiple messages by id.
 func (m *Message) BatchDeleteSessionMessages(workspaceId, agentId, sessionId db.Id, req *BatchDeleteSessionMessagesRequest) error {
-	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return err
 	}
@@ -245,7 +269,7 @@ func (m *Message) BatchDeleteSessionMessages(workspaceId, agentId, sessionId db.
 
 // ListSessionMessages returns paginated messages for a session.
 func (m *Message) ListSessionMessages(workspaceId, agentId, sessionId db.Id, limit, offset int) (*ListSessionMessagesResponse, error) {
-	_, err := m.AgentSession.LoadAgentSession(workspaceId, agentId, sessionId)
+	_, err := m.loadAgentSession(workspaceId, agentId, sessionId)
 	if err != nil {
 		return nil, err
 	}
