@@ -24,8 +24,6 @@ const OauthStateCookie = "_actx0_oauth_state"
 
 // GitHubOAuthStartAction redirects the browser to GitHub's authorize URL.
 func GitHubOAuthStartAction(w http.ResponseWriter, r *http.Request) {
-	errorURL := util.AppURL("/login?oauth_error=github")
-
 	oauth := github.NewOAuth(github.OAuthConfig{
 		ClientID:     viper.GetString("app.oauth.github.client_id"),
 		ClientSecret: viper.GetString("app.oauth.github.client_secret"),
@@ -37,7 +35,7 @@ func GitHubOAuthStartAction(w http.ResponseWriter, r *http.Request) {
 	state, err := util.GenerateSecureToken(24)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate oauth state")
-		http.Redirect(w, r, errorURL, http.StatusFound)
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=github"), http.StatusFound)
 		return
 	}
 
@@ -57,8 +55,6 @@ func GitHubOAuthStartAction(w http.ResponseWriter, r *http.Request) {
 
 // GitHubOAuthCallbackAction completes GitHub OAuth and creates a session.
 func GitHubOAuthCallbackAction(w http.ResponseWriter, r *http.Request) {
-	errorURL := util.AppURL("/login?oauth_error=github")
-
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 	expectedState := util.GetCookie(r, OauthStateCookie)
@@ -76,21 +72,21 @@ func GitHubOAuthCallbackAction(w http.ResponseWriter, r *http.Request) {
 	token, err := oauth.Exchange(r.Context(), code, state, expectedState)
 	if err != nil {
 		log.Error().Err(err).Msg("GitHub oauth exchange failed")
-		http.Redirect(w, r, errorURL, http.StatusFound)
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=github"), http.StatusFound)
 		return
 	}
 
 	user, err := oauth.User(r.Context(), token.AccessToken)
 	if err != nil {
 		log.Error().Err(err).Msg("GitHub oauth user fetch failed")
-		http.Redirect(w, r, errorURL, http.StatusFound)
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=github"), http.StatusFound)
 		return
 	}
 
 	emails, err := oauth.Emails(r.Context(), token.AccessToken)
 	if err != nil {
 		log.Error().Err(err).Msg("GitHub oauth emails fetch failed")
-		http.Redirect(w, r, errorURL, http.StatusFound)
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=github"), http.StatusFound)
 		return
 	}
 
@@ -118,7 +114,7 @@ func GitHubOAuthCallbackAction(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("GitHub oauth login failed")
-		http.Redirect(w, r, errorURL, http.StatusFound)
+		http.Redirect(w, r, util.AppURL("/login?oauth_error=github"), http.StatusFound)
 		return
 	}
 
