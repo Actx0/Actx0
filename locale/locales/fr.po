@@ -18,6 +18,9 @@ msgstr "Un compte avec cet e-mail existe déjà."
 msgid "access_key_not_found"
 msgstr "Clé d'accès introuvable."
 
+msgid "notification_not_found"
+msgstr "Notification introuvable."
+
 msgid "api_key_not_found"
 msgstr "Clé API introuvable."
 
@@ -213,6 +216,12 @@ msgstr "Impossible de récupérer le principal authentifié."
 msgid "failed_list_access_keys"
 msgstr "Impossible de lister les clés d'accès."
 
+msgid "failed_list_notifications"
+msgstr "Impossible de lister les notifications."
+
+msgid "failed_mark_notification_read"
+msgstr "Impossible de marquer la notification comme lue."
+
 msgid "failed_list_agents"
 msgstr "Impossible de lister les agents."
 
@@ -383,6 +392,9 @@ msgstr "Identifiant ou mot de passe invalide."
 
 msgid "invalid_workspace_id"
 msgstr "ID d'espace de travail invalide."
+
+msgid "invalid_notification_id"
+msgstr "ID de notification invalide."
 
 msgid "invalid_tool_request"
 msgstr "Requête d'outil invalide."

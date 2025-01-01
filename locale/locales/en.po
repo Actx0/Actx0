@@ -18,6 +18,9 @@ msgstr "An account with this email already exists."
 msgid "audit_event_not_found"
 msgstr "Audit event not found."
 
+msgid "notification_not_found"
+msgstr "Notification not found."
+
 msgid "access_key_not_found"
 msgstr "Access key not found."
 
@@ -219,6 +222,12 @@ msgstr "Failed to get authenticated principal."
 msgid "failed_list_audits"
 msgstr "Failed to list audit events."
 
+msgid "failed_list_notifications"
+msgstr "Failed to list notifications."
+
+msgid "failed_mark_notification_read"
+msgstr "Failed to mark notification as read."
+
 msgid "failed_list_access_keys"
 msgstr "Failed to list access keys."
 
@@ -395,6 +404,9 @@ msgstr "Invalid username or password."
 
 msgid "invalid_workspace_id"
 msgstr "Invalid workspace ID."
+
+msgid "invalid_notification_id"
+msgstr "Invalid notification ID."
 
 msgid "invalid_tool_request"
 msgstr "Invalid tool request."
