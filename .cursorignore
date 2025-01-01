@@ -5,7 +5,6 @@ dist/
 .ruff_cache/
 
 # Lock files & generated artifacts
-go.sum
 web/package-lock.json
 coverage.html
 *.out
