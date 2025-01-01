@@ -26,7 +26,7 @@ Mark done: `- [x] path/to/file`
 - [x] api/login.go
 - [x] api/password.go
 - [x] api/settings.go
-- [ ] api/tools.go
+- [x] api/tools.go
 - [ ] api/profile.go
 - [x] api/api_key.go
 - [ ] api/access.go
@@ -136,7 +136,7 @@ Mark done: `- [x] path/to/file`
 - [ ] module/settings.go
 - [x] module/setup.go
 - [x] module/stats.go
-- [ ] module/tools.go
+- [x] module/tools.go
 - [ ] module/usage.go
 - [ ] module/wspace.go
 - [ ] module/wuser.go
