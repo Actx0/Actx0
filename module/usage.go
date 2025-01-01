@@ -25,6 +25,7 @@ type WorkspaceUsageMetrics struct {
 	HistoryRecords   int64   `json:"historyRecords"`
 	MemoryRecords    int64   `json:"memoryRecords"`
 	AITokens         int64   `json:"aiTokens"`
+	AICost           float64 `json:"aiCost"`
 }
 
 // UsageSnapshotDeps holds repositories needed to load workspace usage.
@@ -121,6 +122,11 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 		return nil, err
 	}
 
+	aiCost, err := u.AICost(deps.UsageRepository, deps.SubscriptionRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &WorkspaceUsageMetrics{
 		APICalls:         apiCalls,
 		WorkspaceMembers: members,
@@ -130,6 +136,7 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 		HistoryRecords:   historyRecords,
 		MemoryRecords:    memoryRecords,
 		AITokens:         aiTokens,
+		AICost:           aiCost,
 	}, nil
 }
 

@@ -163,18 +163,21 @@
                 </div>
                 <p class="text-sm font-medium tabular-nums text-theme-text">
                   <span>{{ metric.displayUsed }}</span>
-                  <span class="font-normal text-theme-textLight"> / {{ metric.displayLimit }}</span>
+                  <span v-if="!metric.infoOnly" class="font-normal text-theme-textLight"> / {{ metric.displayLimit }}</span>
                 </p>
               </div>
 
-              <div class="mt-3 h-2 overflow-hidden rounded-full bg-theme-hover">
+              <div v-if="!metric.infoOnly" class="mt-3 h-2 overflow-hidden rounded-full bg-theme-hover">
                 <div
                   class="h-full rounded-full transition-all duration-300"
                   :style="metric.barStyle"
                 />
               </div>
 
-              <p class="mt-2 text-xs text-theme-textLight">
+              <p v-if="metric.infoOnly" class="mt-2 text-xs text-theme-textLight">
+                {{ metric.infoSuffix }}
+              </p>
+              <p v-else class="mt-2 text-xs text-theme-textLight">
                 {{ metric.percentLabel }} {{ metric.percentSuffix }}
               </p>
             </div>
@@ -296,7 +299,8 @@ const usageData = ref({
     storageGB: 0,
     historyRecords: 0,
     memoryRecords: 0,
-    aiTokens: 0
+    aiTokens: 0,
+    aiCost: 0
   },
   limits: {
     apiCalls: 10_000,
@@ -407,6 +411,16 @@ const formatCompact = (value) => {
   return formatNumber(value)
 }
 
+const formatUsd = (value) => {
+  const fractionDigits = value > 0 && value < 0.01 ? 6 : 2
+  return new Intl.NumberFormat(locale.value, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  }).format(value)
+}
+
 const usagePercent = (used, limit) => Math.min(100, Math.round((used / limit) * 100))
 
 const usageBarColor = (percent) => {
@@ -500,6 +514,18 @@ const buildUsageMetrics = (limits, used) => {
       limit: limits.memoryRecords,
       displayUsed: formatNumber(used.memoryRecords),
       displayLimit: formatNumber(limits.memoryRecords)
+    },
+    {
+      id: 'aiCost',
+      resetPolicy: 'monthly',
+      infoOnly: true,
+      label: t('billing_page.metrics.ai_cost_label'),
+      hint: t('billing_page.metrics.ai_cost_hint'),
+      used: used.aiCost,
+      limit: 1,
+      displayUsed: formatUsd(used.aiCost),
+      displayLimit: '',
+      infoSuffix: t('billing_page.metric_suffix_ai_cost')
     }
   ]
 
