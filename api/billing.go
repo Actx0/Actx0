@@ -39,16 +39,16 @@ func GetBillingStatusAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrBillingSubscriptionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_subscription_not_found"),
 			})
 		default:
 			log.Error().Err(err).Msg("Failed to get billing status")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_billing_status"),
 			})
 		}
@@ -83,16 +83,16 @@ func GetBillingUsageAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrBillingSubscriptionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_subscription_not_found"),
 			})
 		default:
 			log.Error().Err(err).Msg("Failed to get billing usage")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_billing_usage"),
 			})
 		}
@@ -113,7 +113,7 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -143,28 +143,28 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrBillingFreePlan):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "billing_free_plan_default"),
 			})
 		case errors.Is(err, module.ErrBillingSubscriptionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_subscription_not_found"),
 			})
 		case errors.Is(err, stripe.ErrInvalidPlan):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_billing_plan"),
 			})
 		case errors.Is(err, stripe.ErrBillingDisabled):
-			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
+			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]any{
 				"errorMessage": locale.TR(r, "stripe_billing_not_configured"),
 			})
 		default:
 			log.Error().Err(err).Msg("Failed to create billing checkout session")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_billing_checkout_session"),
 			})
 		}
@@ -195,24 +195,24 @@ func CreateBillingPortalAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrBillingPortalUnavailable):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "stripe_billing_available_after_upgrade"),
 			})
 		case errors.Is(err, module.ErrBillingSubscriptionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_subscription_not_found"),
 			})
 		case errors.Is(err, stripe.ErrBillingDisabled):
-			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
+			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]any{
 				"errorMessage": locale.TR(r, "stripe_billing_not_configured"),
 			})
 		default:
 			log.Error().Err(err).Msg("Failed to create billing portal session")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_billing_portal_session"),
 			})
 		}
@@ -227,7 +227,7 @@ func StripeWebhookAction(w http.ResponseWriter, r *http.Request) {
 	payload, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
 	if err != nil {
 		log.Warn().Err(err).Msg("Stripe webhook rejected: failed to read payload")
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_webhook_payload"),
 		})
 		return
@@ -250,12 +250,12 @@ func StripeWebhookAction(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, stripe.ErrBillingDisabled), errors.Is(err, stripe.ErrWebhookNotConfigured):
 			log.Warn().Err(err).Msg("Stripe webhook rejected: billing not configured")
-			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
+			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]any{
 				"errorMessage": locale.TR(r, "stripe_billing_not_configured"),
 			})
 		default:
 			log.Error().Err(err).Msg("Failed to handle Stripe webhook")
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_stripe_webhook"),
 			})
 		}

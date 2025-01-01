@@ -21,7 +21,7 @@ import (
 func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -43,20 +43,20 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptHandleTaken):
-			util.WriteJSON(w, http.StatusConflict, map[string]interface{}{
+			util.WriteJSON(w, http.StatusConflict, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_handle_taken"),
 			})
 		case errors.Is(err, module.ErrInvalidPromptHandle):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_prompt_handle"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create prompt")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_prompt_version"),
 			})
 		}
@@ -70,7 +70,7 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -79,7 +79,7 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	promptId := chi.URLParam(r, "promptId")
 	if lo.IsEmpty(promptId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
 		return
@@ -100,16 +100,16 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to create prompt version")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_prompt_version"),
 			})
 		}
@@ -123,7 +123,7 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -141,21 +141,21 @@ func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to list prompts")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_prompts"),
 			})
 		}
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"prompts": result.Prompts,
-		"_meta": map[string]interface{}{
+		"_meta": map[string]any{
 			"limit":  limit,
 			"offset": offset,
 			"total":  result.Total,
@@ -167,7 +167,7 @@ func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -176,7 +176,7 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 
 	name := chi.URLParam(r, "promptName")
 	if lo.IsEmpty(name) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_name"),
 		})
 		return
@@ -191,24 +191,24 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrInvalidPromptHandle):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_prompt_name"),
 			})
 		case errors.Is(err, module.ErrInvalidPromptVersion):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_prompt_version"),
 			})
 		case errors.Is(err, module.ErrPromptVersionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("promptName", name).Msg("Failed to get prompt version by name")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_prompt_version"),
 			})
 		}
@@ -222,7 +222,7 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -231,7 +231,7 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 
 	promptId := chi.URLParam(r, "promptId")
 	if lo.IsEmpty(promptId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
 		return
@@ -246,16 +246,16 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to get prompt")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_prompt"),
 			})
 		}
@@ -269,7 +269,7 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -278,7 +278,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	promptId := chi.URLParam(r, "promptId")
 	if lo.IsEmpty(promptId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
 		return
@@ -286,7 +286,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	promptVersionId := chi.URLParam(r, "promptVersionId")
 	if lo.IsEmpty(promptVersionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_version_id"),
 		})
 		return
@@ -301,16 +301,16 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptVersionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("versionId", promptVersionId).Msg("Failed to get prompt version")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_prompt_version"),
 			})
 		}
@@ -324,7 +324,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -333,7 +333,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	promptId := chi.URLParam(r, "promptId")
 	if lo.IsEmpty(promptId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
 		return
@@ -341,7 +341,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	promptVersionId := chi.URLParam(r, "promptVersionId")
 	if lo.IsEmpty(promptVersionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_version_id"),
 		})
 		return
@@ -368,16 +368,16 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptVersionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("versionId", promptVersionId).Msg("Failed to update prompt version")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_prompt_version"),
 			})
 		}
@@ -391,7 +391,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -400,7 +400,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	promptId := chi.URLParam(r, "promptId")
 	if lo.IsEmpty(promptId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
 		return
@@ -408,7 +408,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	promptVersionId := chi.URLParam(r, "promptVersionId")
 	if lo.IsEmpty(promptVersionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_version_id"),
 		})
 		return
@@ -423,16 +423,16 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptVersionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("versionId", promptVersionId).Msg("Failed to delete prompt version")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_prompt_version"),
 			})
 		}
@@ -446,7 +446,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -455,7 +455,7 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 
 	promptId := chi.URLParam(r, "promptId")
 	if lo.IsEmpty(promptId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
 		return
@@ -472,25 +472,25 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to list prompt versions")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_prompts"),
 			})
 		}
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"versions": result.Versions,
-		"_meta": map[string]interface{}{
+		"_meta": map[string]any{
 			"limit":  limit,
 			"offset": offset,
 			"total":  result.Total,
@@ -502,7 +502,7 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -511,7 +511,7 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 
 	promptId := chi.URLParam(r, "promptId")
 	if lo.IsEmpty(promptId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_prompt_id"),
 		})
 		return
@@ -526,16 +526,16 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrPromptNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to delete prompt")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_prompt"),
 			})
 		}

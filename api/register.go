@@ -35,7 +35,7 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrUserEmailAlreadyExists):
-			util.WriteJSON(w, http.StatusConflict, map[string]interface{}{
+			util.WriteJSON(w, http.StatusConflict, map[string]any{
 				"errorMessage": locale.TR(r, "account_with_email_already_exists"),
 			})
 		case errors.Is(err, module.ErrFailedCompleteRegistration):
@@ -43,7 +43,7 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("email", req.Email).
 				Msg("Failed to complete registration")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_complete_registration"),
 			})
 		default:
@@ -51,7 +51,7 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("email", req.Email).
 				Msg("Registration failed")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_complete_registration"),
 			})
 		}
@@ -63,7 +63,7 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 		Str("email", result.User.Email).
 		Msg("Registration completed")
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"successMessage": locale.TR(r, "registration_successful"),
 	})
 }

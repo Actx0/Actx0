@@ -21,7 +21,7 @@ import (
 func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -30,7 +30,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	agentId := chi.URLParam(r, "agentId")
 	if lo.IsEmpty(agentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
@@ -38,7 +38,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "sessionId")
 	if lo.IsEmpty(sessionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
@@ -64,20 +64,20 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentSessionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to create session message")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session_message"),
 			})
 		}
@@ -91,7 +91,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -100,7 +100,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	agentId := chi.URLParam(r, "agentId")
 	if lo.IsEmpty(agentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
@@ -108,7 +108,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "sessionId")
 	if lo.IsEmpty(sessionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
@@ -134,27 +134,27 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentSessionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch create session messages")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session_message"),
 			})
 		}
 		return
 	}
 
-	util.WriteJSON(w, http.StatusCreated, map[string]interface{}{
+	util.WriteJSON(w, http.StatusCreated, map[string]any{
 		"messages": messages,
 	})
 }
@@ -163,7 +163,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -172,7 +172,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	agentId := chi.URLParam(r, "agentId")
 	if lo.IsEmpty(agentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
@@ -180,7 +180,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "sessionId")
 	if lo.IsEmpty(sessionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
@@ -203,29 +203,29 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentSessionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to list session messages")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_session_messages"),
 			})
 		}
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"messages": result.Messages,
-		"_meta": map[string]interface{}{
+		"_meta": map[string]any{
 			"limit":  limit,
 			"offset": offset,
 			"total":  result.Total,
@@ -237,7 +237,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -246,7 +246,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	agentId := chi.URLParam(r, "agentId")
 	if lo.IsEmpty(agentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
@@ -254,7 +254,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "sessionId")
 	if lo.IsEmpty(sessionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
@@ -262,7 +262,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	messageId := chi.URLParam(r, "messageId")
 	if lo.IsEmpty(messageId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_message_id"),
 		})
 		return
@@ -282,24 +282,24 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentSessionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		case errors.Is(err, module.ErrSessionMessageNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("messageId", messageId).Msg("Failed to get session message")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_session_message"),
 			})
 		}
@@ -313,7 +313,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -322,7 +322,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	agentId := chi.URLParam(r, "agentId")
 	if lo.IsEmpty(agentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
@@ -330,7 +330,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "sessionId")
 	if lo.IsEmpty(sessionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
@@ -338,7 +338,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	messageId := chi.URLParam(r, "messageId")
 	if lo.IsEmpty(messageId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_message_id"),
 		})
 		return
@@ -365,24 +365,24 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentSessionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		case errors.Is(err, module.ErrSessionMessageNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("messageId", messageId).Msg("Failed to update session message")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_session_message"),
 			})
 		}
@@ -396,7 +396,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -405,7 +405,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	agentId := chi.URLParam(r, "agentId")
 	if lo.IsEmpty(agentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
@@ -413,7 +413,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "sessionId")
 	if lo.IsEmpty(sessionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
@@ -421,7 +421,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 
 	messageId := chi.URLParam(r, "messageId")
 	if lo.IsEmpty(messageId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_message_id"),
 		})
 		return
@@ -441,24 +441,24 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentSessionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		case errors.Is(err, module.ErrSessionMessageNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("messageId", messageId).Msg("Failed to delete session message")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_session_message"),
 			})
 		}
@@ -472,7 +472,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -481,7 +481,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	agentId := chi.URLParam(r, "agentId")
 	if lo.IsEmpty(agentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_agent_id"),
 		})
 		return
@@ -489,7 +489,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "sessionId")
 	if lo.IsEmpty(sessionId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_session_reference"),
 		})
 		return
@@ -515,24 +515,24 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		case errors.Is(err, module.ErrAgentSessionNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		case errors.Is(err, module.ErrSessionMessageNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch delete session messages")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_session_message"),
 			})
 		}

@@ -26,7 +26,7 @@ import (
 func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -34,7 +34,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 
 	form, err := util.ParseUploadForm(r)
 	if err != nil {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": err.Error(),
 		})
 		return
@@ -43,7 +43,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 	store, err := storage.New()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize document storage")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
 		return
@@ -63,12 +63,12 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to upload document")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_upload_document"),
 			})
 		}
@@ -82,7 +82,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -93,7 +93,7 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	store, err := storage.New()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize document storage")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
 		return
@@ -113,21 +113,21 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to list documents")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_documents"),
 			})
 		}
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"documents": result.Documents,
-		"_meta": map[string]interface{}{
+		"_meta": map[string]any{
 			"limit":  limit,
 			"offset": offset,
 			"total":  result.Total,
@@ -139,7 +139,7 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -147,7 +147,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 
 	documentId := chi.URLParam(r, "documentId")
 	if lo.IsEmpty(documentId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_document_id"),
 		})
 		return
@@ -156,7 +156,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 	store, err := storage.New()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize document storage")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
 		return
@@ -176,16 +176,16 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrDocumentNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "document_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("documentId", documentId).Msg("Failed to delete document")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_document"),
 			})
 		}
@@ -199,7 +199,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	wid := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(wid) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -216,7 +216,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	store, err := storage.New()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize document storage")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
 		return
@@ -225,7 +225,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	vdb, err := qdrant.New()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize qdrant")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
 		return
@@ -265,12 +265,12 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to search documents")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_search_documents"),
 			})
 		}

@@ -22,7 +22,7 @@ func ReadyAction(w http.ResponseWriter, _ *http.Request) {
 			Err(err).
 			Msg("Database ping failed during readiness check")
 
-		util.WriteJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
+		util.WriteJSON(w, http.StatusServiceUnavailable, map[string]any{
 			"status": "not_ok",
 		})
 		return
@@ -30,7 +30,7 @@ func ReadyAction(w http.ResponseWriter, _ *http.Request) {
 
 	log.Debug().Msg("Readiness check passed")
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 	})
 }

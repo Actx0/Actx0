@@ -30,11 +30,11 @@ func GetCityInformationAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, meteo.ErrCityNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "city_not_found"),
 			})
 		case errors.Is(err, meteo.ErrEmptyCityName):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "city_required"),
 			})
 		default:
@@ -42,7 +42,7 @@ func GetCityInformationAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("toolName", "getCityInformation").
 				Msg("Failed to run tool")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_run_tool"),
 			})
 		}
@@ -67,11 +67,11 @@ func GetWeatherByCityAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, meteo.ErrCityNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "city_not_found"),
 			})
 		case errors.Is(err, meteo.ErrEmptyCityName):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "city_required"),
 			})
 		default:
@@ -79,7 +79,7 @@ func GetWeatherByCityAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("toolName", "getWeatherByCity").
 				Msg("Failed to run tool")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_run_tool"),
 			})
 		}
@@ -106,7 +106,7 @@ func GetWeatherByCoordinatesAction(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("toolName", "getWeatherByCoordinates").
 			Msg("Failed to run tool")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_run_tool"),
 		})
 		return

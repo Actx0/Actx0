@@ -23,7 +23,7 @@ import (
 func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -31,7 +31,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 
 	workspaceId := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(workspaceId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -61,15 +61,15 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrUserWithEmailRegistered):
-			util.WriteJSON(w, http.StatusConflict, map[string]interface{}{
+			util.WriteJSON(w, http.StatusConflict, map[string]any{
 				"errorMessage": locale.TR(r, "user_with_email_already_registered"),
 			})
 		case errors.Is(err, module.ErrPendingInviteExists):
-			util.WriteJSON(w, http.StatusConflict, map[string]interface{}{
+			util.WriteJSON(w, http.StatusConflict, map[string]any{
 				"errorMessage": locale.TR(r, "pending_invite_already_exists"),
 			})
 		default:
@@ -78,7 +78,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 				Str("userId", user.Id.String()).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to create invite")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_invite"),
 			})
 		}
@@ -99,7 +99,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 func ListInvitesAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(workspaceId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -121,21 +121,21 @@ func ListInvitesAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", workspaceId).Msg("Failed to list invites")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_invites"),
 			})
 		}
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"invites": result.Invites,
-		"_meta": map[string]interface{}{
+		"_meta": map[string]any{
 			"limit":  limit,
 			"offset": offset,
 			"total":  result.Total,
@@ -147,7 +147,7 @@ func ListInvitesAction(w http.ResponseWriter, r *http.Request) {
 func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(workspaceId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -155,7 +155,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 
 	inviteId := chi.URLParam(r, "inviteId")
 	if lo.IsEmpty(inviteId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_invite_id"),
 		})
 		return
@@ -178,11 +178,11 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrInviteNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		default:
@@ -191,7 +191,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 				Str("inviteId", inviteId).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to get invite")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_invite"),
 			})
 		}
@@ -205,7 +205,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 	workspaceId := chi.URLParam(r, "workspaceId")
 	if lo.IsEmpty(workspaceId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_workspace_id"),
 		})
 		return
@@ -213,7 +213,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 
 	inviteId := chi.URLParam(r, "inviteId")
 	if lo.IsEmpty(inviteId) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_invite_id"),
 		})
 		return
@@ -236,11 +236,11 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		case errors.Is(err, module.ErrInviteNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		default:
@@ -248,7 +248,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 				Str("inviteId", inviteId).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to delete invite")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_invite"),
 			})
 		}
@@ -267,7 +267,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 func GetUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	if lo.IsEmpty(token) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})
 		return
@@ -289,11 +289,11 @@ func GetUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrInviteNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		case errors.Is(err, module.ErrInviteNoLongerValid):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invite_no_longer_valid"),
 			})
 		default:
@@ -301,7 +301,7 @@ func GetUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("token", token).
 				Msg("Failed to get invite by token")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_invite"),
 			})
 		}
@@ -315,7 +315,7 @@ func GetUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -323,7 +323,7 @@ func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Requ
 
 	token := chi.URLParam(r, "token")
 	if lo.IsEmpty(token) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})
 		return
@@ -346,11 +346,11 @@ func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrInviteNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		case errors.Is(err, module.ErrInviteNoLongerValid):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invite_no_longer_valid"),
 			})
 		default:
@@ -359,7 +359,7 @@ func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Requ
 				Str("token", token).
 				Str("userId", user.Id.String()).
 				Msg("Failed to get authenticated invite by token")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_invite"),
 			})
 		}
@@ -373,7 +373,7 @@ func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Requ
 func ListUserInvitesAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -399,15 +399,15 @@ func ListUserInvitesAction(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to list invites")
-		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_list_invites"),
 		})
 		return
 	}
 
-	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+	util.WriteJSON(w, http.StatusOK, map[string]any{
 		"invites": result.Invites,
-		"_meta": map[string]interface{}{
+		"_meta": map[string]any{
 			"limit":  limit,
 			"offset": offset,
 			"total":  result.Total,
@@ -419,7 +419,7 @@ func ListUserInvitesAction(w http.ResponseWriter, r *http.Request) {
 func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -427,7 +427,7 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 
 	token := chi.URLParam(r, "token")
 	if lo.IsEmpty(token) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})
 		return
@@ -450,19 +450,19 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrInviteNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		case errors.Is(err, module.ErrInviteExpired):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invite_expired"),
 			})
 		case errors.Is(err, module.ErrInviteNoLongerValid):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invite_no_longer_valid"),
 			})
 		case errors.Is(err, module.ErrInviteEmailMismatch):
-			util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "invite_email_mismatch"),
 			})
 		default:
@@ -471,7 +471,7 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 				Str("token", token).
 				Str("userId", user.Id.String()).
 				Msg("Failed to accept invite")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_accept_invite"),
 			})
 		}
@@ -491,7 +491,7 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	user, ok := middleware.GetUserFromContext(r.Context())
 	if !ok || user == nil {
-		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
 			"errorMessage": locale.TR(r, "not_authenticated"),
 		})
 		return
@@ -499,7 +499,7 @@ func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 
 	token := chi.URLParam(r, "token")
 	if lo.IsEmpty(token) {
-		util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+		util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 			"errorMessage": locale.TR(r, "invalid_token"),
 		})
 		return
@@ -522,19 +522,19 @@ func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrInviteNotFound):
-			util.WriteJSON(w, http.StatusNotFound, map[string]interface{}{
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		case errors.Is(err, module.ErrInviteExpired):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invite_expired"),
 			})
 		case errors.Is(err, module.ErrInviteNoLongerValid):
-			util.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
+			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invite_no_longer_valid"),
 			})
 		case errors.Is(err, module.ErrInviteEmailMismatch):
-			util.WriteJSON(w, http.StatusForbidden, map[string]interface{}{
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
 				"errorMessage": locale.TR(r, "invite_email_mismatch"),
 			})
 		default:
@@ -543,7 +543,7 @@ func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 				Str("token", token).
 				Str("userId", user.Id.String()).
 				Msg("Failed to reject invite")
-			util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_reject_invite"),
 			})
 		}
