@@ -6,6 +6,7 @@ package module
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/clivern/actx0/db"
@@ -52,6 +53,9 @@ func (s *Setup) Install(req *SetupRequest) error {
 	if s.IsInstalled() {
 		return ErrPlatformAlreadyInstalled
 	}
+	if strings.EqualFold(req.AdminEmail, db.BotUserEmail) {
+		return fmt.Errorf("%w: admin email reserved", ErrFailedCompleteSetup)
+	}
 
 	hashedPassword, err := util.HashPassword(req.AdminPassword)
 	if err != nil {
@@ -73,6 +77,28 @@ func (s *Setup) Install(req *SetupRequest) error {
 	err = s.UserRepository.Create(user)
 	if err != nil {
 		return fmt.Errorf("%w: create admin user: %v", ErrFailedCompleteSetup, err)
+	}
+
+	botPassword, err := util.HashPassword("actx0-bot-user-no-login")
+	if err != nil {
+		return fmt.Errorf("%w: hash bot password: %v", ErrFailedCompleteSetup, err)
+	}
+
+	err = s.UserRepository.Create(&db.User{
+		Id:              db.BotUserId,
+		Name:            db.BotUserName,
+		Email:           db.BotUserEmail,
+		Password:        botPassword,
+		Provider:        db.UserProviderLocal,
+		Role:            db.UserRoleBot,
+		IsActive:        true,
+		IsEmailVerified: true,
+		LastLoginAt:     time.Now().UTC(),
+		Language:        db.UserLanguageEN,
+		Theme:           db.UserThemeDefault,
+	})
+	if err != nil {
+		return fmt.Errorf("%w: create bot user: %v", ErrFailedCompleteSetup, err)
 	}
 
 	err = s.ConfigRepository.Create("is_installed", "1")

@@ -14,6 +14,7 @@ const (
 	UserRoleRegular   = "regular"
 	UserRoleOwner     = "owner"
 	UserRoleReadOnly  = "readonly"
+	UserRoleBot       = "bot"
 	UserProviderLocal = "local"
 	UserLanguageEN    = "en"
 	UserLanguageFR    = "fr"
@@ -23,6 +24,18 @@ const (
 	UserThemeEmerald  = "emerald"
 	UserThemeDark     = "dark"
 )
+
+const BotUserId Id = "00000000-0000-0000-0000-000000000000"
+
+const (
+	BotUserEmail = "hello@actx0.com"
+	BotUserName  = "Actx0"
+)
+
+// IsBotUser reports whether id is the platform bot user.
+func IsBotUser(id Id) bool {
+	return id == BotUserId
+}
 
 // User is the DB row for a user.
 type User struct {
@@ -95,13 +108,15 @@ func NewUserRepository(db *sql.DB) UserRepository {
 
 // Create inserts a row
 func (r *UserRepositoryPostgres) Create(user *User) error {
-	id, err := NewId()
-	if err != nil {
-		return err
+	if user.Id == "" {
+		id, err := NewId()
+		if err != nil {
+			return err
+		}
+		user.Id = id
 	}
-	user.Id = id
 
-	_, err = r.db.Exec(
+	_, err := r.db.Exec(
 		`INSERT INTO users
 		(id, name, email, pwd_hash, provider, provider_user_id, role, is_active, is_email_verified, email_verify_token, last_login_at, language, theme)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,

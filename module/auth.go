@@ -95,6 +95,9 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 	if user == nil || !util.ComparePassword(user.Password, req.Password) {
 		return nil, ErrInvalidCredentials
 	}
+	if db.IsBotUser(user.Id) {
+		return nil, ErrInvalidCredentials
+	}
 
 	if !user.IsActive {
 		return nil, ErrAccountNotActive
@@ -210,6 +213,9 @@ func (a *Auth) ForgotPassword(req *ForgotPasswordRequest) error {
 		return nil
 	}
 	if user == nil {
+		return nil
+	}
+	if db.IsBotUser(user.Id) {
 		return nil
 	}
 

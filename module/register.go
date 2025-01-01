@@ -51,6 +51,10 @@ func NewRegister(cr db.ConfigRepository, ur db.UserRepository) *Register {
 // Register creates a regular user account.
 func (r *Register) Register(req *RegisterRequest) (*RegisterResult, error) {
 	email := strings.TrimSpace(req.Email)
+	if strings.EqualFold(email, db.BotUserEmail) {
+		return nil, ErrUserEmailAlreadyExists
+	}
+
 	existing, err := r.UserRepository.GetByEmail(email)
 
 	if err != nil {
