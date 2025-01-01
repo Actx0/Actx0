@@ -108,6 +108,11 @@ export const statsAPI = {
   get: (workspaceId) => api.get(`/workspaces/${workspaceId}/stats`),
 }
 
+export const auditAPI = {
+  list: (workspaceId, params) => api.get(`/workspaces/${workspaceId}/audits`, { params }),
+  get: (workspaceId, auditId) => api.get(`/workspaces/${workspaceId}/audits/${auditId}`),
+}
+
 export const billingAPI = {
   status: (workspaceId) => api.get(`/workspaces/${workspaceId}/billing`),
   usage: (workspaceId) => api.get(`/workspaces/${workspaceId}/billing/usage`),
