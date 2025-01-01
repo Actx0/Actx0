@@ -87,7 +87,7 @@ Mark done: `- [x] path/to/file.go`
 
 ## locale/
 
-- [ ] locale/locale.go
+- [x] locale/locale.go
 
 ## mcp/
 
