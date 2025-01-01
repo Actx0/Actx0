@@ -182,8 +182,8 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/resend/
 
-- [ ] pkg/resend/client.go
-- [ ] pkg/resend/helpers.go
+- [x] pkg/resend/client.go
+- [x] pkg/resend/helpers.go
 
 ## pkg/storage/
 
