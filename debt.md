@@ -12,35 +12,34 @@ Mark done: `- [x] path/to/file`
 
 ## api/
 
-- [ ] api/access.go
-- [ ] api/agent.go
-- [x] api/api_key.go
-- [ ] api/billing.go
-- [ ] api/customer.go
+- [x] api/customer.go
+- [x] api/integration.go
+- [x] api/oauth.go
 - [x] api/health.go
 - [x] api/health_test.go
-- [ ] api/integration.go
-- [ ] api/invite.go
-- [ ] api/knowledge.go
-- [x] api/login.go
-- [x] api/logout.go
-- [x] api/me.go
-- [ ] api/member.go
-- [ ] api/memory.go
-- [ ] api/message.go
-- [ ] api/oauth.go
-- [x] api/password.go
-- [ ] api/profile.go
-- [ ] api/prompt.go
 - [x] api/ready.go
+- [x] api/logout.go
+- [x] api/stats.go
 - [x] api/register.go
-- [ ] api/session.go
-- [x] api/settings.go
+- [x] api/me.go
 - [x] api/setup.go
-- [ ] api/stats.go
-- [ ] api/subscription.go
+- [x] api/login.go
+- [x] api/password.go
+- [x] api/settings.go
 - [ ] api/tools.go
+- [ ] api/profile.go
+- [x] api/api_key.go
+- [ ] api/access.go
+- [ ] api/member.go
+- [ ] api/agent.go
+- [ ] api/billing.go
 - [ ] api/workspace.go
+- [ ] api/knowledge.go
+- [ ] api/session.go
+- [ ] api/message.go
+- [ ] api/prompt.go
+- [ ] api/invite.go
+- [ ] api/memory.go
 
 ## cli/
 
@@ -136,7 +135,7 @@ Mark done: `- [x] path/to/file`
 - [ ] module/session.go
 - [ ] module/settings.go
 - [x] module/setup.go
-- [ ] module/stats.go
+- [x] module/stats.go
 - [ ] module/tools.go
 - [ ] module/usage.go
 - [ ] module/wspace.go
