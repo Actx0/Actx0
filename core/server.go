@@ -66,6 +66,7 @@ func SetupServer(Static embed.FS) http.Handler {
 		r.Post("/api/v1/public/action/register", api.RegisterAction)
 		r.Post("/api/v1/public/action/stripe/webhook", api.StripeWebhookAction)
 	})
+	r.Get("/api/v1/me", api.GetMeAction)
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.RequireUser())
 		r.Use(middleware.RequireRole(db.UserRoleAdmin, db.UserRoleRegular))
