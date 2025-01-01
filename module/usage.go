@@ -4,10 +4,9 @@
 package module
 
 import (
-	"time"
-
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/ai"
+	"github.com/clivern/actx0/pkg/util"
 )
 
 const bytesPerGB = 1024 * 1024 * 1024
@@ -61,7 +60,7 @@ func (u *Usage) StorageUsed(documents db.WorkspaceDocumentRepository, workspaceI
 
 // APICalls returns API call usage for the current calendar month.
 func (u *Usage) APICalls(usage db.UsageRepository, workspaceId db.Id) (int64, error) {
-	start, _ := currentMonthPeriod()
+	start, _ := util.CurrentMonthPeriod()
 	return usage.GetQuantityByPeriod(workspaceId, db.UsageTypeAPICalls, start)
 }
 
@@ -179,15 +178,10 @@ func (u *Usage) AICost(usage db.UsageRepository, subscriptions db.SubscriptionRe
 	return float64(cost) / ai.USDToNano, nil
 }
 
-func currentMonthPeriod() (time.Time, time.Time) {
-	now := time.Now().UTC()
-	start := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-	return start, start.AddDate(0, 1, 0)
-}
-
 // IncrementAPICalls records one successful workspace API call for the current month.
 func (u *Usage) IncrementAPICalls(usage db.UsageRepository, workspaceId db.Id) error {
-	start, end := currentMonthPeriod()
+	start, end := util.CurrentMonthPeriod()
+
 	return usage.IncrementByPeriod(
 		workspaceId,
 		db.UsageTypeAPICalls,
@@ -212,15 +206,15 @@ func (u *Usage) IncrementAIUsage(usage db.UsageRepository, subscriptions db.Subs
 		return nil
 	}
 
-	periodStart := subscription.CurrentPeriodStart.UTC()
-	periodEnd := subscription.CurrentPeriodEnd.UTC()
+	pstart := subscription.CurrentPeriodStart.UTC()
+	pend := subscription.CurrentPeriodEnd.UTC()
 
 	if tokens != 0 {
 		if err := usage.IncrementByPeriod(
 			workspaceId,
 			db.UsageTypeAITokens,
-			periodStart,
-			periodEnd,
+			pstart,
+			pend,
 			tokens,
 			db.UsageUnitTokens,
 		); err != nil {
@@ -232,8 +226,8 @@ func (u *Usage) IncrementAIUsage(usage db.UsageRepository, subscriptions db.Subs
 		if err := usage.IncrementByPeriod(
 			workspaceId,
 			db.UsageTypeAICost,
-			periodStart,
-			periodEnd,
+			pstart,
+			pend,
 			cost,
 			db.UsageUnitNanoUSD,
 		); err != nil {

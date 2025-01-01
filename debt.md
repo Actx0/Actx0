@@ -32,13 +32,14 @@ Mark done: `- [x] path/to/file`
 - [x] api/access.go
 - [x] api/invite.go
 - [x] api/member.go
-- [ ] api/agent.go
 - [ ] api/billing.go
 - [ ] api/workspace.go
+
+- [ ] api/agent.go
+- [ ] api/prompt.go
 - [ ] api/knowledge.go
 - [ ] api/session.go
 - [ ] api/message.go
-- [ ] api/prompt.go
 - [ ] api/memory.go
 
 ## cli/
@@ -115,22 +116,16 @@ Mark done: `- [x] path/to/file`
 ## module/
 
 - [x] module/access.go
-- [ ] module/agent.go
 - [x] module/api_key.go
-- [ ] module/asession.go
 - [ ] module/async.go
 - [x] module/auth.go
 - [ ] module/billing.go
 - [x] module/ctx.go
-- [ ] module/document.go
 - [x] module/events.go
 - [x] module/invite.go
 - [x] module/me.go
-- [ ] module/memory.go
-- [ ] module/message.go
 - [ ] module/permission.go
 - [x] module/profile.go
-- [ ] module/prompt.go
 - [x] module/register.go
 - [ ] module/session.go
 - [ ] module/settings.go
@@ -140,6 +135,13 @@ Mark done: `- [x] path/to/file`
 - [ ] module/usage.go
 - [ ] module/workspace.go
 - [x] module/member.go
+
+- [ ] module/prompt.go
+- [ ] module/agent.go
+- [ ] module/document.go
+- [ ] module/asession.go
+- [ ] module/memory.go
+- [ ] module/message.go
 
 ## pkg/ai/
 

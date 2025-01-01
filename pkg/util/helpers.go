@@ -12,11 +12,19 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 )
+
+// CurrentMonthPeriod returns the UTC start and end of the current calendar month.
+func CurrentMonthPeriod() (time.Time, time.Time) {
+	now := time.Now().UTC()
+	start := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	return start, start.AddDate(0, 1, 0)
+}
 
 // WriteJSON writes a value as JSON to an HTTP response.
 func WriteJSON(w http.ResponseWriter, statusCode int, data interface{}) error {
