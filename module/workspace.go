@@ -66,9 +66,20 @@ type ListWorkspacesResponse struct {
 
 // CreateWorkspace creates a workspace and adds the user as owner.
 func (w *Workspace) CreateWorkspace(req *CreateWorkspaceRequest, user *db.User) (*WorkspaceResponse, error) {
-	handle, err := w.CreateWorkspaceHandle(4, 8)
-	if err != nil {
-		return nil, err
+	var handle string
+	for {
+		h, err := util.RandomHandle(4, 8)
+		if err != nil {
+			return nil, err
+		}
+		existing, err := w.WorkspaceRepository.GetByHandle(h)
+		if err != nil {
+			return nil, err
+		}
+		if existing == nil {
+			handle = h
+			break
+		}
 	}
 
 	workspace := &db.Workspace{
@@ -76,7 +87,7 @@ func (w *Workspace) CreateWorkspace(req *CreateWorkspaceRequest, user *db.User) 
 		Handle: handle,
 	}
 
-	err = w.WorkspaceRepository.Create(workspace)
+	err := w.WorkspaceRepository.Create(workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -248,21 +259,4 @@ func (w *Workspace) DeleteWorkspace(workspaceId db.Id) error {
 	}
 
 	return w.WorkspaceRepository.Delete(workspaceId)
-}
-
-// CreateWorkspaceHandle creates a unique handle like abcd-1234 (min–max letters, dash, min–max digits).
-func (w *Workspace) CreateWorkspaceHandle(min, max int) (string, error) {
-	for {
-		handle, err := util.RandomHandle(min, max)
-		if err != nil {
-			return "", err
-		}
-		existing, err := w.WorkspaceRepository.GetByHandle(handle)
-		if err != nil {
-			return "", err
-		}
-		if existing == nil {
-			return handle, nil
-		}
-	}
 }
