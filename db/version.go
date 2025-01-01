@@ -325,11 +325,11 @@ func (r *PromptVersionRepositoryPostgres) ClearLabelFromPromptId(promptId Id, la
 					ELSE jsonb_agg(to_jsonb(x))
 				END
 				FROM jsonb_array_elements_text(COALESCE(labels, '[]'::jsonb)) AS t(x)
-				WHERE x <> $1
+				WHERE x <> $1::text
 			),
 			updated_at = $2
 		WHERE prompt_id = $3
-			AND labels @> jsonb_build_array($1)`,
+			AND labels @> jsonb_build_array($1::text)`,
 		label,
 		time.Now().UTC(),
 		promptId.String(),

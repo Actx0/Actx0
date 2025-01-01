@@ -52,7 +52,7 @@ type WorkspaceResponse struct {
 	Id           db.Id  `json:"id"`
 	Name         string `json:"name"`
 	Handle       string `json:"handle"`
-	MembersCount int64  `json:"count"`
+	MembersCount int64  `json:"membersCount"`
 	Role         string `json:"role"`
 	CreatedAt    string `json:"createdAt"`
 	UpdatedAt    string `json:"updatedAt"`
