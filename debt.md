@@ -165,13 +165,13 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/event/
 
-- [ ] pkg/event/event.go
+- [x] pkg/event/event.go
 
 ## pkg/meteo/
 
-- [ ] pkg/meteo/client.go
-- [ ] pkg/meteo/errors.go
-- [ ] pkg/meteo/types.go
+- [x] pkg/meteo/client.go
+- [x] pkg/meteo/errors.go
+- [x] pkg/meteo/types.go
 
 ## pkg/qdrant/
 
