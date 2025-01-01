@@ -153,6 +153,11 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 		return nil, fmt.Errorf("%w: %v", ErrFailedCreateSession, err)
 	}
 
+	log.Info().
+		Str("userId", user.Id.String()).
+		Str("sessionId", session.Id.String()).
+		Msg("User logged in")
+
 	UserLoggedIn.Emit(ctx, UserLoggedInData{
 		UserID:    user.Id,
 		SessionID: session.Id,
@@ -185,6 +190,10 @@ func (a *Auth) Logout(ctx context.Context, userId db.Id) error {
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrFailedRevokeSessions, err)
 	}
+
+	log.Info().
+		Str("userId", userId.String()).
+		Msg("User logged out")
 
 	UserLoggedOut.Emit(ctx, UserLoggedOutData{UserID: userId})
 
@@ -235,6 +244,10 @@ func (a *Auth) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) e
 			Msg("Failed to send password reset email; token was created")
 	}
 
+	log.Info().
+		Str("userId", user.Id.String()).
+		Msg("Password reset token created")
+
 	UserForgotPassword.Emit(ctx, UserForgotPasswordData{UserID: user.Id})
 
 	return nil
@@ -278,6 +291,10 @@ func (a *Auth) ResetPassword(ctx context.Context, req *ResetPasswordRequest) err
 			Str("userId", tok.UserId.String()).
 			Msg("Failed to delete password reset token")
 	}
+
+	log.Info().
+		Str("userId", tok.UserId.String()).
+		Msg("Password reset completed")
 
 	UserResetPassword.Emit(ctx, UserResetPasswordData{UserID: tok.UserId})
 
