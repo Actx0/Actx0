@@ -521,6 +521,58 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 	return nil
 }
 
+// RegenerateSessionMemories clears session memories and rebuilds them from user messages.
+func (s *Service) RegenerateSessionMemories(ctx context.Context, agentId, sessionId db.Id) error {
+	session, err := s.sessions.GetById(sessionId)
+	if err != nil {
+		return fmt.Errorf("%w: get session: %v", ErrRegenerateFailed, err)
+	}
+	if session == nil || session.AgentId != agentId {
+		return ErrSessionNotFound
+	}
+
+	err = s.DeleteSessionMemories(ctx, agentId, sessionId)
+	if err != nil {
+		return fmt.Errorf("%w: delete memory vectors: %v", ErrRegenerateFailed, err)
+	}
+
+	err = s.memories.DeleteBySessionId(sessionId)
+	if err != nil {
+		return fmt.Errorf("%w: delete memories: %v", ErrRegenerateFailed, err)
+	}
+
+	count, err := s.messages.CountBySessionId(sessionId)
+	if err != nil {
+		return fmt.Errorf("%w: count messages: %v", ErrRegenerateFailed, err)
+	}
+	if count == 0 {
+		return nil
+	}
+
+	messages, err := s.messages.ListBySessionId(sessionId, int(count), 0)
+	if err != nil {
+		return fmt.Errorf("%w: list messages: %v", ErrRegenerateFailed, err)
+	}
+
+	for _, message := range messages {
+		if message.Role != "user" {
+			continue
+		}
+
+		err = s.GenerateMemoryFromMessage(ctx, message.Id)
+		if err != nil {
+			return fmt.Errorf("%w: generate from message %s: %v", ErrRegenerateFailed, message.Id, err)
+		}
+	}
+
+	log.Info().
+		Str("agent_id", agentId.String()).
+		Str("session_id", sessionId.String()).
+		Msg("Session memories regenerated")
+
+	return nil
+}
+
 // DeleteSessionMemory deletes vectors for one memory item.
 func (s *Service) DeleteSessionMemory(ctx context.Context, memoryId db.Id) error {
 	err := s.vectors.DeleteByFilter(ctx, migration.AgentSessionMemoriesCollection, map[string]string{
