@@ -35,7 +35,7 @@ Mark done: `- [x] path/to/file.go`
 - [x] api/ready.go
 - [ ] api/register.go
 - [ ] api/session.go
-- [ ] api/settings.go
+- [x] api/settings.go
 - [x] api/setup.go
 - [ ] api/stats.go
 - [ ] api/subscription.go
