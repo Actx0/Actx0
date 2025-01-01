@@ -1,0 +1,20 @@
+---
+description: Trust-the-system happy-path coding style; avoid defensive boilerplate
+alwaysApply: true
+---
+
+# Strict Coding Philosophy: Trust the System
+
+Always adopt an aggressive, "happy path" coding style. Assume that all prior system steps, data models, database schemas, and calling functions have already validated the data.
+
+## Forbidden Defensive Patterns
+
+- DO NOT add null, undefined, or type checks for variables guaranteed by types or schemas.
+- DO NOT wrap code in try-catch blocks unless it handles raw, unpredictable I/O (e.g., direct external API calls).
+- DO NOT rewrite validation logic in private or internal methods if the public entry point already handles it.
+- NEVER write boilerplate "just in case" checks. If a value is certain, code like it is certain.
+
+## Enforcement
+
+- Prioritize clean, concise, short code blocks over verbose, paranoid error handling.
+- Let the runtime throw an error naturally if a catastrophic, unexpected failure occurs.

@@ -1,0 +1,29 @@
+---
+alwaysApply: false
+---
+# Basecamp Chat
+
+When the user asks to post, send, or notify Basecamp (or references this rule with a message), post that message to the Basecamp chat integration.
+
+## Steps
+
+1. Take the user's message verbatim (everything they want posted — not meta-instructions like "post to basecamp").
+2. Run this curl command via the Shell tool with `full_network` permission, replacing `MESSAGE` with the user's text:
+
+```bash
+curl --data-urlencode "content=MESSAGE" \
+  'https://app.basecamp.com/6175181/integrations/CiPwv9zug5RUxRiZcHBCk72H/buckets/47706023/chats/9995844475/lines'
+```
+
+3. Confirm success or report the curl error output.
+
+## Examples
+
+- User: "Post to Basecamp: deploy finished" → content is `deploy finished`
+- User: "Send to basecamp chat: PR #42 is ready for review" → content is `PR #42 is ready for review`
+
+## Notes
+
+- Do not ask for confirmation before posting unless the message is ambiguous.
+- If the message contains HTML entities or special characters, `--data-urlencode` handles encoding.
+- Do not modify or summarize the message unless the user asks you to.

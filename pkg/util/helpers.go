@@ -1,0 +1,182 @@
+// Copyright 2026 Clivern. All rights reserved.
+// License can be found in the LICENSE file.
+
+package util
+
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"math/big"
+	"net/http"
+	"strconv"
+	"strings"
+	"unicode"
+
+	"github.com/google/uuid"
+)
+
+// WriteJSON writes a value as JSON to an HTTP response.
+func WriteJSON(w http.ResponseWriter, statusCode int, data interface{}) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		return fmt.Errorf("failed to write JSON response: %w", err)
+	}
+	return nil
+}
+
+// GenerateUUID returns a new random UUID string.
+func GenerateUUID() (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", fmt.Errorf("generate uuid: %w", err)
+	}
+	return id.String(), nil
+}
+
+// GenerateSecureToken returns a cryptographically secure random token.
+func GenerateSecureToken(length int) (string, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", fmt.Errorf("generate secure token: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
+}
+
+// RandInt returns a random integer in [0, n).
+func RandInt(min, max int) (int, error) {
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(max-min+1)))
+	if err != nil {
+		return 0, fmt.Errorf("generate random int: %w", err)
+	}
+
+	return min + int(n.Int64()), nil
+}
+
+// ParseQueryLabels extracts label key-value pairs from query parameters.
+// Reserved keys such as id, limit, and offset are skipped.
+func ParseQueryLabels(r *http.Request) map[string]string {
+	labels := map[string]string{}
+	for key, values := range r.URL.Query() {
+		if key == "id" || key == "limit" || key == "offset" {
+			continue
+		}
+		if len(values) == 0 {
+			continue
+		}
+		labels[key] = values[0]
+	}
+	return labels
+}
+
+// ParseSessionExternalId returns the caller-provided session id from the query string.
+func ParseSessionExternalId(r *http.Request) string {
+	return r.URL.Query().Get("id")
+}
+
+// ParsePagination parses limit and offset from query parameters.
+func ParsePagination(r *http.Request) (limit, offset int) {
+	limit = 50
+	offset = 0
+
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 && parsed <= 100 {
+			limit = parsed
+		}
+	}
+	if v := r.URL.Query().Get("offset"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	return limit, offset
+}
+
+// StringValue safely dereferences a string pointer.
+func StringValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
+// HandleFromName derives a dash-separated lowercase handle from a display name.
+// maxLength limits the result; pass 0 or a negative value to disable truncation.
+func HandleFromName(name string, maxLength int) string {
+	name = strings.TrimSpace(strings.ToLower(name))
+	var b strings.Builder
+	lastDash := false
+	for _, r := range name {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			b.WriteRune(r)
+			lastDash = false
+			continue
+		}
+		if b.Len() > 0 && !lastDash {
+			b.WriteByte('-')
+			lastDash = true
+		}
+	}
+	handle := strings.Trim(b.String(), "-")
+	if maxLength > 0 && len(handle) > maxLength {
+		handle = strings.TrimRight(handle[:maxLength], "-")
+	}
+	return handle
+}
+
+// RemoveLabelFromJSON removes a label from a JSON-encoded string array.
+func RemoveLabelFromJSON(labels *string, label string) (*string, bool) {
+	if labels == nil || *labels == "" {
+		return labels, false
+	}
+	var items []string
+	if err := json.Unmarshal([]byte(*labels), &items); err != nil {
+		return labels, false
+	}
+	next := make([]string, 0, len(items))
+	found := false
+	for _, item := range items {
+		if item == label {
+			found = true
+			continue
+		}
+		next = append(next, item)
+	}
+	if !found {
+		return labels, false
+	}
+	if len(next) == 0 {
+		return nil, true
+	}
+	raw, err := json.Marshal(next)
+	if err != nil {
+		return labels, false
+	}
+	s := string(raw)
+	return &s, true
+}
+
+// JSONRawFromString returns stored JSON text as a RawMessage for API responses.
+func JSONRawFromString(raw *string) json.RawMessage {
+	if raw == nil || *raw == "" {
+		return nil
+	}
+	return json.RawMessage(*raw)
+}
+
+// JSONSliceFromString unmarshals a JSON-encoded slice from a stored string pointer.
+func JSONSliceFromString[T any](raw *string) []T {
+	if raw == nil || *raw == "" {
+		return nil
+	}
+	var items []T
+	if err := json.Unmarshal([]byte(*raw), &items); err != nil {
+		return nil
+	}
+	return items
+}
