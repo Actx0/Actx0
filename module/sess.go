@@ -104,9 +104,8 @@ func (s *SessionManager) GetUserSessions(userId db.Id) ([]*db.Session, error) {
 		return nil, err
 	}
 
-	now := time.Now().UTC()
 	return lo.Filter(sessions, func(session *db.Session, _ int) bool {
-		return session.ExpiresAt.After(now)
+		return session.ExpiresAt.After(time.Now().UTC())
 	}), nil
 }
 
