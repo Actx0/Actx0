@@ -4,6 +4,9 @@ import { loadUserFromStorage, loadWorkspaceFromStorage } from '@/utils/storage'
 export const WORKSPACE_KEY_PERMISSIONS = [
   { value: 'CAN_LIST_PROMPTS', labelKey: 'workspace_settings_page.perm_list_prompts' },
   { value: 'CAN_GET_PROMPT', labelKey: 'workspace_settings_page.perm_get_prompt' },
+  { value: 'CAN_CREATE_PROMPT', labelKey: 'workspace_settings_page.perm_create_prompt' },
+  { value: 'CAN_UPDATE_PROMPT', labelKey: 'workspace_settings_page.perm_update_prompt' },
+  { value: 'CAN_DELETE_PROMPT', labelKey: 'workspace_settings_page.perm_delete_prompt' },
   { value: 'CAN_LIST_WORKSPACE_DOCUMENTS', labelKey: 'workspace_settings_page.perm_list_documents' },
   { value: 'CAN_QUERY_WORKSPACE_DOCUMENTS', labelKey: 'workspace_settings_page.perm_query_documents' },
   { value: 'CAN_CREATE_WORKSPACE_DOCUMENT', labelKey: 'workspace_settings_page.perm_create_document' },
@@ -11,6 +14,7 @@ export const WORKSPACE_KEY_PERMISSIONS = [
   { value: 'CAN_LIST_AGENTS', labelKey: 'workspace_settings_page.perm_list_agents' },
   { value: 'CAN_GET_AGENT', labelKey: 'workspace_settings_page.perm_get_agent' },
   { value: 'CAN_CREATE_AGENT', labelKey: 'workspace_settings_page.perm_create_agent' },
+  { value: 'CAN_UPDATE_AGENT', labelKey: 'workspace_settings_page.perm_update_agent' },
   { value: 'CAN_DELETE_AGENT', labelKey: 'workspace_settings_page.perm_delete_agent' },
   { value: 'CAN_LIST_AGENT_SESSIONS', labelKey: 'workspace_settings_page.perm_list_agent_sessions' },
   { value: 'CAN_GET_AGENT_SESSION', labelKey: 'workspace_settings_page.perm_get_agent_session' },
