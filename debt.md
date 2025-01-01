@@ -150,7 +150,7 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/async/
 
-- [ ] pkg/async/pool.go
+- [x] pkg/async/pool.go
 
 ## pkg/cache/
 

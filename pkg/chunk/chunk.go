@@ -16,7 +16,6 @@ type Splitter string
 const (
 	SplitterRecursive Splitter = "recursive"
 	SplitterMarkdown  Splitter = "markdown"
-	SplitterToken     Splitter = "token"
 )
 
 // Config holds text chunking settings provided by the caller.
@@ -27,7 +26,6 @@ type Config struct {
 
 	Recursive RecursiveConfig
 	Markdown  MarkdownConfig
-	Token     TokenConfig
 }
 
 // RecursiveConfig holds recursive character splitter settings.
@@ -42,14 +40,6 @@ type MarkdownConfig struct {
 	ReferenceLinks       bool
 	KeepHeadingHierarchy bool
 	JoinTableRows        bool
-}
-
-// TokenConfig holds token splitter settings.
-type TokenConfig struct {
-	ModelName         string
-	EncodingName      string
-	AllowedSpecial    []string
-	DisallowedSpecial []string
 }
 
 // Chunker splits document text into chunks for RAG indexing.
@@ -93,8 +83,6 @@ func newSplitter(config Config) (textsplitter.TextSplitter, error) {
 		return newRecursiveSplitter(config), nil
 	case SplitterMarkdown:
 		return newMarkdownSplitter(config), nil
-	case SplitterToken:
-		return newTokenSplitter(config), nil
 	default:
 		return nil, fmt.Errorf("chunk unsupported splitter %q", config.Splitter)
 	}
@@ -152,30 +140,4 @@ func newMarkdownSplitter(config Config) textsplitter.TextSplitter {
 	}
 
 	return textsplitter.NewMarkdownTextSplitter(opts...)
-}
-
-// newTokenSplitter creates a token-based text splitter.
-func newTokenSplitter(config Config) textsplitter.TextSplitter {
-	opts := []textsplitter.Option{
-		textsplitter.WithChunkSize(config.Size),
-		textsplitter.WithChunkOverlap(config.Overlap),
-	}
-
-	if lo.IsNotEmpty(config.Token.ModelName) {
-		opts = append(opts, textsplitter.WithModelName(config.Token.ModelName))
-	}
-
-	if lo.IsNotEmpty(config.Token.EncodingName) {
-		opts = append(opts, textsplitter.WithEncodingName(config.Token.EncodingName))
-	}
-
-	if len(config.Token.AllowedSpecial) > 0 {
-		opts = append(opts, textsplitter.WithAllowedSpecial(config.Token.AllowedSpecial))
-	}
-
-	if len(config.Token.DisallowedSpecial) > 0 {
-		opts = append(opts, textsplitter.WithDisallowedSpecial(config.Token.DisallowedSpecial))
-	}
-
-	return textsplitter.NewTokenSplitter(opts...)
 }
