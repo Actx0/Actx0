@@ -20,10 +20,14 @@ import (
 
 // Config configures Protect middleware for a route or route group.
 type Config struct {
-	User      bool     // require user principal (reject access keys)
-	Roles     []string // platform roles; implies User
-	Workspace bool     // load {workspaceId} into context
-	Perm      string   // workspace permission check
+	// require user principal (reject access keys)
+	User bool
+	// platform roles; implies User
+	Roles []string
+	// load {workspaceId} into context
+	Workspace bool
+	// workspace permission check
+	Perm string
 }
 
 // Protect returns middleware that applies user auth, role, workspace load, and permission checks.
