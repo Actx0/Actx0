@@ -99,7 +99,11 @@ func MarkWorkspaceNotificationReadAction(w http.ResponseWriter, r *http.Request)
 		db.NewNotificationRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	notification, err := nm.MarkNotificationRead(user.Id, db.Id(wid), db.Id(notificationId))
+	notification, err := nm.MarkNotificationRead(
+		user.Id,
+		db.Id(wid),
+		db.Id(notificationId),
+	)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
@@ -152,7 +156,11 @@ func MarkWorkspaceNotificationArchivedAction(w http.ResponseWriter, r *http.Requ
 		db.NewNotificationRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
 	)
-	notification, err := nm.MarkNotificationArchived(user.Id, db.Id(wid), db.Id(notificationId))
+	notification, err := nm.MarkNotificationArchived(
+		user.Id,
+		db.Id(wid),
+		db.Id(notificationId),
+	)
 	if err != nil {
 		switch {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
