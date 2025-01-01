@@ -24,6 +24,7 @@ type WorkspaceUsageMetrics struct {
 	WorkspaceMembers int64   `json:"workspaceMembers"`
 	DocumentsCount   int64   `json:"documentsCount"`
 	PromptsCount     int64   `json:"promptsCount"`
+	AgentsCount      int64   `json:"agentsCount"`
 	StorageGB        float64 `json:"storageGB"`
 	SessionsCount    int64   `json:"sessionsCount"`
 	HistoryRecords   int64   `json:"historyRecords"`
@@ -37,6 +38,7 @@ type UsageSnapshotDeps struct {
 	WorkspaceUserRepository     db.WorkspaceUserRepository
 	WorkspaceDocumentRepository db.WorkspaceDocumentRepository
 	PromptRepository            db.PromptRepository
+	AgentRepository             db.AgentRepository
 	UsageRepository             db.UsageRepository
 	SubscriptionRepository      db.SubscriptionRepository
 	SessionMessageRepository    db.SessionMessageRepository
@@ -193,6 +195,34 @@ func (u *Usage) IsPromptsCountReached(prompts db.PromptRepository, subscriptions
 	return used+additional > limit, nil
 }
 
+// AgentsCount returns the number of agents in a workspace.
+func (u *Usage) AgentsCount(agents db.AgentRepository, workspaceId db.Id) (int64, error) {
+	return agents.CountByWorkspaceId(workspaceId)
+}
+
+// IsAgentsCountReached reports whether adding agents would exceed the plan limit.
+func (u *Usage) IsAgentsCountReached(agents db.AgentRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
+	used, err := u.AgentsCount(agents, workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return false, err
+	}
+	if subscription == nil {
+		return false, ErrBillingSubscriptionNotFound
+	}
+
+	limit := GetPlanLimits(subscription.Plan).AgentsCount
+	if limit == 0 {
+		return false, nil
+	}
+
+	return used+additional > limit, nil
+}
+
 // HistoryRecords returns session message rows stored across a workspace.
 func (u *Usage) HistoryRecords(messages db.SessionMessageRepository, workspaceId db.Id) (int64, error) {
 	return messages.CountByWorkspaceId(workspaceId)
@@ -299,6 +329,11 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 		return nil, err
 	}
 
+	agents, err := u.AgentsCount(deps.AgentRepository, workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
 	storageBytes, err := u.StorageUsed(deps.WorkspaceDocumentRepository, workspaceId)
 	if err != nil {
 		return nil, err
@@ -334,6 +369,7 @@ func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*W
 		WorkspaceMembers: members,
 		DocumentsCount:   documents,
 		PromptsCount:     prompts,
+		AgentsCount:      agents,
 		StorageGB:        float64(storageBytes) / bytesPerGB,
 		SessionsCount:    sessionsCount,
 		HistoryRecords:   historyRecords,

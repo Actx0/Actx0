@@ -37,6 +37,7 @@ func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 	am := module.NewAgent(
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	agent, err := am.CreateAgent(workspaceId, &req)
 	if err != nil {
@@ -44,6 +45,10 @@ func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrWorkspaceNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
 				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		case errors.Is(err, module.ErrWorkspaceCapacityReached):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
 			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create agent")
@@ -81,6 +86,7 @@ func ListAgentsAction(w http.ResponseWriter, r *http.Request) {
 	am := module.NewAgent(
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	result, err := am.ListAgents(workspaceId, limit, offset)
 	if err != nil {
@@ -130,6 +136,7 @@ func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 	am := module.NewAgent(
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	agent, err := am.GetAgent(workspaceId, db.Id(agentId))
 	if err != nil {
@@ -182,6 +189,7 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 	am := module.NewAgent(
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	agent, err := am.UpdateAgent(workspaceId, db.Id(agentId), &req)
 	if err != nil {
@@ -236,6 +244,7 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 	am := module.NewAgent(
 		db.NewAgentRepository(db.GetDB()),
 		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
 	)
 	err := am.DeleteAgent(workspaceId, db.Id(agentId))
 	if err != nil {
