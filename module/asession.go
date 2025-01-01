@@ -106,7 +106,7 @@ func (s *AgentSession) CreateAgentSession(workspaceId, agentId db.Id, externalId
 		}
 		labelsJSON = new(string(labelsRaw))
 
-		existing, err := s.SessionRepository.GetByAgentIdAndExactLabels(agent.Id, value)
+		existing, err := s.SessionRepository.GetByAgentIdAndExactLabels(agent.Id, string(labelsRaw))
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrFailedCreateAgentSession, err)
 		}
