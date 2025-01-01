@@ -13,17 +13,6 @@ export function formatLabels(labels) {
   return Object.entries(labels).map(([key, value]) => `${key}=${value}`)
 }
 
-export function buildCreatePayload(form) {
-  return {
-    name: form.name.trim(),
-    description: form.description.trim(),
-  }
-}
-
-export function buildUpdatePayload(form) {
-  return buildCreatePayload(form)
-}
-
 export function hasMetadata(meta) {
   if (meta == null) return false
   if (typeof meta === 'string') {
