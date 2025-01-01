@@ -402,7 +402,13 @@
     "memory_kind_fact": "Fact",
     "memory_kind_preference": "Preference",
     "memory_kind_short_lived": "Short-lived",
-    "memory_kind_long_lived": "Long-lived"
+    "memory_kind_long_lived": "Long-lived",
+    "add_memory": "Add memory",
+    "create_memory_title": "Add memory",
+    "edit_memory_title": "Edit memory",
+    "memory_kind_label": "Kind",
+    "memory_content_label": "Content",
+    "failed_save_memory": "Failed to save memory"
   },
   "members_page": {
     "title": "Members",
