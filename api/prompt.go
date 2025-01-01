@@ -65,8 +65,8 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
-		Action:       "prompt.create",
-		ResourceType: "prompt",
+		Action:       ActionPromptCreate,
+		ResourceType: ResourcePrompt,
 		ResourceId:   db.Id(version.PromptId),
 		Meta:         map[string]any{"name": version.Name, "handle": version.Handle},
 	})
@@ -126,8 +126,8 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
-		Action:       "prompt.version.create",
-		ResourceType: "prompt_version",
+		Action:       ActionPromptVersionCreate,
+		ResourceType: ResourcePromptVersion,
 		ResourceId:   version.Id,
 		Meta:         map[string]any{"handle": version.Handle, "version": version.Version},
 	})
@@ -402,8 +402,8 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
-		Action:       "prompt.version.update",
-		ResourceType: "prompt_version",
+		Action:       ActionPromptVersionUpdate,
+		ResourceType: ResourcePromptVersion,
 		ResourceId:   version.Id,
 		Meta:         map[string]any{"handle": version.Handle, "version": version.Version},
 	})
@@ -465,8 +465,8 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
-		Action:       "prompt.version.delete",
-		ResourceType: "prompt_version",
+		Action:       ActionPromptVersionDelete,
+		ResourceType: ResourcePromptVersion,
 		ResourceId:   db.Id(promptVersionId),
 	})
 
@@ -575,8 +575,8 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  workspaceId,
-		Action:       "prompt.delete",
-		ResourceType: "prompt",
+		Action:       ActionPromptDelete,
+		ResourceType: ResourcePrompt,
 		ResourceId:   db.Id(promptId),
 	})
 

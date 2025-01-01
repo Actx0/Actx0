@@ -173,8 +173,8 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(workspaceId),
-		Action:       "billing.checkout",
-		ResourceType: "subscription",
+		Action:       ActionBillingCheckout,
+		ResourceType: ResourceSubscription,
 		Meta:         map[string]any{"plan": req.Plan},
 	})
 
@@ -228,8 +228,8 @@ func CreateBillingPortalAction(w http.ResponseWriter, r *http.Request) {
 
 	defer record(r, &module.RecordAuditEvent{
 		WorkspaceId:  db.Id(workspaceId),
-		Action:       "billing.portal",
-		ResourceType: "subscription",
+		Action:       ActionBillingPortal,
+		ResourceType: ResourceSubscription,
 	})
 
 	util.WriteJSON(w, http.StatusOK, session)
