@@ -193,12 +193,11 @@ function formatRole(role) {
   if (role === 'admin') return t('members_page.role_admin')
   if (role === 'owner') return t('members_page.role_owner')
   if (role === 'readonly') return t('members_page.role_readonly')
-  return role
 }
 
 function canEditMember(member) {
   if (member.role === 'owner') return false
-  return member.userId !== currentUser?.id
+  return member.userId !== currentUser.id
 }
 
 async function loadMembers() {
@@ -207,10 +206,9 @@ async function loadMembers() {
 
   try {
     const res = await workspace_member_api.list(currentWorkspace.id, { limit: 100, offset: 0 })
-    members.value = res.data.members || []
+    members.value = res.data.members
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('members_page.failed_load_members')
-    members.value = []
   } finally {
     loadingMembers.value = false
   }
@@ -222,10 +220,9 @@ async function loadInvites() {
 
   try {
     const res = await workspace_invite_api.list(currentWorkspace.id, { limit: 100, offset: 0 })
-    invites.value = (res.data.invites || []).filter((invite) => invite.status === 'pending')
+    invites.value = res.data.invites.filter((invite) => invite.status === 'pending')
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('members_page.failed_load_invites')
-    invites.value = []
   } finally {
     loadingInvites.value = false
   }

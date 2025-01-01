@@ -100,7 +100,7 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeCreateModal">
+        <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!createLoading && (showCreateModal = false)">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('prompts_page.create_title') }}</h2>
             <div v-if="createModalError" class="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ createModalError }}</div>
@@ -193,7 +193,7 @@
                 />
               </div>
               <div class="flex gap-3 justify-end">
-                <button type="button" class="btn-secondary" @click="closeCreateModal" :disabled="createLoading">{{ $t('common.cancel') }}</button>
+                <button type="button" class="btn-secondary" @click="showCreateModal = false" :disabled="createLoading">{{ $t('common.cancel') }}</button>
                 <button type="submit" class="btn-primary" :disabled="createLoading">{{ createLoading ? $t('prompts_page.creating') : $t('prompts_page.create') }}</button>
               </div>
             </form>
@@ -212,17 +212,17 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-show="deleteModalPrompt" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteModal">
+        <div v-if="deleteModalPrompt" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!deleting && (deleteModalPrompt = null)">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('prompts_page.delete_title') }}</h2>
             <div v-if="deleteModalError" class="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ deleteModalError }}</div>
-            <p class="mt-2 text-sm text-theme-textLight">{{ $t('prompts_page.delete_all_confirm', { name: deleteModalPrompt?.name, count: deleteModalPrompt?.versionCount }) }}</p>
+            <p class="mt-2 text-sm text-theme-textLight">{{ $t('prompts_page.delete_all_confirm', { name: deleteModalPrompt.name, count: deleteModalPrompt.versionCount }) }}</p>
             <div class="mt-4">
-              <label for="delete-confirm-prompt" class="block text-sm font-medium text-theme-text mb-1.5">{{ $t('prompts_page.type_to_confirm', { name: deleteModalPrompt?.name }) }}</label>
-              <input id="delete-confirm-prompt" v-model="deleteConfirmName" type="text" class="input-field" :placeholder="deleteModalPrompt?.name" autocomplete="off" :disabled="deleting" />
+              <label for="delete-confirm-prompt" class="block text-sm font-medium text-theme-text mb-1.5">{{ $t('prompts_page.type_to_confirm', { name: deleteModalPrompt.name }) }}</label>
+              <input id="delete-confirm-prompt" v-model="deleteConfirmName" type="text" class="input-field" :placeholder="deleteModalPrompt.name" autocomplete="off" :disabled="deleting" />
             </div>
             <div class="mt-6 flex gap-3 justify-end">
-              <button type="button" @click="closeDeleteModal" class="btn-secondary" :disabled="deleting">{{ $t('common.cancel') }}</button>
+              <button type="button" @click="deleteModalPrompt = null" class="btn-secondary" :disabled="deleting">{{ $t('common.cancel') }}</button>
               <button type="button" @click="confirmDelete" class="btn-primary bg-red-600 hover:bg-red-700 focus:ring-red-500" :disabled="deleting || !canConfirmDelete">{{ deleting ? $t('prompts_page.deleting') : $t('prompts_page.delete') }}</button>
             </div>
           </div>
@@ -273,8 +273,7 @@ const deletingName = ref(null)
 const deleteModalError = ref(null)
 
 const canConfirmDelete = computed(() => {
-  const name = deleteModalPrompt.value?.name
-  return name && deleteConfirmName.value.trim() === name
+  return deleteConfirmName.value.trim() === deleteModalPrompt.value.name
 })
 
 const createFormVariables = computed(() => extractPromptVariables(form.content))
@@ -285,8 +284,8 @@ async function loadPage() {
   errorMessage.value = null
   try {
     const res = await prompt_api.list(currentWorkspace.id, { limit, offset: offset.value })
-    prompts.value = res.data.prompts || []
-    total.value = res.data._meta?.total ?? 0
+    prompts.value = res.data.prompts
+    total.value = res.data._meta.total
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('prompts_page.failed_load')
     prompts.value = []
@@ -296,7 +295,6 @@ async function loadPage() {
 }
 
 function goToPage(newOffset) {
-  if (newOffset < 0 || newOffset >= total.value) return
   goToOffset(newOffset)
 }
 
@@ -304,11 +302,6 @@ function openCreateModal() {
   Object.assign(form, emptyPromptForm())
   createModalError.value = null
   showCreateModal.value = true
-}
-
-function closeCreateModal() {
-  if (createLoading.value) return
-  showCreateModal.value = false
 }
 
 async function handleCreate() {
@@ -344,17 +337,8 @@ function openDeleteModal(prompt) {
   deleteModalError.value = null
 }
 
-function closeDeleteModal() {
-  if (!deleting.value) {
-    deleteModalPrompt.value = null
-    deleteConfirmName.value = ''
-    deleteModalError.value = null
-  }
-}
-
 async function confirmDelete() {
   const prompt = deleteModalPrompt.value
-  if (!prompt) return
   deleting.value = true
   deletingName.value = prompt.name
   deleteModalError.value = null

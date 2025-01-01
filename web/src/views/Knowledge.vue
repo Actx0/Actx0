@@ -19,7 +19,7 @@
               <h2 class="text-lg font-semibold text-theme-text">{{ $t('knowledge_page.documents') }}</h2>
               <p class="mt-1 text-sm text-theme-textLight">{{ $t('knowledge_page.documents_desc') }}</p>
             </div>
-            <button type="button" class="btn-primary inline-flex items-center justify-center gap-2 shrink-0" @click="fileInputRef?.click()">
+            <button type="button" class="btn-primary inline-flex items-center justify-center gap-2 shrink-0" @click="fileInputRef.click()">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
@@ -89,7 +89,7 @@
                   </p>
                 </td>
                 <td class="px-6 py-4">
-                  <span v-if="doc.labels?.length" class="inline-flex flex-wrap gap-1">
+                  <span v-if="doc.labels.length" class="inline-flex flex-wrap gap-1">
                     <span
                       v-for="label in doc.labels"
                       :key="label"
@@ -155,7 +155,7 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="showUploadModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeUpload">
+        <div v-if="showUploadModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!uploading && resetUpload()">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('knowledge_page.upload_title') }}</h2>
             <p class="mt-1 text-sm text-theme-textLight">{{ $t('knowledge_page.upload_desc') }}</p>
@@ -219,7 +219,7 @@
             </div>
 
             <div class="mt-6 flex gap-3 justify-end">
-              <button type="button" class="btn-secondary" :disabled="uploading" @click="closeUpload">{{ $t('common.cancel') }}</button>
+              <button type="button" class="btn-secondary" :disabled="uploading" @click="resetUpload">{{ $t('common.cancel') }}</button>
               <button type="button" class="btn-primary" :disabled="uploading || !canConfirmUpload" @click="doUpload">
                 {{ uploading ? $t('knowledge_page.uploading') : $t('knowledge_page.upload_confirm') }}
               </button>
@@ -238,12 +238,12 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="deleteDoc" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDelete">
+        <div v-if="deleteDoc" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!deleting && (deleteDoc = null)">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('knowledge_page.delete_title') }}</h2>
             <p class="mt-2 text-sm text-theme-textLight">{{ $t('knowledge_page.delete_confirm', { name: deleteDoc.title }) }}</p>
             <div class="mt-6 flex gap-3 justify-end">
-              <button type="button" class="btn-secondary" :disabled="deleting" @click="closeDelete">{{ $t('common.cancel') }}</button>
+              <button type="button" class="btn-secondary" :disabled="deleting" @click="deleteDoc = null">{{ $t('common.cancel') }}</button>
               <button type="button" class="btn-primary bg-red-600 hover:bg-red-700 focus:ring-red-500" :disabled="deleting" @click="doDelete">
                 {{ $t('knowledge_page.delete') }}
               </button>
@@ -374,9 +374,9 @@ function normDoc(doc) {
     filename: doc.filename,
     contentType: doc.contentType,
     checksum: doc.checksum,
-    size: doc.size?.value ?? doc.size ?? 0,
-    charCount: doc.charCount ?? 0,
-    labels: doc.labels || [],
+    size: doc.size.value,
+    charCount: doc.charCount,
+    labels: doc.labels,
     status: doc.status,
     uploadedAt: doc.createdAt,
   }
@@ -422,8 +422,6 @@ function onLabelKey(event) {
 }
 
 async function loadDocs({ silent = false } = {}) {
-  if (!currentWorkspace?.id) return
-
   if (!silent) loadingDocuments.value = true
   errorMessage.value = null
 
@@ -432,8 +430,8 @@ async function loadDocs({ silent = false } = {}) {
       limit,
       offset: offset.value,
     })
-    documents.value = (res.data.documents || []).map(normDoc)
-    total.value = res.data._meta?.total ?? documents.value.length
+    documents.value = res.data.documents.map(normDoc)
+    total.value = res.data._meta.total
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('knowledge_page.failed_load_documents')
     documents.value = []
@@ -444,7 +442,6 @@ async function loadDocs({ silent = false } = {}) {
 }
 
 async function goToPage(newOffset) {
-  if (newOffset < 0 || newOffset >= total.value) return
   goToOffset(newOffset)
 }
 
@@ -467,11 +464,11 @@ function openUpload(files) {
 
 function onDropFiles(event) {
   dragActive.value = false
-  openUpload(event.dataTransfer?.files || [])
+  openUpload(event.dataTransfer.files)
 }
 
 function onFileChange(event) {
-  openUpload(event.target.files || [])
+  openUpload(event.target.files)
   event.target.value = ''
 }
 
@@ -482,14 +479,7 @@ function resetUpload() {
   uploadError.value = null
 }
 
-function closeUpload() {
-  if (uploading.value) return
-  resetUpload()
-}
-
 async function doUpload() {
-  if (!canConfirmUpload.value || uploading.value || !currentWorkspace?.id) return
-
   uploading.value = true
   uploadError.value = null
 
@@ -516,14 +506,7 @@ async function doUpload() {
   }
 }
 
-function closeDelete() {
-  if (deleting.value) return
-  deleteDoc.value = null
-}
-
 async function doDelete() {
-  if (!deleteDoc.value || !currentWorkspace?.id || deleting.value) return
-
   deleting.value = true
   errorMessage.value = null
 

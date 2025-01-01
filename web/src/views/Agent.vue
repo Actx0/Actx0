@@ -212,7 +212,7 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="deleteSessionTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeDeleteSessionModal">
+        <div v-if="deleteSessionTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!deletingSession && closeDeleteSessionModal()">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.delete_session_title') }}</h2>
             <div v-if="deleteSessionError" class="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ deleteSessionError }}</div>
@@ -240,7 +240,7 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeEditModal">
+        <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="!saveLoading && (showEditModal = false)">
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-theme-text">{{ $t('agents_page.edit_title') }}</h2>
             <p class="mt-1 text-sm text-theme-textLight">{{ $t('agents_page.edit_desc') }}</p>
@@ -256,7 +256,7 @@
               </div>
 
               <div class="flex gap-3 justify-end">
-                <button type="button" class="btn-secondary" :disabled="saveLoading" @click="closeEditModal">{{ $t('common.cancel') }}</button>
+                <button type="button" class="btn-secondary" :disabled="saveLoading" @click="showEditModal = false">{{ $t('common.cancel') }}</button>
                 <button type="submit" class="btn-primary" :disabled="saveLoading">
                   {{ saveLoading ? $t('agents_page.saving') : $t('common.save') }}
                 </button>
@@ -335,7 +335,7 @@ const gettingStartedSteps = computed(() => [
     icon: 'chat',
     title: t('agents_page.step_session'),
     description: t('agents_page.step_session_desc'),
-    code: agent.value?.handle ?? '',
+    code: agent.value.handle,
   },
   {
     number: 4,
@@ -352,7 +352,7 @@ function stepIconClass(icon) {
     chat: 'text-emerald-700',
     chart: 'text-primary-800',
   }
-  return map[icon] ?? 'text-theme-text'
+  return map[icon]
 }
 
 async function loadAgent() {
@@ -384,8 +384,8 @@ async function loadSessions() {
       limit: sessionsLimit,
       offset: sessionsOffset.value,
     })
-    sessions.value = res.data.sessions ?? []
-    sessionsTotal.value = res.data._meta?.total ?? 0
+    sessions.value = res.data.sessions
+    sessionsTotal.value = res.data._meta.total
   } catch (err) {
     sessions.value = []
     sessionsTotal.value = 0
@@ -396,7 +396,6 @@ async function loadSessions() {
 }
 
 function goToSessionsPage(offset) {
-  if (offset < 0 || offset >= sessionsTotal.value) return
   goToSessionsOffset(offset)
 }
 
@@ -411,16 +410,20 @@ function sessionStatusClass(status) {
 }
 
 function openEditModal() {
-  if (!agent.value) return
   editForm.name = agent.value.name
-  editForm.description = agent.value.description || ''
+  editForm.description = agent.value.description
   editError.value = null
   showEditModal.value = true
 }
 
-function closeEditModal() {
-  if (saveLoading.value) return
-  showEditModal.value = false
+function openDeleteSessionModal(session) {
+  deleteSessionTarget.value = session
+  deleteSessionError.value = null
+}
+
+function closeDeleteSessionModal() {
+  deleteSessionTarget.value = null
+  deleteSessionError.value = null
 }
 
 async function handleSave() {
@@ -461,21 +464,8 @@ async function copyText(text) {
   }
 }
 
-function openDeleteSessionModal(session) {
-  deleteSessionTarget.value = session
-  deleteSessionError.value = null
-}
-
-function closeDeleteSessionModal() {
-  if (!deletingSession.value) {
-    deleteSessionTarget.value = null
-    deleteSessionError.value = null
-  }
-}
-
 async function confirmDeleteSession() {
   const session = deleteSessionTarget.value
-  if (!session) return
 
   deletingSession.value = true
   deletingSessionId.value = session.id

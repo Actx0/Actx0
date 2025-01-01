@@ -167,7 +167,7 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="create-workspace-title"
-          @click.self="closeCreateModal"
+          @click.self="!createLoading && closeCreateModal()"
         >
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 id="create-workspace-title" class="text-lg font-semibold text-theme-text">
@@ -219,7 +219,7 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="edit-workspace-title"
-          @click.self="closeEditModal"
+          @click.self="!updateLoadingId && closeEditModal()"
         >
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 id="edit-workspace-title" class="text-lg font-semibold text-theme-text">
@@ -271,7 +271,7 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-workspace-title"
-          @click.self="closeDeleteModal"
+          @click.self="!deleting && closeDeleteModal()"
         >
           <div class="bg-white rounded-lg shadow-xl border border-theme-border w-full max-w-sm p-6">
             <h2 id="delete-workspace-title" class="text-lg font-semibold text-theme-text">
@@ -378,8 +378,6 @@ async function loadPage() {
 }
 
 function goToPage(newOffset) {
-  if (newOffset < 0) return
-  if (newOffset >= total.value) return
   goToOffset(newOffset)
 }
 
@@ -405,7 +403,6 @@ function openCreateModal() {
 }
 
 function closeCreateModal() {
-  if (createLoading.value) return
   showCreateModal.value = false
   createError.value = null
   createForm.name = ''
@@ -413,7 +410,6 @@ function closeCreateModal() {
 
 async function handleCreate() {
   const name = createForm.name.trim()
-  if (!name) return
 
   createLoading.value = true
   errorMessage.value = null
@@ -440,7 +436,6 @@ function openEditModal(workspace) {
 }
 
 function closeEditModal() {
-  if (updateLoadingId.value) return
   editTarget.value = null
   editForm.name = ''
   editError.value = null
@@ -450,7 +445,6 @@ async function handleUpdate() {
   const workspace = editTarget.value
   const name = editForm.name.trim()
 
-  if (!workspace || !name) return
   updateLoadingId.value = workspace.id
   errorMessage.value = null
   editError.value = null
@@ -479,16 +473,13 @@ function openDeleteModal(workspace) {
 }
 
 function closeDeleteModal() {
-  if (!deleting.value) {
-    deleteTarget.value = null
-    deleteForm.confirmName = ''
-    deleteError.value = null
-  }
+  deleteTarget.value = null
+  deleteForm.confirmName = ''
+  deleteError.value = null
 }
 
 async function confirmDelete() {
   const workspace = deleteTarget.value
-  if (!workspace) return
   deleting.value = true
   deletingId.value = workspace.id
   errorMessage.value = null

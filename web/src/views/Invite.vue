@@ -46,7 +46,7 @@
             </div>
             <div>
               <p class="text-xs font-medium uppercase tracking-wide text-theme-textLight">{{ $t('invite.workspace') }}</p>
-              <p class="mt-1 text-sm font-semibold text-theme-text break-words">{{ invite.workspaceName || invite.workspaceId }}</p>
+              <p class="mt-1 text-sm font-semibold text-theme-text break-words">{{ invite.workspaceName }}</p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -135,17 +135,9 @@ async function loadInvite() {
 
   try {
     const res = await invite_api.getByToken(route.params.token)
-    if (!res.data?.email) {
-      error.value = t('invite.not_found')
-      return
-    }
     invite.value = res.data
   } catch (err) {
-    const status = err.response?.status
-    const message = err.response?.data?.errorMessage
-    error.value = (status === 401 || status === 403 || status === 404)
-      ? (message || t('invite.not_found'))
-      : (message || t('invite.failed_load'))
+    error.value = err.response?.data?.errorMessage || t('invite.failed_load')
   } finally {
     loading.value = false
   }

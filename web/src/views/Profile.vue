@@ -22,8 +22,8 @@
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
               <div class="flex-shrink-0">
                 <img
-                  :src="user?.avatar ?? ''"
-                  :alt="user?.email ?? $t('profile.avatar_alt')"
+                  :src="user.avatar"
+                  :alt="user.email"
                   class="h-20 w-20 rounded-full border-2 border-theme-border object-cover"
                 >
               </div>
@@ -137,7 +137,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-theme-border">
               <div>
                 <p class="text-xs font-medium text-theme-textLight uppercase tracking-wide mb-1">{{ $t('profile.role') }}</p>
-                <p class="text-sm text-theme-text capitalize">{{ user?.role }}</p>
+                <p class="text-sm text-theme-text capitalize">{{ user.role }}</p>
               </div>
               <div>
                 <p class="text-xs font-medium text-theme-textLight uppercase tracking-wide mb-1">{{ $t('profile.last_login') }}</p>
@@ -204,7 +204,7 @@
                 <button
                   type="button"
                   class="btn-primary shrink-0"
-                  :disabled="apiKeysLoading || creatingKey"
+                  :disabled="apiKeysLoading || creatingKey || !keyForm.name.trim()"
                   @click="handleCreateKey"
                 >
                 <span v-if="!creatingKey">{{ $t('profile.create_key') }}</span>
@@ -275,7 +275,7 @@
                         type="button"
                         class="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
                         :disabled="deletingId === key.id"
-                        @click="openRevokeModal(key)"
+                        @click="revokeModalKey = key"
                       >
                         {{ deletingId === key.id ? $t('profile.revoking') : $t('profile.revoke') }}
                       </button>
@@ -304,20 +304,9 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="revoke-modal-title"
-          @click.self="closeRevokeModal"
+          @click.self="!deletingId && (revokeModalKey = null)"
         >
-          <Transition
-            enter-active-class="transition ease-out duration-200"
-            enter-from-class="opacity-0 scale-95"
-            enter-to-class="opacity-100 scale-100"
-            leave-active-class="transition ease-in duration-150"
-            leave-from-class="opacity-100 scale-100"
-            leave-to-class="opacity-0 scale-95"
-          >
-            <div
-              v-if="revokeModalKey"
-              class="w-full max-w-md rounded-xl bg-white border border-theme-border shadow-xl p-6"
-            >
+          <div class="w-full max-w-md rounded-xl bg-white border border-theme-border shadow-xl p-6">
               <h2 id="revoke-modal-title" class="text-lg font-semibold text-theme-text">
                 {{ $t('profile.revoke_title') }}
               </h2>
@@ -328,22 +317,21 @@
                 <button
                   type="button"
                   class="btn-primary bg-red-600 hover:bg-red-700 focus:ring-red-500"
-                  :disabled="deletingId === revokeModalKey?.id"
-                  @click="confirmRevokeKey"
-                >
-                  {{ deletingId === revokeModalKey?.id ? $t('profile.revoking') : $t('profile.revoke') }}
-                </button>
+                :disabled="deletingId === revokeModalKey.id"
+                @click="confirmRevokeKey"
+              >
+                {{ deletingId === revokeModalKey.id ? $t('profile.revoking') : $t('profile.revoke') }}
+              </button>
                 <button
                   type="button"
                   class="btn-secondary"
-                  :disabled="deletingId === revokeModalKey?.id"
-                  @click="closeRevokeModal"
+                  :disabled="deletingId === revokeModalKey.id"
+                  @click="revokeModalKey = null"
                 >
                   {{ $t('common.cancel') }}
                 </button>
               </div>
-            </div>
-          </Transition>
+          </div>
         </div>
       </Transition>
     </Teleport>
@@ -357,7 +345,7 @@ import { api_keys_api, auth_api } from '@/api'
 import AppNav from '@/components/AppNav.vue'
 import { showFlash } from '@/lib/flash'
 import { user, saveUser } from '@/lib/auth'
-import { applyUserPreferences, USER_LANGUAGE_EN, USER_THEME_DEFAULT } from '@/lib/preferences'
+import { applyUserPreferences } from '@/lib/preferences'
 import { formatDate, formatDateTime } from '@/utils/dt'
 
 const { t } = useI18n()
@@ -365,10 +353,10 @@ const { t } = useI18n()
 const loading = ref(false)
 const errorMessage = ref(null)
 const form = reactive({
-  name: user.value?.name,
-  email: user.value?.email,
-  language: user.value?.language ?? USER_LANGUAGE_EN,
-  theme: user.value?.theme ?? USER_THEME_DEFAULT,
+  name: user.value.name,
+  email: user.value.email,
+  language: user.value.language,
+  theme: user.value.theme,
   currentPassword: '',
   newPassword: '',
   confirmPassword: ''
@@ -393,7 +381,7 @@ const minExpiresAt = computed(() => {
 })
 
 const needsCurrentPassword = computed(() => {
-  const emailChanged = form.email.trim() !== user.value?.email
+  const emailChanged = form.email.trim() !== user.value.email
   return emailChanged || !!form.newPassword.trim()
 })
 
@@ -403,7 +391,7 @@ async function loadApiKeys() {
 
   try {
     const res = await api_keys_api.list({ limit: 100, offset: 0 })
-    apiKeys.value = res.data.keys ?? []
+    apiKeys.value = res.data.keys
   } catch (err) {
     errorMessage.value = err.response?.data?.errorMessage || t('profile.failed_load_api_keys')
   } finally {
@@ -412,19 +400,13 @@ async function loadApiKeys() {
 }
 
 async function handleCreateKey() {
-  const name = keyForm.name.trim()
   errorMessage.value = null
   newlyCreatedKey.value = null
-
-  if (!name) {
-    errorMessage.value = t('profile.key_name_required')
-    return
-  }
   creatingKey.value = true
 
   try {
     const res = await api_keys_api.create({
-      name,
+      name: keyForm.name.trim(),
       expiresAt: keyForm.expiresAt ? new Date(keyForm.expiresAt).toISOString() : ''
     })
 
@@ -439,26 +421,14 @@ async function handleCreateKey() {
   }
 }
 
-function copyKeyToClipboard() {
-  if (!newlyCreatedKey.value) return
-  navigator.clipboard.writeText(newlyCreatedKey.value).then(() => {
-    keyCopied.value = true
-    setTimeout(() => { keyCopied.value = false }, 2000)
-  })
-}
-
-function openRevokeModal(key) {
-  revokeModalKey.value = key
-}
-
-function closeRevokeModal() {
-  if (!deletingId.value) revokeModalKey.value = null
+async function copyKeyToClipboard() {
+  await navigator.clipboard.writeText(newlyCreatedKey.value)
+  keyCopied.value = true
+  setTimeout(() => { keyCopied.value = false }, 2000)
 }
 
 async function confirmRevokeKey() {
   const key = revokeModalKey.value
-
-  if (!key) return
   deletingId.value = key.id
   errorMessage.value = null
 
@@ -503,12 +473,10 @@ async function handleSave() {
 }
 
 watch(user, (userData) => {
-  if (userData) {
-    form.name = userData.name
-    form.email = userData.email
-    form.language = userData.language ?? USER_LANGUAGE_EN
-    form.theme = userData.theme ?? USER_THEME_DEFAULT
-  }
+  form.name = userData.name
+  form.email = userData.email
+  form.language = userData.language
+  form.theme = userData.theme
 }, { immediate: true, deep: true })
 
 watchEffect(() => {
@@ -517,7 +485,7 @@ watchEffect(() => {
     return
   }
   document.body.style.overflow = 'hidden'
-  const onEsc = (e) => { if (e.key === 'Escape') closeRevokeModal() }
+  const onEsc = (e) => { if (e.key === 'Escape' && !deletingId.value) revokeModalKey.value = null }
   document.addEventListener('keydown', onEsc)
   return () => {
     document.body.style.overflow = ''

@@ -106,12 +106,6 @@ const handleSubmit = async () => {
     return
   }
 
-  if (form.password.length < 8) {
-    error.value = t('reset_password.error_password_length')
-    loading.value = false
-    return
-  }
-
   const token = route.params.token
   if (!token) {
     error.value = t('reset_password.error_invalid_link')

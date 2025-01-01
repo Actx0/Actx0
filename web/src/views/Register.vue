@@ -130,12 +130,6 @@ const handleRegister = async () => {
     return
   }
 
-  if (form.password.length < 8) {
-    error.value = t('register.error_password_length')
-    loading.value = false
-    return
-  }
-
   try {
     await auth_api.register({
       email: form.email.trim(),
