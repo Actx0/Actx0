@@ -29,6 +29,28 @@ const (
 	AuditActorAccessKey = "access_key"
 )
 
+// AuditEventResponse is an audit event shaped for API responses.
+type AuditEventResponse struct {
+	Id           db.Id           `json:"id"`
+	WorkspaceId  db.Id           `json:"workspaceId"`
+	ActorId      *db.Id          `json:"actorId,omitempty"`
+	ActorName    *string         `json:"actorName,omitempty"`
+	ActorType    *string         `json:"actorType,omitempty"`
+	Action       string          `json:"action"`
+	ResourceType *string         `json:"resourceType,omitempty"`
+	ResourceId   *db.Id          `json:"resourceId,omitempty"`
+	IPAddress    *string         `json:"ipAddress,omitempty"`
+	UserAgent    *string         `json:"userAgent,omitempty"`
+	Meta         json.RawMessage `json:"meta,omitempty"`
+	CreatedAt    string          `json:"createdAt"`
+}
+
+// ListAuditEventsResponse is returned when listing audit events.
+type ListAuditEventsResponse struct {
+	Events []*AuditEventResponse
+	Total  int64
+}
+
 // Audit is the module for workspace audit events.
 type Audit struct {
 	AuditRepository     db.AuditEventRepository
@@ -101,28 +123,6 @@ func (a *Audit) Record(ctx context.Context, event *RecordAuditEvent) {
 			Str("action", event.Action).
 			Msg("Failed to record audit event")
 	}
-}
-
-// AuditEventResponse is an audit event shaped for API responses.
-type AuditEventResponse struct {
-	Id           db.Id           `json:"id"`
-	WorkspaceId  db.Id           `json:"workspaceId"`
-	ActorId      *db.Id          `json:"actorId,omitempty"`
-	ActorName    *string         `json:"actorName,omitempty"`
-	ActorType    *string         `json:"actorType,omitempty"`
-	Action       string          `json:"action"`
-	ResourceType *string         `json:"resourceType,omitempty"`
-	ResourceId   *db.Id          `json:"resourceId,omitempty"`
-	IPAddress    *string         `json:"ipAddress,omitempty"`
-	UserAgent    *string         `json:"userAgent,omitempty"`
-	Meta         json.RawMessage `json:"meta,omitempty"`
-	CreatedAt    string          `json:"createdAt"`
-}
-
-// ListAuditEventsResponse is returned when listing audit events.
-type ListAuditEventsResponse struct {
-	Events []*AuditEventResponse
-	Total  int64
 }
 
 // GetAuditEvent returns one audit event by id.
