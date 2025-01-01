@@ -59,25 +59,6 @@
 
             <div v-else class="p-6 space-y-5">
               <div>
-                <label class="form-label">{{ $t('workspace_settings_page.handle') }}</label>
-                <div class="flex items-center gap-2">
-                  <input
-                    :value="workspace.handle"
-                    type="text"
-                    readonly
-                    class="input-field bg-theme-bg text-theme-textLight"
-                  >
-                  <button
-                    type="button"
-                    class="btn-secondary shrink-0"
-                    @click="copyText(workspace.handle, 'handle')"
-                  >
-                    {{ copiedField === 'handle' ? $t('workspace_settings_page.copied') : $t('workspace_settings_page.copy') }}
-                  </button>
-                </div>
-              </div>
-
-              <div>
                 <label class="form-label">{{ $t('workspace_settings_page.id') }}</label>
                 <div class="flex items-center gap-2">
                   <input
