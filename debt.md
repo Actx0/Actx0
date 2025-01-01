@@ -56,7 +56,7 @@ Mark done: `- [x] path/to/file.go`
 - [x] core/database.go
 - [x] core/loader.go
 - [x] core/logger.go
-- [ ] core/server.go
+- [x] core/server.go
 
 ## db/
 
@@ -143,10 +143,10 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/ai/
 
-- [ ] pkg/ai/chat.go
-- [ ] pkg/ai/embed.go
-- [ ] pkg/ai/errors.go
-- [ ] pkg/ai/usage.go
+- [x] pkg/ai/chat.go
+- [x] pkg/ai/embed.go
+- [x] pkg/ai/errors.go
+- [x] pkg/ai/usage.go
 
 ## pkg/async/
 
