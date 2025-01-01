@@ -1,5 +1,9 @@
 import { ref } from 'vue'
-import { loadUserFromStorage, saveUserToStorage, removeUserFromStorage } from '@/utils/storage'
+import {
+  loadUserFromStorage,
+  saveUserToStorage,
+  removeUserFromStorage
+} from '@/lib/storage'
 
 export const user = ref(loadUserFromStorage())
 
