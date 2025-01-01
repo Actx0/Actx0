@@ -45,9 +45,13 @@ Decide whether the message contains anything worth remembering later.
 - Prefer short_lived for ephemeral task state, temporary goals, or context that fades after this conversation.
 - Skip greetings, chit-chat, already-generic instructions, and messages with nothing useful to store.
 
-Reply with JSON only, no markdown fences, no prose. Schema:
-{"skip":true|false,"kind":"short_lived"|"long_lived","content":"concise memory text"}
+Your entire reply must be one JSON object. The first character must be { and the last must be }.
+No markdown, no explanation, no other text.
 
-When skip is true, set kind to "" and content to "".
-When skip is false, content must be a short third-person memory statement.`
+Schema:
+{"skip":true,"kind":"","content":""}
+or
+{"skip":false,"kind":"short_lived","content":"concise third-person memory"}
+or
+{"skip":false,"kind":"long_lived","content":"concise third-person memory"}`
 )

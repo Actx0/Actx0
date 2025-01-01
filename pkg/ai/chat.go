@@ -19,6 +19,12 @@ type Message struct {
 	Content string
 }
 
+// CompleteOptions configures a chat completion request.
+type CompleteOptions struct {
+	// JSONObject asks the provider to return a JSON object (response_format=json_object).
+	JSONObject bool
+}
+
 // ChatClient calls oroute chat completion APIs for a single model tier.
 type ChatClient struct {
 	api   *orsdk.OpenRouter
@@ -46,7 +52,7 @@ func NewLargeClient() *ChatClient {
 }
 
 // Complete sends messages using this client's model and returns the reply and usage.
-func (c *ChatClient) Complete(ctx context.Context, messages []Message) (string, Usage, error) {
+func (c *ChatClient) Complete(ctx context.Context, messages []Message, opts ...CompleteOptions) (string, Usage, error) {
 	items := make([]components.ChatMessages, 0, len(messages))
 
 	for _, message := range messages {
@@ -74,10 +80,16 @@ func (c *ChatClient) Complete(ctx context.Context, messages []Message) (string, 
 		items = append(items, item)
 	}
 
-	response, err := c.api.Chat.Send(ctx, components.ChatRequest{
+	req := components.ChatRequest{
 		Model:    orsdk.Pointer(c.model),
 		Messages: items,
-	}, nil)
+	}
+	if len(opts) > 0 && opts[0].JSONObject {
+		format := components.CreateResponseFormatJSONObject(components.FormatJSONObjectConfig{})
+		req.ResponseFormat = &format
+	}
+
+	response, err := c.api.Chat.Send(ctx, req, nil)
 
 	if err != nil {
 		return "", Usage{}, fmt.Errorf("ai chat: %w", err)
