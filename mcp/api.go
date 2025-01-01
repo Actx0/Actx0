@@ -86,7 +86,7 @@ func (c *APIClient) GetSessionByExternalID(ctx context.Context, scope Scope) (*s
 	)
 
 	var session sessionDTO
-	status, err := c.DoJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &session)
+	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &session)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -104,7 +104,7 @@ func (c *APIClient) CreateSession(ctx context.Context, scope Scope) (*sessionDTO
 	)
 
 	var session sessionDTO
-	status, err := c.DoJSON(ctx, http.MethodPost, path, scope.AccessKey, nil, &session)
+	status, err := c.Request(ctx, http.MethodPost, path, scope.AccessKey, nil, &session)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -121,7 +121,7 @@ func (c *APIClient) DeleteSession(ctx context.Context, scope Scope) error {
 		url.QueryEscape(scope.SessionID),
 	)
 
-	status, err := c.DoJSON(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
+	status, err := c.Request(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func (c *APIClient) CreateMemory(ctx context.Context, scope Scope, kind, content
 	}
 
 	var memory memoryDTO
-	status, err := c.DoJSON(ctx, http.MethodPost, c.MemoriesPath(scope, sessionID), scope.AccessKey, body, &memory)
+	status, err := c.Request(ctx, http.MethodPost, c.MemoriesPath(scope, sessionID), scope.AccessKey, body, &memory)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (c *APIClient) ListMemories(ctx context.Context, scope Scope, limit, offset
 	path := fmt.Sprintf("%s?limit=%d&offset=%d", c.MemoriesPath(scope, sessionID), limit, offset)
 
 	var list listMemoriesDTO
-	status, err := c.DoJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &list)
+	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &list)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (c *APIClient) GetMemory(ctx context.Context, scope Scope, memoryID string)
 	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
 	var memory memoryDTO
-	status, err := c.DoJSON(ctx, http.MethodGet, path, scope.AccessKey, nil, &memory)
+	status, err := c.Request(ctx, http.MethodGet, path, scope.AccessKey, nil, &memory)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,7 @@ func (c *APIClient) UpdateMemory(ctx context.Context, scope Scope, memoryID, kin
 	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
 	var memory memoryDTO
-	status, err := c.DoJSON(ctx, http.MethodPut, path, scope.AccessKey, body, &memory)
+	status, err := c.Request(ctx, http.MethodPut, path, scope.AccessKey, body, &memory)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func (c *APIClient) SearchMemories(ctx context.Context, scope Scope, query strin
 	path := c.MemoriesPath(scope, sessionID) + "/search"
 
 	var result searchMemoriesDTO
-	status, err := c.DoJSON(ctx, http.MethodPost, path, scope.AccessKey, body, &result)
+	status, err := c.Request(ctx, http.MethodPost, path, scope.AccessKey, body, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func (c *APIClient) DeleteMemory(ctx context.Context, scope Scope, memoryID stri
 
 	path := fmt.Sprintf("%s/%s", c.MemoriesPath(scope, sessionID), memoryID)
 
-	status, err := c.DoJSON(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
+	status, err := c.Request(ctx, http.MethodDelete, path, scope.AccessKey, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -334,8 +334,8 @@ func (c *APIClient) MemoriesPath(scope Scope, sessionID string) string {
 	)
 }
 
-// DoJSON performs a JSON HTTP request against the management server.
-func (c *APIClient) DoJSON(ctx context.Context, method, path, accessKey string, body []byte, out any) (int, error) {
+// Request performs an HTTP request against the management server.
+func (c *APIClient) Request(ctx context.Context, method, path, accessKey string, body []byte, out any) (int, error) {
 	var reader io.Reader
 	if body != nil {
 		reader = bytes.NewReader(body)
