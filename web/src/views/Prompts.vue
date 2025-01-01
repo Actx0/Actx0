@@ -42,9 +42,6 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.name') }}</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.handle') }}</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.versions') }}</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.type') }}</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.labels') }}</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.updated') }}</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-theme-textLight uppercase tracking-wider">{{ $t('prompts_page.actions') }}</th>
             </tr>
           </thead>
@@ -58,25 +55,8 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-theme-textLight">{{ prompt.handle }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">
-                v{{ prompt.latestVersion }} · {{ prompt.versionCount }}
+                {{ prompt.versionCount }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-text">{{ prompt.type }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-text">
-                <span v-if="prompt.hasProduction || prompt.labels?.length" class="inline-flex flex-wrap gap-1">
-                  <span v-if="prompt.hasProduction" class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">
-                    production
-                  </span>
-                  <span
-                    v-for="label in prompt.labels"
-                    :key="label"
-                    class="inline-flex items-center rounded-full bg-theme-hover px-2 py-0.5 text-xs text-theme-text"
-                  >
-                    {{ label }}
-                  </span>
-                </span>
-                <span v-else class="text-theme-textLight">—</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-theme-textLight">{{ formatDate(prompt.latestCreatedAt) }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                 <span class="inline-flex items-center gap-3">
                   <router-link :to="promptDetailPath(prompt.promptId)" class="text-primary-600 hover:text-primary-700 hover:underline">
@@ -279,15 +259,6 @@ const canConfirmDelete = computed(() => {
 
 const createFormVariables = computed(() => extractPromptVariables(form.value.content))
 const createHandlePreview = computed(() => handleFromName(form.value.name))
-
-function formatDate(iso) {
-  if (!iso) return ''
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-  } catch {
-    return iso
-  }
-}
 
 async function loadPage() {
   loading.value = true
