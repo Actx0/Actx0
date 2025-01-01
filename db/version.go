@@ -56,31 +56,6 @@ func NewPromptVersionRepository(db *sql.DB) PromptVersionRepository {
 	return &PromptVersionRepositoryPostgres{db: db}
 }
 
-const promptVersionColumns = `
-	id, prompt_id, version, type, content, config, labels,
-	commit_message, commit_hash, meta, status, production, created_at, updated_at`
-
-func scanPromptVersion(scanner interface {
-	Scan(dest ...any) error
-}, item *PromptVersion) error {
-	return scanner.Scan(
-		&item.Id,
-		&item.PromptId,
-		&item.Version,
-		&item.Type,
-		&item.Content,
-		&item.Config,
-		&item.Labels,
-		&item.CommitMessage,
-		&item.CommitHash,
-		&item.Meta,
-		&item.Status,
-		&item.Production,
-		&item.CreatedAt,
-		&item.UpdatedAt,
-	)
-}
-
 // Create inserts a prompt version row for an existing prompt.
 func (r *PromptVersionRepositoryPostgres) Create(version *PromptVersion) error {
 	if lo.IsEmpty(version.PromptId) {
@@ -151,11 +126,29 @@ func (r *PromptVersionRepositoryPostgres) Create(version *PromptVersion) error {
 // GetById returns a prompt version by id.
 func (r *PromptVersionRepositoryPostgres) GetById(id Id) (*PromptVersion, error) {
 	item := &PromptVersion{}
-	err := scanPromptVersion(r.db.QueryRow(
-		`SELECT`+promptVersionColumns+`
+	err := r.db.QueryRow(
+		`SELECT
+			id, prompt_id, version, type, content, config, labels,
+			commit_message, commit_hash, meta, status, production, created_at, updated_at
 		FROM prompt_versions
-		WHERE id = $1`, id.String(),
-	), item)
+		WHERE id = $1`,
+		id.String(),
+	).Scan(
+		&item.Id,
+		&item.PromptId,
+		&item.Version,
+		&item.Type,
+		&item.Content,
+		&item.Config,
+		&item.Labels,
+		&item.CommitMessage,
+		&item.CommitHash,
+		&item.Meta,
+		&item.Status,
+		&item.Production,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -165,13 +158,30 @@ func (r *PromptVersionRepositoryPostgres) GetById(id Id) (*PromptVersion, error)
 // GetByPromptIdAndVersion returns a prompt version by prompt id and version number.
 func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndVersion(promptId Id, version int) (*PromptVersion, error) {
 	item := &PromptVersion{}
-	err := scanPromptVersion(r.db.QueryRow(
-		`SELECT`+promptVersionColumns+`
+	err := r.db.QueryRow(
+		`SELECT
+			id, prompt_id, version, type, content, config, labels,
+			commit_message, commit_hash, meta, status, production, created_at, updated_at
 		FROM prompt_versions
 		WHERE prompt_id = $1 AND version = $2`,
 		promptId.String(),
 		version,
-	), item)
+	).Scan(
+		&item.Id,
+		&item.PromptId,
+		&item.Version,
+		&item.Type,
+		&item.Content,
+		&item.Config,
+		&item.Labels,
+		&item.CommitMessage,
+		&item.CommitHash,
+		&item.Meta,
+		&item.Status,
+		&item.Production,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -181,13 +191,31 @@ func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndVersion(promptId Id, v
 // GetLatestByPromptId returns the newest version for a prompt.
 func (r *PromptVersionRepositoryPostgres) GetLatestByPromptId(promptId Id) (*PromptVersion, error) {
 	item := &PromptVersion{}
-	err := scanPromptVersion(r.db.QueryRow(
-		`SELECT`+promptVersionColumns+`
+	err := r.db.QueryRow(
+		`SELECT
+			id, prompt_id, version, type, content, config, labels,
+			commit_message, commit_hash, meta, status, production, created_at, updated_at
 		FROM prompt_versions
 		WHERE prompt_id = $1
 		ORDER BY version DESC
-		LIMIT 1`, promptId.String(),
-	), item)
+		LIMIT 1`,
+		promptId.String(),
+	).Scan(
+		&item.Id,
+		&item.PromptId,
+		&item.Version,
+		&item.Type,
+		&item.Content,
+		&item.Config,
+		&item.Labels,
+		&item.CommitMessage,
+		&item.CommitHash,
+		&item.Meta,
+		&item.Status,
+		&item.Production,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -199,24 +227,61 @@ func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndLabel(promptId Id, lab
 	item := &PromptVersion{}
 	var err error
 	if label == "production" {
-		err = scanPromptVersion(r.db.QueryRow(
-			`SELECT`+promptVersionColumns+`
+		err = r.db.QueryRow(
+			`SELECT
+				id, prompt_id, version, type, content, config, labels,
+				commit_message, commit_hash, meta, status, production, created_at, updated_at
 			FROM prompt_versions
 			WHERE prompt_id = $1 AND production = TRUE
-			LIMIT 1`, promptId.String(),
-		), item)
+			LIMIT 1`,
+			promptId.String(),
+		).Scan(
+			&item.Id,
+			&item.PromptId,
+			&item.Version,
+			&item.Type,
+			&item.Content,
+			&item.Config,
+			&item.Labels,
+			&item.CommitMessage,
+			&item.CommitHash,
+			&item.Meta,
+			&item.Status,
+			&item.Production,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+		)
 	} else {
 		labelFilter, marshalErr := json.Marshal([]string{label})
 		if marshalErr != nil {
 			return nil, marshalErr
 		}
-		err = scanPromptVersion(r.db.QueryRow(
-			`SELECT`+promptVersionColumns+`
+		err = r.db.QueryRow(
+			`SELECT
+				id, prompt_id, version, type, content, config, labels,
+				commit_message, commit_hash, meta, status, production, created_at, updated_at
 			FROM prompt_versions
 			WHERE prompt_id = $1 AND labels @> $2::jsonb
 			ORDER BY version DESC
-			LIMIT 1`, promptId.String(), string(labelFilter),
-		), item)
+			LIMIT 1`,
+			promptId.String(),
+			string(labelFilter),
+		).Scan(
+			&item.Id,
+			&item.PromptId,
+			&item.Version,
+			&item.Type,
+			&item.Content,
+			&item.Config,
+			&item.Labels,
+			&item.CommitMessage,
+			&item.CommitHash,
+			&item.Meta,
+			&item.Status,
+			&item.Production,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+		)
 	}
 	if isNotFound(err) {
 		return nil, nil
@@ -343,11 +408,17 @@ func (r *PromptVersionRepositoryPostgres) ClearProductionFromPromptId(promptId I
 // ListByPromptId lists versions for a prompt.
 func (r *PromptVersionRepositoryPostgres) ListByPromptId(promptId Id, limit, offset int) ([]*PromptVersion, error) {
 	rows, err := r.db.Query(
-		`SELECT`+promptVersionColumns+`
+		`SELECT
+			id, prompt_id, version, type, content, config, labels,
+			commit_message, commit_hash, meta, status, production, created_at, updated_at
 		FROM prompt_versions
 		WHERE prompt_id = $1
 		ORDER BY version DESC
-		LIMIT $2 OFFSET $3`, promptId.String(), limit, offset)
+		LIMIT $2 OFFSET $3`,
+		promptId.String(),
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +427,23 @@ func (r *PromptVersionRepositoryPostgres) ListByPromptId(promptId Id, limit, off
 	var list []*PromptVersion
 	for rows.Next() {
 		item := &PromptVersion{}
-		if err := scanPromptVersion(rows, item); err != nil {
+		err := rows.Scan(
+			&item.Id,
+			&item.PromptId,
+			&item.Version,
+			&item.Type,
+			&item.Content,
+			&item.Config,
+			&item.Labels,
+			&item.CommitMessage,
+			&item.CommitHash,
+			&item.Meta,
+			&item.Status,
+			&item.Production,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+		)
+		if err != nil {
 			return nil, err
 		}
 		list = append(list, item)

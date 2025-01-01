@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// PromptResult is a prompt row with its version count.
-type PromptResult struct {
+// Prompt is a prompt row with its version count.
+type Prompt struct {
 	Id           Id
 	Name         string
 	Handle       string
@@ -21,10 +21,10 @@ type PromptResult struct {
 type PromptRepository interface {
 	Create(workspaceId Id, name, handle, description string) (Id, error)
 	ExistsByHandle(workspaceId Id, handle string) (bool, error)
-	GetById(workspaceId Id, id Id) (*PromptResult, error)
-	GetByHandle(workspaceId Id, handle string) (*PromptResult, error)
+	GetById(workspaceId Id, id Id) (*Prompt, error)
+	GetByHandle(workspaceId Id, handle string) (*Prompt, error)
 	Delete(workspaceId Id, promptId Id) error
-	ListByWorkspace(workspaceId Id, limit, offset int) ([]*PromptResult, error)
+	ListByWorkspace(workspaceId Id, limit, offset int) ([]*Prompt, error)
 	Count() (int64, error)
 	CountByWorkspaceId(workspaceId Id) (int64, error)
 }
@@ -67,8 +67,8 @@ func (r *PromptRepositoryPostgres) ExistsByHandle(workspaceId Id, handle string)
 }
 
 // GetById returns a prompt with its version count.
-func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*PromptResult, error) {
-	item := &PromptResult{}
+func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*Prompt, error) {
+	item := &Prompt{}
 	err := r.db.QueryRow(`
 		SELECT
 			p.id,
@@ -94,8 +94,8 @@ func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*PromptResult, e
 }
 
 // GetByHandle returns a prompt by workspace and handle.
-func (r *PromptRepositoryPostgres) GetByHandle(workspaceId Id, handle string) (*PromptResult, error) {
-	item := &PromptResult{}
+func (r *PromptRepositoryPostgres) GetByHandle(workspaceId Id, handle string) (*Prompt, error) {
+	item := &Prompt{}
 	err := r.db.QueryRow(`
 		SELECT
 			p.id,
@@ -141,7 +141,7 @@ func (r *PromptRepositoryPostgres) Delete(workspaceId Id, promptId Id) error {
 }
 
 // ListByWorkspace lists prompts for a workspace with version counts.
-func (r *PromptRepositoryPostgres) ListByWorkspace(workspaceId Id, limit, offset int) ([]*PromptResult, error) {
+func (r *PromptRepositoryPostgres) ListByWorkspace(workspaceId Id, limit, offset int) ([]*Prompt, error) {
 	rows, err := r.db.Query(`
 		SELECT
 			p.id,
@@ -158,9 +158,9 @@ func (r *PromptRepositoryPostgres) ListByWorkspace(workspaceId Id, limit, offset
 	}
 	defer rows.Close()
 
-	var list []*PromptResult
+	var list []*Prompt
 	for rows.Next() {
-		item := &PromptResult{}
+		item := &Prompt{}
 		if err := rows.Scan(
 			&item.Id,
 			&item.Name,
