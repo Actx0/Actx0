@@ -24,7 +24,7 @@ Mark done: `- [x] path/to/file`
 - [ ] api/knowledge.go
 - [ ] api/login.go
 - [x] api/logout.go
-- [ ] api/me.go
+- [x] api/me.go
 - [ ] api/member.go
 - [ ] api/memory.go
 - [ ] api/message.go
@@ -126,7 +126,7 @@ Mark done: `- [x] path/to/file`
 - [ ] module/document.go
 - [ ] module/events.go
 - [ ] module/invite.go
-- [ ] module/me.go
+- [x] module/me.go
 - [ ] module/memory.go
 - [ ] module/message.go
 - [ ] module/permission.go
