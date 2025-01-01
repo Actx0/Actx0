@@ -82,6 +82,9 @@ jobs:
     needs: push_to_registry
     if: always()
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v6
+
       - uses: ./.github/actions/audit
         with:
           webhook_url: ${{ secrets.BASECAMP_CHAT_WEBHOOK_URL }}
