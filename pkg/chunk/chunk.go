@@ -80,9 +80,9 @@ func (c *Chunker) Split(text string) ([]string, error) {
 func newSplitter(config Config) (textsplitter.TextSplitter, error) {
 	switch splitterType(config.Splitter) {
 	case SplitterRecursive:
-		return newRecursiveSplitter(config), nil
+		return NewRecursiveCharacter(config), nil
 	case SplitterMarkdown:
-		return newMarkdownSplitter(config), nil
+		return NewMarkdownTextSplitter(config), nil
 	default:
 		return nil, fmt.Errorf("chunk unsupported splitter %q", config.Splitter)
 	}
@@ -97,8 +97,8 @@ func splitterType(splitter Splitter) Splitter {
 	return splitter
 }
 
-// newRecursiveSplitter creates a recursive character text splitter.
-func newRecursiveSplitter(config Config) textsplitter.TextSplitter {
+// NewRecursiveCharacter creates a recursive character text splitter.
+func NewRecursiveCharacter(config Config) textsplitter.TextSplitter {
 	opts := []textsplitter.Option{
 		textsplitter.WithChunkSize(config.Size),
 		textsplitter.WithChunkOverlap(config.Overlap),
@@ -115,12 +115,12 @@ func newRecursiveSplitter(config Config) textsplitter.TextSplitter {
 	return textsplitter.NewRecursiveCharacter(opts...)
 }
 
-// newMarkdownSplitter creates a markdown-aware text splitter.
-func newMarkdownSplitter(config Config) textsplitter.TextSplitter {
+// NewMarkdownTextSplitter creates a markdown-aware text splitter.
+func NewMarkdownTextSplitter(config Config) textsplitter.TextSplitter {
 	opts := []textsplitter.Option{
 		textsplitter.WithChunkSize(config.Size),
 		textsplitter.WithChunkOverlap(config.Overlap),
-		textsplitter.WithSecondSplitter(newRecursiveSplitter(config)),
+		textsplitter.WithSecondSplitter(NewRecursiveCharacter(config)),
 	}
 
 	if config.Markdown.CodeBlocks {
