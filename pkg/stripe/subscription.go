@@ -17,6 +17,7 @@ func (c *Client) GetSubscription(ctx context.Context, subscriptionId string) (*s
 		subscriptionId,
 		&stripesdk.SubscriptionRetrieveParams{},
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("retrieve subscription: %w", err)
 	}

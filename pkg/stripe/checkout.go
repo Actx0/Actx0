@@ -60,5 +60,6 @@ func (c *Client) CreateCheckoutSession(ctx context.Context, opts CheckoutOptions
 	if err != nil {
 		return nil, fmt.Errorf("create checkout session: %w", err)
 	}
+
 	return session, nil
 }

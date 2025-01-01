@@ -161,7 +161,7 @@ Mark done: `- [x] path/to/file.go`
 
 ## pkg/chunk/
 
-- [ ] pkg/chunk/chunk.go
+- [x] pkg/chunk/chunk.go
 
 ## pkg/event/
 

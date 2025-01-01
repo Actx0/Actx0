@@ -21,32 +21,27 @@ func New() (*Client, error) {
 	}
 
 	return &Client{
-		api:    stripesdk.NewClient(viper.GetString("app.billing.secret_key")),
-		config: getConfig(),
+		api: stripesdk.NewClient(viper.GetString("app.billing.secret_key")),
+		config: Config{
+			SecretKey:     viper.GetString("app.billing.secret_key"),
+			WebhookSecret: viper.GetString("app.billing.webhook_secret"),
+			ProductId:     viper.GetString("app.billing.product_id"),
+			Prices: Prices{
+				Hobby:   viper.GetString("app.billing.prices.hobby"),
+				Pro:     viper.GetString("app.billing.prices.pro"),
+				Growth:  viper.GetString("app.billing.prices.growth"),
+				Starter: viper.GetString("app.billing.prices.starter"),
+			},
+			URLs: URLs{
+				CheckoutSuccess: viper.GetString("app.billing.urls.checkout_success"),
+				CheckoutCancel:  viper.GetString("app.billing.urls.checkout_cancel"),
+				PortalReturn:    viper.GetString("app.billing.urls.portal_return"),
+			},
+		},
 	}, nil
 }
 
 // Config returns the billing configuration used by this client.
 func (c *Client) Config() Config {
 	return c.config
-}
-
-// getConfig loads Stripe settings from configuration.
-func getConfig() Config {
-	return Config{
-		SecretKey:     viper.GetString("app.billing.secret_key"),
-		WebhookSecret: viper.GetString("app.billing.webhook_secret"),
-		ProductId:     viper.GetString("app.billing.product_id"),
-		Prices: Prices{
-			Hobby:   viper.GetString("app.billing.prices.hobby"),
-			Pro:     viper.GetString("app.billing.prices.pro"),
-			Growth:  viper.GetString("app.billing.prices.growth"),
-			Starter: viper.GetString("app.billing.prices.starter"),
-		},
-		URLs: URLs{
-			CheckoutSuccess: viper.GetString("app.billing.urls.checkout_success"),
-			CheckoutCancel:  viper.GetString("app.billing.urls.checkout_cancel"),
-			PortalReturn:    viper.GetString("app.billing.urls.portal_return"),
-		},
-	}
 }

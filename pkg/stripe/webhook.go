@@ -20,6 +20,7 @@ func (c *Client) ConstructWebhookEvent(payload []byte, signature string) (stripe
 			IgnoreAPIVersionMismatch: true,
 		},
 	)
+
 	if err != nil {
 		return stripesdk.Event{}, fmt.Errorf("construct webhook event: %w", err)
 	}
