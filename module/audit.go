@@ -53,8 +53,6 @@ type RecordAuditEvent struct {
 }
 
 // Record persists an audit event, resolving the actor (user or access key)
-// and request metadata from the context. Failures are logged, so it is safe
-// to call with defer from controllers.
 func (a *Audit) Record(ctx context.Context, event *RecordAuditEvent) {
 	row := &db.AuditEvent{
 		WorkspaceId: event.WorkspaceId,
