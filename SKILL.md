@@ -27,6 +27,8 @@ Keep entries short. Remove obsolete notes. Never store secrets.
 |--------|--------|
 | `lo.FromPtr(p)` | custom `StringValue` / nil-deref helpers |
 | pass `Id` / `lo.FromPtr(*Id)` into `Exec`/`Query` (uses `Id.Value()` → SQL NULL when empty) | `ValueOrNil` / `ValueOrNilPtr` helpers |
+| `isNotFound(err)` → `nil, nil` on Get miss | repeating `errors.Is(err, sql.ErrNoRows)` at every call site |
+| `GetDB()` for reads; `GetDB(true)` / `GetWriteDB()` for writes | treating `GetDB()` as always the primary |
 | `new(true)`, `new(false)`, `new(x)` (Go 1.26 expr form) | `lo.ToPtr(literal)` for the same |
 | `r.URL.Query().Get("id")` at call site | tiny util wrappers around one query get |
 | `for x := range strings.SplitSeq(s, ",")` | `strings.Split` then range when you only iterate once |

@@ -78,7 +78,10 @@ func (r *WorkspaceRepositoryPostgres) Create(workspace *Workspace) error {
 		workspace.Id.String(),
 		workspace.Name,
 		workspace.Handle,
-	).Scan(&workspace.CreatedAt, &workspace.UpdatedAt)
+	).Scan(
+		&workspace.CreatedAt,
+		&workspace.UpdatedAt,
+	)
 	return err
 }
 
@@ -95,7 +98,13 @@ func (r *WorkspaceRepositoryPostgres) GetById(id Id) (*Workspace, error) {
 		FROM workspaces
 		WHERE id = $1`,
 		id.String(),
-	).Scan(&w.Id, &w.Name, &w.Handle, &w.CreatedAt, &w.UpdatedAt)
+	).Scan(
+		&w.Id,
+		&w.Name,
+		&w.Handle,
+		&w.CreatedAt,
+		&w.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -115,7 +124,13 @@ func (r *WorkspaceRepositoryPostgres) GetByHandle(handle string) (*Workspace, er
 		FROM workspaces
 		WHERE handle = $1`,
 		handle,
-	).Scan(&w.Id, &w.Name, &w.Handle, &w.CreatedAt, &w.UpdatedAt)
+	).Scan(
+		&w.Id,
+		&w.Name,
+		&w.Handle,
+		&w.CreatedAt,
+		&w.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -130,7 +145,9 @@ func (r *WorkspaceRepositoryPostgres) Update(workspace *Workspace) error {
 			name = $1,
 			updated_at = $2
 		WHERE id = $3`,
-		workspace.Name, time.Now().UTC(), workspace.Id.String(),
+		workspace.Name,
+		time.Now().UTC(),
+		workspace.Id.String(),
 	)
 	return err
 }
@@ -158,7 +175,9 @@ func (r *WorkspaceRepositoryPostgres) List(limit, offset int, userId Id) ([]*Wor
 		WHERE wu.user_id = $1
 		ORDER BY w.created_at DESC
 		LIMIT $2 OFFSET $3`,
-		userId.String(), limit, offset,
+		userId.String(),
+		limit,
+		offset,
 	)
 	if err != nil {
 		return nil, err
@@ -167,7 +186,13 @@ func (r *WorkspaceRepositoryPostgres) List(limit, offset int, userId Id) ([]*Wor
 	var list []*Workspace
 	for rows.Next() {
 		w := &Workspace{}
-		err := rows.Scan(&w.Id, &w.Name, &w.Handle, &w.CreatedAt, &w.UpdatedAt)
+		err := rows.Scan(
+			&w.Id,
+			&w.Name,
+			&w.Handle,
+			&w.CreatedAt,
+			&w.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -213,8 +238,16 @@ func (r *WorkspaceRepositoryPostgres) GetWorkspaceMembership(workspaceId, userId
 		FROM workspace_users
 		WHERE workspace_id = $1
 			AND user_id = $2`,
-		workspaceId.String(), userId.String(),
-	).Scan(&m.Id, &m.WorkspaceId, &m.UserId, &m.Role, &m.CreatedAt, &m.UpdatedAt)
+		workspaceId.String(),
+		userId.String(),
+	).Scan(
+		&m.Id,
+		&m.WorkspaceId,
+		&m.UserId,
+		&m.Role,
+		&m.CreatedAt,
+		&m.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
@@ -236,7 +269,10 @@ func (r *WorkspaceMetaRepositoryPostgres) Create(id Id, key, value string) error
 	_, err = r.db.Exec(
 		`INSERT INTO workspaces_meta (id, workspace_id, key, value)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(), id.String(), key, value,
+		metaId.String(),
+		id.String(),
+		key,
+		value,
 	)
 	return err
 }
@@ -248,13 +284,19 @@ func (r *WorkspaceMetaRepositoryPostgres) Get(id Id, key string) (*WorkspaceMeta
 		`SELECT id, workspace_id, key, value, created_at, updated_at
 		FROM workspaces_meta
 		WHERE workspace_id = $1 AND key = $2`,
-		id.String(), key,
-	).Scan(&meta.Id, &meta.WorkspaceId, &meta.Key, &meta.Value, &meta.CreatedAt, &meta.UpdatedAt)
-
+		id.String(),
+		key,
+	).Scan(
+		&meta.Id,
+		&meta.WorkspaceId,
+		&meta.Key,
+		&meta.Value,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
 	if isNotFound(err) {
 		return nil, nil
 	}
-
 	return meta, err
 }
 
@@ -264,9 +306,11 @@ func (r *WorkspaceMetaRepositoryPostgres) Update(id Id, key, value string) error
 		`UPDATE workspaces_meta
 		SET value = $1, updated_at = $2
 		WHERE workspace_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value,
+		time.Now().UTC(),
+		id.String(),
+		key,
 	)
-
 	return err
 }
 
@@ -275,9 +319,9 @@ func (r *WorkspaceMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM workspaces_meta
 		WHERE workspace_id = $1 AND key = $2`,
-		id.String(), key,
+		id.String(),
+		key,
 	)
-
 	return err
 }
 
@@ -290,7 +334,6 @@ func (r *WorkspaceMetaRepositoryPostgres) ListByWorkspaceId(id Id) ([]*Workspace
 		ORDER BY key`,
 		id.String(),
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -299,13 +342,19 @@ func (r *WorkspaceMetaRepositoryPostgres) ListByWorkspaceId(id Id) ([]*Workspace
 	var list []*WorkspaceMeta
 	for rows.Next() {
 		meta := &WorkspaceMeta{}
-		err := rows.Scan(&meta.Id, &meta.WorkspaceId, &meta.Key, &meta.Value, &meta.CreatedAt, &meta.UpdatedAt)
+		err := rows.Scan(
+			&meta.Id,
+			&meta.WorkspaceId,
+			&meta.Key,
+			&meta.Value,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, meta)
 	}
-
 	return list, rows.Err()
 }
 
@@ -315,7 +364,6 @@ func (r *WorkspaceMetaRepositoryPostgres) Upsert(id Id, key, value string) error
 	if err != nil {
 		return err
 	}
-
 	if existing == nil {
 		return r.Create(id, key, value)
 	}
