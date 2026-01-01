@@ -1,0 +1,52 @@
+// Copyright 2026 Clivern. All rights reserved.
+// License can be found in the LICENSE file.
+
+package api
+
+import (
+	"net/http"
+
+	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/locale"
+	"github.com/clivern/actx0/middleware"
+	"github.com/clivern/actx0/module"
+	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/rs/zerolog/log"
+)
+
+// LogoutAction logs the user out and revokes their session.
+func LogoutAction(w http.ResponseWriter, r *http.Request) {
+	log.Info().Msg("Logout endpoint called")
+
+	util.DeleteCookie(w, "_ctx_session")
+
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok {
+		util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+			"successMessage": locale.TR(r, "logoutSuccessful"),
+		})
+		return
+	}
+
+	sessionManager := module.NewSessionManager(
+		db.NewSessionRepository(db.GetDB()),
+		db.NewUserRepository(db.GetDB()),
+	)
+
+	sessionManager.CleanupExpiredSessions()
+	if err := sessionManager.RevokeUserSessions(user.ID); err != nil {
+		log.Error().
+			Str("userID", user.ID.String()).
+			Err(err).
+			Msg("Failed to revoke session")
+	} else {
+		log.Info().
+			Str("userID", user.ID.String()).
+			Msg("Session revoked successfully")
+	}
+
+	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"successMessage": locale.TR(r, "logoutSuccessful"),
+	})
+}

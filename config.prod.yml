@@ -1,0 +1,59 @@
+# Server configs
+app:
+  # Server name
+  name: ${CTX_SERVER_NAME:-ctx}
+  # Env mode (dev or prod)
+  mode: ${CTX_SERVER_MODE:-prod}
+  # HTTP port
+  port: ${CTX_SERVER_PORT:-8000}
+  # Hostname
+  hostname: ${CTX_SERVER_HOSTNAME:-127.0.0.1}
+  # Server encryption key
+  encryption_key: ${CTX_SERVER_ENCRYPTION_KEY:-ec42a4ca49c7fba9273e402eb4d3521a8679b634bc4fdf80932e18e17e252fc3}
+  # TLS configs
+  tls:
+    status: ${CTX_SERVER_TLS_STATUS:-off}
+    crt_path: ${CTX_SERVER_TLS_PEMPATH:-cert/server.crt}
+    key_path: ${CTX_SERVER_TLS_KEYPATH:-cert/server.key}
+
+  # Global timeout
+  timeout: ${CTX_SERVER_TIMEOUT:-50}
+
+  # Prometheus metrics endpoint
+  metrics:
+    username: ${CTX_SERVER_PROM_METRICS_USERNAME:-admin}
+    secret: ${CTX_SERVER_PROM_METRICS_SECRET:-secret}
+
+  # Log configs
+  log:
+    # Log level, it can be debug, info, warn, error, panic, fatal
+    level: ${CTX_SERVER_LOG_LEVEL:-info}
+    # Output can be stdout or abs path to log file /var/logs/ctx.log
+    output: ${CTX_SERVER_LOG_OUTPUT:-stdout}
+    # Format can be json
+    format: ${CTX_SERVER_LOG_FORMAT:-json}
+
+  # Database configs
+  database:
+    # Database driver (postgres or postgresql)
+    driver: ${CTX_DATABASE_DRIVER:-postgres}
+    host: ${CTX_DATABASE_HOST:-localhost}
+    port: ${CTX_DATABASE_PORT:-5432}
+    username: ${CTX_DATABASE_USERNAME:-postgres}
+    password: ${CTX_DATABASE_PASSWORD:-postgres}
+    name: ${CTX_DATABASE_NAME:-ctx}
+    # Connection pool settings
+    max_open_conns: ${CTX_DATABASE_MAX_OPEN_CONNS:-25}
+    max_idle_conns: ${CTX_DATABASE_MAX_IDLE_CONNS:-10}
+    conn_max_lifetime: ${CTX_DATABASE_CONN_MAX_LIFETIME:-300}
+
+  # AI provider configs (Genkit: openai, googleai, vertexai, anthropic)
+  ai:
+    enabled: ${CTX_AI_ENABLED:-false}
+    provider: ${CTX_AI_PROVIDER:-openai}
+    model: ${CTX_AI_MODEL:-openai/gpt-5-mini}
+    api_key: ${CTX_AI_API_KEY:-}
+    base_url: ${CTX_AI_BASE_URL:-}
+    # Vertex AI only
+    project_id: ${CTX_AI_PROJECT_ID:-}
+    location: ${CTX_AI_LOCATION:-}

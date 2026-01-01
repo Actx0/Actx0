@@ -1,0 +1,119 @@
+// Copyright 2026 Clivern. All rights reserved.
+// License can be found in the LICENSE file.
+
+package api
+
+import (
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/locale"
+	"github.com/clivern/actx0/module"
+	"github.com/clivern/actx0/pkg/util"
+
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
+)
+
+// LoginRequest is the body you send to log in.
+type LoginRequest struct {
+	Email      string `json:"email" validate:"required,email" label:"Email"`
+	Password   string `json:"password" validate:"required" label:"Password"`
+	RememberMe bool   `json:"rememberMe" validate:"omitempty,boolean" label:"Remember Me"`
+}
+
+// LoginAction logs the user in and creates a session.
+func LoginAction(w http.ResponseWriter, r *http.Request) {
+	var req LoginRequest
+	if err := util.DecodeAndValidate(r, &req); err != nil {
+		util.WriteValidationError(w, err)
+		return
+	}
+
+	log.Info().
+		Str("email", req.Email).
+		Msg("Login endpoint called")
+
+	userRepo := db.NewUserRepository(db.GetDB())
+	sessionRepo := db.NewSessionRepository(db.GetDB())
+	authModule := module.NewAuth(userRepo)
+	user, err := authModule.Login(req.Email, req.Password)
+	if err != nil {
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+			"errorMessage": locale.TR(r, "invalidUsernameOrPassword"),
+		})
+		return
+	}
+
+	if !user.IsActive {
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+			"errorMessage": locale.TR(r, "accountNotActive"),
+		})
+		return
+	}
+
+	configRepo := db.NewConfigRepository(db.GetDB())
+	maintenanceConfig, err := configRepo.Get("maintenance_mode")
+
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("userID", user.ID.String()).
+			Msg("Failed to get maintenance_mode config")
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			"errorMessage": locale.TR(r, "failedCheckMaintenance"),
+		})
+		return
+	}
+
+	if maintenanceConfig != nil && maintenanceConfig.Value == "1" && user.Role != db.UserRoleAdmin {
+		util.WriteJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
+			"errorMessage": locale.TR(r, "maintenanceModeEnabled"),
+		})
+		return
+	}
+
+	sessionManager := module.NewSessionManager(sessionRepo, userRepo)
+	session, err := sessionManager.CreateSession(
+		user.ID,
+		time.Hour*24*7,
+		r.RemoteAddr,
+		r.UserAgent(),
+	)
+	if err != nil {
+		util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			"errorMessage": locale.TR(r, "failedCreateSession"),
+		})
+		return
+	}
+
+	var cookieOptions *util.CookieOptions
+	if viper.GetBool("app.tls.status") || strings.HasPrefix(viper.GetString("app.hostname"), "https://") {
+		cookieOptions = util.SecureCookieOptions()
+	} else {
+		cookieOptions = util.DefaultCookieOptions()
+	}
+	if req.RememberMe {
+		cookieOptions.MaxAge = int((time.Hour * 24 * 30) / time.Second)
+	} else {
+		cookieOptions.MaxAge = 0
+	}
+
+	util.SetCookie(w, "_ctx_session", session.Token, cookieOptions)
+	util.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"successMessage": locale.TR(r, "loginSuccessful"),
+		"user": map[string]interface{}{
+			"id":          user.ID,
+			"email":       user.Email,
+			"role":        user.Role,
+			"isActive":    user.IsActive,
+			"name":        user.Name,
+			"avatar":      util.GravatarURL(user.Email, 80),
+			"lastLoginAt": user.LastLoginAt.UTC().Format(time.RFC3339),
+			"createdAt":   user.CreatedAt.UTC().Format(time.RFC3339),
+			"updatedAt":   user.UpdatedAt.UTC().Format(time.RFC3339),
+		},
+	})
+}
