@@ -5,7 +5,7 @@ go 1.25.5
 require (
 	github.com/drone/envsubst v1.0.3
 	github.com/firebase/genkit/go v1.8.0
-	github.com/go-chi/chi/v5 v5.3.0
+	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/google/uuid v1.6.0
 	github.com/leonelquinteros/gotext v1.7.2
