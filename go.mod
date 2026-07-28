@@ -3,7 +3,7 @@ module github.com/clivern/actx0
 go 1.26.5
 
 require (
-	github.com/OpenRouterTeam/go-sdk v0.6.2
+	github.com/OpenRouterTeam/go-sdk v0.7.1
 	github.com/aws/aws-sdk-go-v2 v1.43.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.31
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.30
