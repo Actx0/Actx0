@@ -1,5 +1,5 @@
-github.com/OpenRouterTeam/go-sdk v0.7.18 h1:vUaW5f7B5FlYaMKFaWyV9RTxJFEN0Q78pmQOtfbKGpY=
-github.com/OpenRouterTeam/go-sdk v0.7.18/go.mod h1:8ZRHxPEBG2Lu7BXRGbcoTdhRQnXGFZ+y0jKVpCAQR8c=
+github.com/OpenRouterTeam/go-sdk v0.7.19 h1:sxILObQ8YmV0VNybNoDAcR6qzm1blKPrEtyLwSAmtFM=
+github.com/OpenRouterTeam/go-sdk v0.7.19/go.mod h1:8ZRHxPEBG2Lu7BXRGbcoTdhRQnXGFZ+y0jKVpCAQR8c=
 github.com/aws/aws-sdk-go-v2 v1.43.3 h1:XJIcfv8uDs2ukdQsoAC8/Ebu1ejxwzlayl2ZsiFns2A=
 github.com/aws/aws-sdk-go-v2 v1.43.3/go.mod h1:70vwSy16txshwG+g55WkpgPKDIByzHI8ccBsOteo3bQ=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.16 h1:aiuaKlDweRC5qExJondpWjOgyzMHpofpwspGXUtwn4c=
