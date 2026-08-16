@@ -14,7 +14,6 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -51,7 +50,7 @@ func ListWorkspaceNotificationsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to list notifications")
+			util.Error(err).Str("workspaceId", wid).Msg("Failed to list notifications")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_notifications"),
 			})
@@ -115,7 +114,7 @@ func MarkWorkspaceNotificationReadAction(w http.ResponseWriter, r *http.Request)
 				"errorMessage": locale.TR(r, "notification_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("notificationId", notificationId).Msg("Failed to mark notification as read")
+			util.Error(err).Str("notificationId", notificationId).Msg("Failed to mark notification as read")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_mark_notification_read"),
 			})
@@ -172,7 +171,7 @@ func MarkWorkspaceNotificationArchivedAction(w http.ResponseWriter, r *http.Requ
 				"errorMessage": locale.TR(r, "notification_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("notificationId", notificationId).Msg("Failed to mark notification as archived")
+			util.Error(err).Str("notificationId", notificationId).Msg("Failed to mark notification as archived")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_mark_notification_archived"),
 			})

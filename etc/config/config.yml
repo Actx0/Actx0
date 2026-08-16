@@ -15,6 +15,10 @@ app:
     output: ${ACTX0_SERVER_LOG_OUTPUT:-stdout}
     format: ${ACTX0_SERVER_LOG_FORMAT:-json}
 
+  # Create Sentry DSN at https://sentry.io
+  sentry:
+    dsn: ${ACTX0_SENTRY_DSN:-}
+
   mailer:
     provider: ${ACTX0_MAILER_PROVIDER:-resend}
     from: ${ACTX0_MAILER_FROM:-no_reply@actx0.com}

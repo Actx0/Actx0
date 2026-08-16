@@ -23,6 +23,7 @@ import (
 	"github.com/clivern/actx0/pkg/ai"
 	"github.com/clivern/actx0/pkg/qdrant"
 	"github.com/clivern/actx0/pkg/storage"
+	"github.com/clivern/actx0/pkg/util"
 	"github.com/clivern/actx0/service/agent"
 	"github.com/clivern/actx0/service/knowledge"
 	"github.com/clivern/actx0/task"
@@ -39,6 +40,7 @@ func SetupServer(Static embed.FS) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(cmid.Recoverer)
+	r.Use(middleware.Sentry)
 	r.Use(cmid.Timeout(
 		time.Duration(viper.GetInt("app.timeout")) * time.Second,
 	))
@@ -262,6 +264,8 @@ func SetupServer(Static embed.FS) http.Handler {
 
 // Run starts the HTTP server with graceful shutdown support
 func RunServer(handler http.Handler) error {
+	defer FlushSentry()
+
 	err := db.InitDB(ReadWriteDatabase(), ReadOnlyDatabase()...)
 	if err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
@@ -287,8 +291,7 @@ func RunServer(handler http.Handler) error {
 	defer func() {
 		err := vdb.Close()
 		if err != nil {
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Msg("Error closing qdrant client")
 		}
 	}()
@@ -325,8 +328,7 @@ func RunServer(handler http.Handler) error {
 	defer func() {
 		err := db.CloseDB()
 		if err != nil {
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Msg("Error closing database connection")
 		}
 	}()
@@ -334,8 +336,7 @@ func RunServer(handler http.Handler) error {
 	defer func() {
 		err := asyr.Stop(30 * time.Second)
 		if err != nil {
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Msg("Error stopping async worker pool")
 		}
 	}()

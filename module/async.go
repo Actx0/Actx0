@@ -14,6 +14,7 @@ import (
 	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/async"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -85,7 +86,7 @@ func Start(atr db.AsyncTaskRepository) (*Async, error) {
 			case <-mgr.wake:
 			}
 			if err := mgr.RunTasks(); err != nil {
-				log.Error().Err(err).Msg("Failed to drain pending async tasks")
+				util.Error(err).Msg("Failed to drain pending async tasks")
 			}
 		}
 	}()
@@ -296,8 +297,7 @@ func (a *Async) CleanupCompletedTasks() {
 	cutoff := time.Now().UTC().Add(conf.AsyncCompletedTasksRetention)
 	count, err := a.TaskRepository.DeleteCompletedOlderThan(cutoff)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Msg("Failed to delete old completed async tasks")
 		return
 	}
@@ -328,13 +328,12 @@ func (a *Async) failTask(task *db.AsyncTask, taskErr error) error {
 		return err
 	}
 
-	log.Error().
+	util.Error(taskErr).
 		Str("taskId", task.Id.String()).
 		Str("taskType", task.Type).
 		Int("priority", task.Priority).
 		Str("workspaceId", task.WorkspaceId.String()).
 		Int("attempt", task.Attempts).
-		Err(taskErr).
 		Msg("Async task failed")
 
 	return taskErr

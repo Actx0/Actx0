@@ -75,7 +75,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 			if cfg.Workspace {
 				wid := chi.URLParam(r, "workspaceId")
 				if lo.IsEmpty(wid) {
-					log.Error().
+					util.Error(errors.New("protect workspace missing workspace id param")).
 						Str("path", r.URL.Path).
 						Msg("Protect Workspace missing workspace id param")
 					util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -86,8 +86,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 
 				workspace, err := db.NewWorkspaceRepository(db.GetDB()).GetById(db.Id(wid))
 				if err != nil {
-					log.Error().
-						Err(err).
+					util.Error(err).
 						Str("workspaceId", wid).
 						Msg("Failed to load workspace")
 					util.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -116,7 +115,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 				} else {
 					wid := chi.URLParam(r, "workspaceId")
 					if lo.IsEmpty(wid) {
-						log.Error().
+						util.Error(errors.New("workspace permission check missing workspace id param")).
 							Str("path", r.URL.Path).
 							Str("permission", cfg.Perm).
 							Msg("Workspace permission check missing workspace id param")
@@ -160,8 +159,7 @@ func Protect(cfg Config) func(http.Handler) http.Handler {
 						})
 						return
 					}
-					log.Error().
-						Err(err).
+					util.Error(err).
 						Str("path", r.URL.Path).
 						Str("permission", cfg.Perm).
 						Msg("Failed to check workspace permission")

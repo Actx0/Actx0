@@ -18,8 +18,7 @@ func ReadyAction(w http.ResponseWriter, _ *http.Request) {
 
 	err := db.GetDB().Ping()
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Msg("Database ping failed during readiness check")
 
 		util.WriteJSON(w, http.StatusServiceUnavailable, map[string]any{

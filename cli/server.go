@@ -20,6 +20,11 @@ var serverCmd = &cobra.Command{
 			panic(err.Error())
 		}
 
+		err = core.SetupSentry(Version)
+		if err != nil {
+			panic(err.Error())
+		}
+
 		err = core.SetupLogging()
 		if err != nil {
 			panic(err.Error())

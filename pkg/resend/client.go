@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/clivern/actx0/pkg/util"
+
 	resendgo "github.com/resend/resend-go/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -64,6 +66,7 @@ func (m *Mailer) SendVerifyEmail(to, name, verifyLink, platformName string) erro
 func (m *Mailer) sendTemplate(to, subject, templateName string, data any) error {
 	htmlBody, err := renderTemplate(templateName, data)
 	if err != nil {
+		util.CaptureError(err)
 		return err
 	}
 
@@ -76,7 +79,9 @@ func (m *Mailer) sendTemplate(to, subject, templateName string, data any) error 
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("resend send email: %w", err)
+		err = fmt.Errorf("resend send email: %w", err)
+		util.CaptureError(err)
+		return err
 	}
 
 	log.Info().

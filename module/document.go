@@ -190,8 +190,7 @@ func (d *Document) UploadDocument(ctx context.Context, form *util.UploadForm, wo
 	if err != nil {
 		derr := d.DocumentRepository.Delete(document.Id)
 		if derr != nil {
-			log.Error().
-				Err(derr).
+			util.Error(derr).
 				Str("documentId", document.Id.String()).
 				Msg("Failed to rollback document after storage error")
 		}
@@ -200,8 +199,7 @@ func (d *Document) UploadDocument(ctx context.Context, form *util.UploadForm, wo
 
 	err = d.EnqueueIndexTask(workspaceId, document.Id)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("documentId", document.Id.String()).
 			Msg("Failed to enqueue document index task")
 	}
@@ -387,6 +385,7 @@ func (d *Document) SearchDocuments(ctx context.Context, workspaceId db.Id, query
 			return nil, err
 		}
 
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspaceId", workspaceId.String()).

@@ -165,8 +165,7 @@ func (a *Auth) Login(ctx context.Context, req *LoginRequest) (*LoginResult, erro
 			Body:   new(string("Please verify your email address to unlock all features.")),
 		})
 		if err != nil {
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to create email unverified notification")
 		}
@@ -218,8 +217,7 @@ func (a *Auth) Logout(ctx context.Context, userId db.Id) error {
 func (a *Auth) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) error {
 	user, err := a.UserRepository.GetByEmail(req.Email)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("email", req.Email).
 			Msg("Failed to look up user for forgot password")
 		return nil
@@ -271,8 +269,7 @@ func (a *Auth) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) e
 func (a *Auth) ResetPassword(ctx context.Context, req *ResetPasswordRequest) error {
 	tok, err := a.PasswordResetTokenRepository.GetByToken(req.Token)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("token", req.Token).
 			Msg("Failed to look up password reset token")
 		return ErrResetTokenInvalid
@@ -299,8 +296,7 @@ func (a *Auth) ResetPassword(ctx context.Context, req *ResetPasswordRequest) err
 
 	err = a.PasswordResetTokenRepository.DeleteByToken(req.Token)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("token", req.Token).
 			Str("userId", tok.UserId.String()).
 			Msg("Failed to delete password reset token")

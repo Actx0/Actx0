@@ -78,8 +78,7 @@ func CreateInviteAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("userId", user.Id.String()).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to create invite")
@@ -139,7 +138,7 @@ func ListInvitesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", workspaceId).Msg("Failed to list invites")
+			util.Error(err).Str("workspaceId", workspaceId).Msg("Failed to list invites")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_invites"),
 			})
@@ -201,8 +200,7 @@ func GetInviteAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("inviteId", inviteId).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to get invite")
@@ -260,7 +258,7 @@ func DeleteInviteAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invite_not_found"),
 			})
 		default:
-			log.Error().Err(err).
+			util.Error(err).
 				Str("inviteId", inviteId).
 				Str("workspaceId", workspaceId).
 				Msg("Failed to delete invite")
@@ -321,8 +319,7 @@ func GetUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invite_no_longer_valid"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("token", token).
 				Msg("Failed to get invite by token")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -379,8 +376,7 @@ func GetAuthenticatedUserInviteByTokenAction(w http.ResponseWriter, r *http.Requ
 				"errorMessage": locale.TR(r, "invite_no_longer_valid"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("token", token).
 				Str("userId", user.Id.String()).
 				Msg("Failed to get authenticated invite by token")
@@ -421,8 +417,7 @@ func ListUserInvitesAction(w http.ResponseWriter, r *http.Request) {
 	)
 	result, err := im.ListUserInvites(user, limit, offset)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to list invites")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -497,8 +492,7 @@ func AcceptUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("token", token).
 				Str("userId", user.Id.String()).
 				Msg("Failed to accept invite")
@@ -578,8 +572,7 @@ func RejectUserInviteByTokenAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invite_email_mismatch"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("token", token).
 				Str("userId", user.Id.String()).
 				Msg("Failed to reject invite")

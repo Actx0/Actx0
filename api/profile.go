@@ -38,8 +38,7 @@ func GetProfileAction(w http.ResponseWriter, r *http.Request) {
 	profile, err := pm.GetProfile(user.Id)
 
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to get profile")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -109,16 +108,14 @@ func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "account_with_email_exists"),
 			})
 		case errors.Is(err, module.ErrFailedUpdateProfile), errors.Is(err, module.ErrUserNotFound):
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to update profile")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_profile"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to update profile")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -181,8 +178,7 @@ func ResendVerifyEmailAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "user_not_found"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to resend verify email")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{

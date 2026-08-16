@@ -62,8 +62,7 @@ func ListWorkspaceMembersAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("workspaceId", wid).
 				Str("userId", user.Id.String()).
 				Msg("Failed to list workspace members")
@@ -147,8 +146,7 @@ func UpdateWorkspaceMemberRoleAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_member_not_found"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("workspaceId", wid).
 				Str("memberUserId", memberUserId).
 				Str("userId", user.Id.String()).
@@ -225,8 +223,7 @@ func DeleteWorkspaceMemberAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_member_not_found"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("workspaceId", wid).
 				Str("memberUserId", memberUserId).
 				Str("userId", user.Id.String()).

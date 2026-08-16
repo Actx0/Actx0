@@ -11,6 +11,7 @@ import (
 	"github.com/clivern/actx0/migration"
 	"github.com/clivern/actx0/pkg/ai"
 	"github.com/clivern/actx0/pkg/qdrant"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
@@ -51,6 +52,7 @@ func (s *Service) Search(ctx context.Context, req SearchRequest) ([]SearchHit, a
 
 		document, err := s.documents.GetByInternalId(db.Id(internalIdStr))
 		if err != nil {
+			util.CaptureError(err)
 			log.Warn().
 				Err(err).
 				Str("internal_id", internalIdStr).

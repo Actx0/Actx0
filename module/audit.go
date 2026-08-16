@@ -13,7 +13,6 @@ import (
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/util"
 
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -117,8 +116,7 @@ func (a *Audit) Record(ctx context.Context, event *RecordAuditEvent) {
 
 	err := a.AuditRepository.Create(row)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("workspaceId", event.WorkspaceId.String()).
 			Str("action", event.Action).
 			Msg("Failed to record audit event")

@@ -45,8 +45,7 @@ func UpdateSettingsAction(w http.ResponseWriter, r *http.Request) {
 	mod := module.NewSettings(db.NewConfigRepository(db.GetDB()))
 	err = mod.Update(req.PlatformEmail, req.MaintenanceMode)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to update settings")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -82,8 +81,7 @@ func GetSettingsAction(w http.ResponseWriter, r *http.Request) {
 	settings, err := mod.GetSettings()
 
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to get settings")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{

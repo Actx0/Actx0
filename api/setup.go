@@ -41,16 +41,14 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "platform_already_installed"),
 			})
 		case errors.Is(err, module.ErrFailedCompleteSetup):
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("adminEmail", req.AdminEmail).
 				Msg("Failed to complete setup")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_complete_setup"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("adminEmail", req.AdminEmail).
 				Msg("Setup failed")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{

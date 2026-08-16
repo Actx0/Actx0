@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/clivern/actx0/db"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -144,7 +144,7 @@ func (a *Access) ListAccessKeys(workspaceId db.Id, limit, offset int) (*ListAcce
 	}
 
 	if _, err := a.WorkspaceAccessKeyRepository.DeleteExpired(); err != nil {
-		log.Error().Err(err).Msg("Failed to delete expired workspace access keys")
+		util.Error(err).Msg("Failed to delete expired workspace access keys")
 	}
 
 	total, err := a.WorkspaceAccessKeyRepository.CountByWorkspaceId(workspaceId)
@@ -194,7 +194,7 @@ func (a *Access) GetAccessKey(workspaceId, id db.Id) (*AccessKeyResponse, error)
 	}
 
 	if _, err := a.WorkspaceAccessKeyRepository.DeleteExpired(); err != nil {
-		log.Error().Err(err).Msg("Failed to delete expired workspace access keys")
+		util.Error(err).Msg("Failed to delete expired workspace access keys")
 	}
 
 	item, err := a.WorkspaceAccessKeyRepository.GetById(id)

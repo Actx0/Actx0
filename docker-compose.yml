@@ -63,6 +63,7 @@ services:
       ACTX0_RESEND_API_KEY: ${ACTX0_RESEND_API_KEY:-}
       ACTX0_STRIPE_SECRET_KEY: ${ACTX0_STRIPE_SECRET_KEY:-}
       ACTX0_STRIPE_WEBHOOK_SECRET: ${ACTX0_STRIPE_WEBHOOK_SECRET:-}
+      ACTX0_SENTRY_DSN: ${ACTX0_SENTRY_DSN:-}
     volumes:
       - ./etc/config/config.yml:/app/configs/config.yml:ro
       - actx0_data:/app/var

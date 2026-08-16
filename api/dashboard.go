@@ -13,7 +13,6 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -40,8 +39,7 @@ func GetWorkspaceStatsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("workspaceId", wid).
 				Msg("Failed to get workspace stats")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{

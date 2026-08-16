@@ -46,6 +46,7 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 
 					reached, err := module.NewUsage().IsAPICallsReached(usageRepo, subscriptions, workspace.Id, 1)
 					if err != nil {
+						util.CaptureError(err)
 						log.Warn().
 							Err(err).
 							Str("workspaceId", workspace.Id.String()).
@@ -85,6 +86,7 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 				workspace.Id,
 			)
 			if err != nil {
+				util.CaptureError(err)
 				log.Warn().
 					Err(err).
 					Str("workspaceId", workspace.Id.String()).
