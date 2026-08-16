@@ -48,6 +48,7 @@ type NotificationRepository interface {
 	ExistsByWorkspaceIdAndType(workspaceId Id, notificationType string) (bool, error)
 	MarkRead(id Id) error
 	MarkArchived(id Id) error
+	ArchiveByUserIdAndType(userId Id, notificationType string) error
 	Delete(id Id) error
 }
 
@@ -351,6 +352,23 @@ func (r *NotificationRepositoryPostgres) MarkArchived(id Id) error {
 		now,
 		now,
 		id.String(),
+	)
+	return err
+}
+
+// ArchiveByUserIdAndType archives all matching non-archived notifications for a user.
+func (r *NotificationRepositoryPostgres) ArchiveByUserIdAndType(userId Id, notificationType string) error {
+	now := time.Now().UTC()
+	_, err := r.db.Exec(
+		`UPDATE notifications
+		SET
+			archived_at = $1,
+			updated_at = $2
+		WHERE user_id = $3 AND type = $4 AND archived_at IS NULL`,
+		now,
+		now,
+		userId.String(),
+		notificationType,
 	)
 	return err
 }
