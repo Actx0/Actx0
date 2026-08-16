@@ -37,12 +37,16 @@ type RegisterResult struct {
 
 // Register handles direct account registration.
 type Register struct {
-	UserRepository db.UserRepository
+	UserRepository         db.UserRepository
+	NotificationRepository db.NotificationRepository
 }
 
 // NewRegister creates a Register module with the given repositories.
-func NewRegister(users db.UserRepository) *Register {
-	return &Register{UserRepository: users}
+func NewRegister(users db.UserRepository, notifications db.NotificationRepository) *Register {
+	return &Register{
+		UserRepository:         users,
+		NotificationRepository: notifications,
+	}
 }
 
 // Register creates a regular user account.
@@ -133,5 +137,10 @@ func (r *Register) VerifyEmail(token string) error {
 	user.IsEmailVerified = true
 	user.EmailVerifyToken = nil
 
-	return r.UserRepository.Update(user)
+	err = r.UserRepository.Update(user)
+	if err != nil {
+		return err
+	}
+
+	return r.NotificationRepository.ArchiveByUserIdAndType(user.Id, NotificationTypeEmailUnverified)
 }

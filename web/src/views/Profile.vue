@@ -422,6 +422,12 @@ const needsCurrentPassword = computed(() => {
   return emailChanged || !!form.newPassword.trim()
 })
 
+async function loadProfile() {
+  const res = await auth_api.getProfile()
+  saveUser(res.data.user)
+  applyUserPreferences(res.data.user)
+}
+
 async function loadApiKeys() {
   apiKeysLoading.value = true
   errorMessage.value = null
@@ -530,5 +536,8 @@ watchEffect(() => {
   }
 })
 
-onMounted(loadApiKeys)
+onMounted(() => {
+  loadProfile()
+  loadApiKeys()
+})
 </script>

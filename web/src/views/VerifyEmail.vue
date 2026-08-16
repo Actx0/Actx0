@@ -48,6 +48,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { auth_api } from '@/api'
 import { showFlash } from '@/lib/flash'
+import { user, saveUser } from '@/lib/auth'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -59,6 +60,9 @@ const error = ref(null)
 onMounted(async () => {
   try {
     await auth_api.verifyEmail(route.params.token)
+    if (user.value) {
+      saveUser({ ...user.value, isEmailVerified: true })
+    }
     showFlash(t('common.saved'))
     setTimeout(() => router.push('/login'), 2000)
   } catch (err) {

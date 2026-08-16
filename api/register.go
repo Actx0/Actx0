@@ -31,7 +31,10 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 		Str("email", req.Email).
 		Msg("New registration request")
 
-	rm := module.NewRegister(db.NewUserRepository(db.GetDB()))
+	rm := module.NewRegister(
+		db.NewUserRepository(db.GetDB()),
+		db.NewNotificationRepository(db.GetDB()),
+	)
 
 	result, err := rm.Register(&req)
 	if err != nil {
@@ -80,7 +83,10 @@ func VerifyEmailAction(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Msg("New email verification request")
 
-	rm := module.NewRegister(db.NewUserRepository(db.GetDB()))
+	rm := module.NewRegister(
+		db.NewUserRepository(db.GetDB()),
+		db.NewNotificationRepository(db.GetDB()),
+	)
 
 	err := rm.VerifyEmail(token)
 	if err != nil {
