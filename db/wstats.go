@@ -5,7 +5,6 @@ package db
 
 import (
 	"database/sql"
-	"time"
 )
 
 const UsageTypeAPICalls = "api_calls"
@@ -63,22 +62,15 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		return nil, err
 	}
 
-	now := time.Now().UTC()
-	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-	monthEnd := monthStart.AddDate(0, 1, 0)
-
-	// APICalls Month
+	// APICalls for the current subscription period
 	err = r.db.QueryRow(
 		`SELECT COALESCE(SUM(quantity), 0)
 		FROM usage
 		WHERE workspace_id = $1
 			AND type = $2
-			AND period_start >= $3
-			AND period_start < $4`,
+			AND period_start = (SELECT period_start FROM subscriptions WHERE workspace_id = $1)`,
 		workspaceId.String(),
 		UsageTypeAPICalls,
-		monthStart,
-		monthEnd,
 	).Scan(&stats.APICallsMonth)
 	if err != nil {
 		return nil, err

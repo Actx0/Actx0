@@ -398,15 +398,7 @@ const canManageStripe = computed(() => {
 
 const isCurrentPlan = (plan) => plan.id === billingStatus.value.plan
 
-const usagePeriodReset = computed(() => {
-  if (usageData.value.periodReset) {
-    return formatDate(usageData.value.periodReset, locale.value)
-  }
-
-  const now = new Date()
-  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-  return formatDate(next, locale.value)
-})
+const usagePeriodReset = computed(() => formatDate(usageData.value.periodReset, locale.value))
 
 const formatNumber = (value) => value.toLocaleString(locale.value, { maximumFractionDigits: 0 })
 
