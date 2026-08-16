@@ -158,7 +158,7 @@
                 </li>
               </ul>
               <a
-                href="https://actx0.com/docs"
+                href="https://docs.actx0.com/"
                 target="_blank"
                 rel="noopener"
                 class="btn-secondary mt-4 inline-flex items-center px-3 py-1.5 text-sm"
