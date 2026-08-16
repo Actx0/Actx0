@@ -21,6 +21,7 @@ import (
 const (
 	BillingProviderStripe = "stripe"
 	BillingStatusActive   = "active"
+	BillingStatusPastDue  = "past_due"
 	BillingStatusCanceled = "canceled"
 )
 
@@ -120,6 +121,8 @@ type BillingStatusResponse struct {
 	Status             string  `json:"status"`
 	Provider           *string `json:"provider"`
 	ProviderCustomerId string  `json:"providerCustomerId"`
+	PeriodStart        string  `json:"periodStart"`
+	PeriodEnd          string  `json:"periodEnd"`
 	CreatedAt          string  `json:"createdAt"`
 	UpdatedAt          string  `json:"updatedAt"`
 }
@@ -196,6 +199,8 @@ func (b *Billing) GetBillingStatus(workspaceId db.Id) (*BillingStatusResponse, e
 		Status:             subscription.Status,
 		Provider:           subscription.Provider,
 		ProviderCustomerId: lo.FromPtr(subscription.ProviderCustomerId),
+		PeriodStart:        subscription.CurrentPeriodStart.UTC().Format(time.RFC3339),
+		PeriodEnd:          subscription.CurrentPeriodEnd.UTC().Format(time.RFC3339),
 		CreatedAt:          subscription.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:          subscription.UpdatedAt.UTC().Format(time.RFC3339),
 	}, nil
@@ -339,68 +344,68 @@ func (b *Billing) HandleWebhook(payload []byte, signature string) error {
 		if err != nil {
 			return fmt.Errorf("decode subscription: %w", err)
 		}
-		return b.SyncStripeSubscription(client, &subscription, string(event.Type))
+
+		return b.SyncStripeSubscription(&subscription, string(event.Type))
+	case "invoice.paid":
+		var invoice stripesdk.Invoice
+		err = json.Unmarshal(event.Data.Raw, &invoice)
+		if err != nil {
+			return fmt.Errorf("decode invoice: %w", err)
+		}
+
+		period := invoice.Lines.Data[0].Period
+		return b.SyncStripeSubscription(&stripesdk.Subscription{
+			ID:       invoice.Parent.SubscriptionDetails.Subscription.ID,
+			Customer: invoice.Customer,
+			Metadata: invoice.Parent.SubscriptionDetails.Metadata,
+			Status:   stripesdk.SubscriptionStatusActive,
+			Items: &stripesdk.SubscriptionItemList{
+				Data: []*stripesdk.SubscriptionItem{{
+					CurrentPeriodStart: period.Start,
+					CurrentPeriodEnd:   period.End,
+				}},
+			},
+		}, string(event.Type))
+	case "invoice.payment_failed":
+		var invoice stripesdk.Invoice
+		err = json.Unmarshal(event.Data.Raw, &invoice)
+		if err != nil {
+			return fmt.Errorf("decode invoice: %w", err)
+		}
+
+		return b.SyncStripeSubscription(&stripesdk.Subscription{
+			ID:       invoice.Parent.SubscriptionDetails.Subscription.ID,
+			Customer: invoice.Customer,
+			Metadata: invoice.Parent.SubscriptionDetails.Metadata,
+			Status:   stripesdk.SubscriptionStatusPastDue,
+		}, string(event.Type))
 	default:
 		return nil
 	}
 }
 
 // SyncStripeSubscription syncs a Stripe subscription with the local database.
-func (b *Billing) SyncStripeSubscription(client *stripe.Client, payload *stripesdk.Subscription, eventType string) error {
-	if payload == nil {
-		return nil
-	}
-
-	workspaceId := db.Id(payload.Metadata["workspaceId"])
-	plan := payload.Metadata["plan"]
-
-	if lo.IsEmpty(workspaceId) {
-		return nil
-	}
-
-	subscription, err := b.SubscriptionRepository.GetByWorkspaceId(workspaceId)
+func (b *Billing) SyncStripeSubscription(payload *stripesdk.Subscription, eventType string) error {
+	subscription, err := b.SubscriptionRepository.GetByWorkspaceId(db.Id(payload.Metadata["workspaceId"]))
 	if err != nil {
 		return err
 	}
-	if subscription == nil {
-		log.Warn().
-			Str("workspaceId", workspaceId.String()).
-			Str("subscriptionId", payload.ID).
-			Msg("Stripe subscription sync ignored: workspace subscription not found")
-		return nil
-	}
-
-	status := string(payload.Status)
-	if eventType == "customer.subscription.deleted" {
-		status = BillingStatusCanceled
-	}
 
 	subscription.Provider = new(BillingProviderStripe)
-	if payload.Customer != nil && lo.IsNotEmpty(payload.Customer.ID) {
-		subscription.ProviderCustomerId = new(payload.Customer.ID)
-	}
-	if lo.IsNotEmpty(payload.ID) && status != BillingStatusCanceled {
-		subscription.ProviderSubscriptionId = new(payload.ID)
+	subscription.ProviderCustomerId = new(payload.Customer.ID)
+	subscription.ProviderSubscriptionId = new(payload.ID)
+	subscription.Plan = payload.Metadata["plan"]
+	subscription.Status = lo.Ternary(eventType == "customer.subscription.deleted", BillingStatusCanceled, string(payload.Status))
+
+	if eventType == "invoice.payment_failed" {
+		// TODO: notify customers that invoice payment failed
 	}
 
-	if payload.Items != nil && len(payload.Items.Data) > 0 {
+	// Update the subscription period if the event type is invoice.paid
+	if eventType == "invoice.paid" {
 		item := payload.Items.Data[0]
-		if item.CurrentPeriodStart > 0 {
-			subscription.CurrentPeriodStart = new(time.Unix(item.CurrentPeriodStart, 0).UTC())
-		}
-		if item.CurrentPeriodEnd > 0 {
-			subscription.CurrentPeriodEnd = new(time.Unix(item.CurrentPeriodEnd, 0).UTC())
-		}
-		if lo.IsEmpty(plan) && item.Price != nil {
-			plan = client.Config().PlanForPriceId(item.Price.ID)
-		}
-	}
-
-	if status == BillingStatusActive || status == BillingStatusCanceled {
-		if lo.IsNotEmpty(plan) {
-			subscription.Plan = plan
-		}
-		subscription.Status = status
+		subscription.CurrentPeriodStart = new(time.Unix(item.CurrentPeriodStart, 0).UTC())
+		subscription.CurrentPeriodEnd = new(time.Unix(item.CurrentPeriodEnd, 0).UTC())
 	}
 
 	err = b.SubscriptionRepository.Update(subscription)
@@ -413,6 +418,8 @@ func (b *Billing) SyncStripeSubscription(client *stripe.Client, payload *stripes
 		Str("subscriptionId", payload.ID).
 		Str("plan", subscription.Plan).
 		Str("status", subscription.Status).
+		Time("periodStart", lo.FromPtr(subscription.CurrentPeriodStart)).
+		Time("periodEnd", lo.FromPtr(subscription.CurrentPeriodEnd)).
 		Msg("Stripe subscription synced")
 
 	return nil
