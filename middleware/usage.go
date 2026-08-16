@@ -81,6 +81,7 @@ func TrackWorkspaceAPICall() func(http.Handler) http.Handler {
 
 			err := module.NewUsage().IncrementAPICalls(
 				db.NewUsageRepository(db.GetDB(false)),
+				db.NewSubscriptionRepository(db.GetDB(false)),
 				workspace.Id,
 			)
 			if err != nil {

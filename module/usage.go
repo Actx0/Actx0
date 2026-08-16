@@ -8,7 +8,6 @@ import (
 
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/pkg/ai"
-	"github.com/clivern/actx0/pkg/util"
 )
 
 const BytesPerGB = 1024 * 1024 * 1024
@@ -139,15 +138,26 @@ func (u *Usage) IsStorageGBReached(documents db.WorkspaceDocumentRepository, sub
 	return usedGB+additionalGB > limit, nil
 }
 
-// APICalls returns API call usage for the current calendar month.
-func (u *Usage) APICalls(usage db.UsageRepository, workspaceId db.Id) (int64, error) {
-	start, _ := util.CurrentMonthPeriod()
-	return usage.GetQuantityByPeriod(workspaceId, db.UsageTypeAPICalls, start)
+// APICalls returns API call usage for the workspace subscription period.
+func (u *Usage) APICalls(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id) (int64, error) {
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return 0, err
+	}
+	if subscription == nil || subscription.CurrentPeriodStart == nil {
+		return 0, nil
+	}
+
+	return usage.GetQuantityByPeriod(
+		workspaceId,
+		db.UsageTypeAPICalls,
+		subscription.CurrentPeriodStart.UTC(),
+	)
 }
 
 // IsAPICallsReached reports whether adding API calls would exceed the plan limit.
 func (u *Usage) IsAPICallsReached(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id, additional int64) (bool, error) {
-	used, err := u.APICalls(usage, workspaceId)
+	used, err := u.APICalls(usage, subscriptions, workspaceId)
 	if err != nil {
 		return false, err
 	}
@@ -310,7 +320,7 @@ func (u *Usage) IsMemoryRecordsReached(memories db.SessionMemoryRepository, subs
 
 // GetWorkspaceUsage returns all billing usage metrics for a workspace.
 func (u *Usage) GetWorkspaceUsage(deps UsageSnapshotDeps, workspaceId db.Id) (*WorkspaceUsageMetrics, error) {
-	apiCalls, err := u.APICalls(deps.UsageRepository, workspaceId)
+	apiCalls, err := u.APICalls(deps.UsageRepository, deps.SubscriptionRepository, workspaceId)
 	if err != nil {
 		return nil, err
 	}
@@ -465,15 +475,21 @@ func (u *Usage) IsAICostReached(usage db.UsageRepository, subscriptions db.Subsc
 	return used+additionalUSD > limit, nil
 }
 
-// IncrementAPICalls records one successful workspace API call for the current month.
-func (u *Usage) IncrementAPICalls(usage db.UsageRepository, workspaceId db.Id) error {
-	start, end := util.CurrentMonthPeriod()
+// IncrementAPICalls records one successful workspace API call for the subscription period.
+func (u *Usage) IncrementAPICalls(usage db.UsageRepository, subscriptions db.SubscriptionRepository, workspaceId db.Id) error {
+	subscription, err := subscriptions.GetByWorkspaceId(workspaceId)
+	if err != nil {
+		return err
+	}
+	if subscription == nil || subscription.CurrentPeriodStart == nil || subscription.CurrentPeriodEnd == nil {
+		return nil
+	}
 
 	return usage.IncrementByPeriod(
 		workspaceId,
 		db.UsageTypeAPICalls,
-		start,
-		end,
+		subscription.CurrentPeriodStart.UTC(),
+		subscription.CurrentPeriodEnd.UTC(),
 		1,
 		db.UsageUnitCalls,
 	)
