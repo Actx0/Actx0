@@ -55,17 +55,17 @@ func LoginAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "maintenance_mode_enabled"),
 			})
 		case errors.Is(err, module.ErrFailedCheckMaintenance):
-			log.Error().Err(err).Msg("Failed to get maintenance_mode config")
+			util.Error(err).Msg("Failed to get maintenance_mode config")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_check_maintenance"),
 			})
 		case errors.Is(err, module.ErrFailedCreateSession):
-			log.Error().Err(err).Msg("Failed to create session")
+			util.Error(err).Msg("Failed to create session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session"),
 			})
 		default:
-			log.Error().Err(err).Msg("Login failed")
+			util.Error(err).Msg("Login failed")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session"),
 			})

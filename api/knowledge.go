@@ -18,7 +18,6 @@ import (
 	"github.com/clivern/actx0/service/knowledge"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -42,7 +41,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 
 	store, err := storage.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize document storage")
+		util.Error(err).Msg("Failed to initialize document storage")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
@@ -76,7 +75,7 @@ func UploadDocumentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to upload document")
+			util.Error(err).Str("workspaceId", wid).Msg("Failed to upload document")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_upload_document"),
 			})
@@ -109,7 +108,7 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 
 	store, err := storage.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize document storage")
+		util.Error(err).Msg("Failed to initialize document storage")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
@@ -139,7 +138,7 @@ func ListDocumentsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to list documents")
+			util.Error(err).Str("workspaceId", wid).Msg("Failed to list documents")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_documents"),
 			})
@@ -177,7 +176,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 
 	store, err := storage.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize document storage")
+		util.Error(err).Msg("Failed to initialize document storage")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
@@ -211,7 +210,7 @@ func DeleteDocumentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("documentId", documentId).Msg("Failed to delete document")
+			util.Error(err).Str("documentId", documentId).Msg("Failed to delete document")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_document"),
 			})
@@ -249,7 +248,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 
 	store, err := storage.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize document storage")
+		util.Error(err).Msg("Failed to initialize document storage")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
@@ -258,7 +257,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 
 	vdb, err := qdrant.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize qdrant")
+		util.Error(err).Msg("Failed to initialize qdrant")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
@@ -266,7 +265,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		if err := vdb.Close(); err != nil {
-			log.Error().Err(err).Msg("Failed to close qdrant client")
+			util.Error(err).Msg("Failed to close qdrant client")
 		}
 	}()
 
@@ -311,7 +310,7 @@ func SearchDocumentsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "knowledge_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to search documents")
+			util.Error(err).Str("workspaceId", wid).Msg("Failed to search documents")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_search_documents"),
 			})

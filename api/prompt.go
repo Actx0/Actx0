@@ -13,7 +13,6 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -60,7 +59,7 @@ func CreatePromptAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create prompt")
+			util.Error(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create prompt")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_prompt_version"),
 			})
@@ -122,7 +121,7 @@ func CreatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to create prompt version")
+			util.Error(err).Str("promptId", promptId).Msg("Failed to create prompt version")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_prompt_version"),
 			})
@@ -168,7 +167,7 @@ func ListPromptsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to list prompts")
+			util.Error(err).Str("workspaceId", workspaceId.String()).Msg("Failed to list prompts")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_prompts"),
 			})
@@ -231,7 +230,7 @@ func GetPromptByNameAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("promptName", name).Msg("Failed to get prompt version by name")
+			util.Error(err).Str("promptName", name).Msg("Failed to get prompt version by name")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_prompt_version"),
 			})
@@ -279,7 +278,7 @@ func GetPromptAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to get prompt")
+			util.Error(err).Str("promptId", promptId).Msg("Failed to get prompt")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_prompt"),
 			})
@@ -335,7 +334,7 @@ func GetPromptVersionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("versionId", promptVersionId).Msg("Failed to get prompt version")
+			util.Error(err).Str("versionId", promptVersionId).Msg("Failed to get prompt version")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_prompt_version"),
 			})
@@ -403,7 +402,7 @@ func UpdatePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("versionId", promptVersionId).Msg("Failed to update prompt version")
+			util.Error(err).Str("versionId", promptVersionId).Msg("Failed to update prompt version")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_prompt_version"),
 			})
@@ -467,7 +466,7 @@ func DeletePromptVersionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_version_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("versionId", promptVersionId).Msg("Failed to delete prompt version")
+			util.Error(err).Str("versionId", promptVersionId).Msg("Failed to delete prompt version")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_prompt_version"),
 			})
@@ -524,7 +523,7 @@ func ListPromptVersionsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to list prompt versions")
+			util.Error(err).Str("promptId", promptId).Msg("Failed to list prompt versions")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_prompts"),
 			})
@@ -579,7 +578,7 @@ func DeletePromptAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "prompt_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("promptId", promptId).Msg("Failed to delete prompt")
+			util.Error(err).Str("promptId", promptId).Msg("Failed to delete prompt")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_prompt"),
 			})

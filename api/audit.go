@@ -13,7 +13,6 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -108,7 +107,7 @@ func ListWorkspaceAuditsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to list audit events")
+			util.Error(err).Str("workspaceId", wid).Msg("Failed to list audit events")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_audits"),
 			})
@@ -161,7 +160,7 @@ func GetWorkspaceAuditAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "audit_event_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("auditId", auditId).Msg("Failed to get audit event")
+			util.Error(err).Str("auditId", auditId).Msg("Failed to get audit event")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_audit"),
 			})

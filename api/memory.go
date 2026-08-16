@@ -17,7 +17,6 @@ import (
 	"github.com/clivern/actx0/service/agent"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -91,7 +90,7 @@ func CreateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to create session memory")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to create session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session_memory"),
 			})
@@ -180,7 +179,7 @@ func BatchCreateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch create session memories")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to batch create session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session_memory"),
 			})
@@ -264,7 +263,7 @@ func ListSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to list session memories")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to list session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_session_memories"),
 			})
@@ -354,7 +353,7 @@ func GetSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("memoryId", memoryId).Msg("Failed to get session memory")
+			util.Error(err).Str("memoryId", memoryId).Msg("Failed to get session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_session_memory"),
 			})
@@ -444,7 +443,7 @@ func UpdateSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("memoryId", memoryId).Msg("Failed to update session memory")
+			util.Error(err).Str("memoryId", memoryId).Msg("Failed to update session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_session_memory"),
 			})
@@ -535,7 +534,7 @@ func DeleteSessionMemoryAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("memoryId", memoryId).Msg("Failed to delete session memory")
+			util.Error(err).Str("memoryId", memoryId).Msg("Failed to delete session memory")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_session_memory"),
 			})
@@ -617,7 +616,7 @@ func RegenerateSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "memory_pipeline_disabled"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to regenerate session memories")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to regenerate session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_regenerate_session_memories"),
 			})
@@ -706,7 +705,7 @@ func BatchDeleteSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_memory_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch delete session memories")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to batch delete session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_session_memory"),
 			})
@@ -762,7 +761,7 @@ func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 
 	vdb, err := qdrant.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize qdrant")
+		util.Error(err).Msg("Failed to initialize qdrant")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
@@ -770,7 +769,7 @@ func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		if err := vdb.Close(); err != nil {
-			log.Error().Err(err).Msg("Failed to close qdrant client")
+			util.Error(err).Msg("Failed to close qdrant client")
 		}
 	}()
 
@@ -829,7 +828,7 @@ func SearchSessionMemoriesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "semantic_search_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to search session memories")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to search session memories")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_search_session_memories"),
 			})

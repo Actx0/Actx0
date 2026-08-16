@@ -15,6 +15,7 @@ import (
 	"github.com/clivern/actx0/migration"
 	"github.com/clivern/actx0/pkg/ai"
 	"github.com/clivern/actx0/pkg/qdrant"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -70,6 +71,7 @@ func (s *Service) ConsolidateMemory(ctx context.Context, sessionId db.Id) error 
 
 	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspace_id", session.WorkspaceId.String()).
@@ -237,6 +239,7 @@ func (s *Service) IndexSessionMessage(ctx context.Context, messageId db.Id) erro
 
 	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspace_id", session.WorkspaceId.String()).
@@ -326,6 +329,7 @@ func (s *Service) IndexSessionMemory(ctx context.Context, memoryId db.Id) error 
 
 	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspace_id", session.WorkspaceId.String()).
@@ -416,6 +420,7 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 
 	sub, err := s.subscriptions.GetByWorkspaceId(session.WorkspaceId)
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspace_id", session.WorkspaceId.String()).
@@ -512,6 +517,7 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 
 	err = s.ConsolidateMemory(ctx, session.Id)
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("session_id", session.Id.String()).
@@ -579,6 +585,7 @@ func (s *Service) DeleteSessionMemory(ctx context.Context, memoryId db.Id) error
 		migration.PayloadMemoryID: memoryId.String(),
 	})
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("memory_id", memoryId.String()).
@@ -596,6 +603,7 @@ func (s *Service) DeleteSessionMemories(ctx context.Context, agentId, sessionId 
 		migration.PayloadSessionID: sessionId.String(),
 	})
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("agent_id", agentId.String()).
@@ -614,6 +622,7 @@ func (s *Service) DeleteSessionMessages(ctx context.Context, agentId, sessionId 
 		migration.PayloadSessionID: sessionId.String(),
 	})
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("agent_id", agentId.String()).
@@ -631,6 +640,7 @@ func (s *Service) DeleteSessionMessage(ctx context.Context, messageId db.Id) err
 		migration.PayloadMessageID: messageId.String(),
 	})
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("message_id", messageId.String()).
@@ -657,6 +667,7 @@ func (s *Service) DeleteAgent(ctx context.Context, agentId db.Id) error {
 		migration.PayloadAgentID: agentId.String(),
 	})
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("agent_id", agentId.String()).
@@ -668,6 +679,7 @@ func (s *Service) DeleteAgent(ctx context.Context, agentId db.Id) error {
 		migration.PayloadAgentID: agentId.String(),
 	})
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("agent_id", agentId.String()).

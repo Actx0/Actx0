@@ -13,7 +13,6 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -55,7 +54,7 @@ func CreateAgentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "memory_pipeline_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create agent")
+			util.Error(err).Str("workspaceId", workspaceId.String()).Msg("Failed to create agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_agent"),
 			})
@@ -100,7 +99,7 @@ func ListAgentsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", workspaceId.String()).Msg("Failed to list agents")
+			util.Error(err).Str("workspaceId", workspaceId.String()).Msg("Failed to list agents")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_agents"),
 			})
@@ -154,7 +153,7 @@ func GetAgentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to get agent")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to get agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_agent"),
 			})
@@ -211,7 +210,7 @@ func UpdateAgentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "memory_pipeline_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to update agent")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to update agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_agent"),
 			})
@@ -266,7 +265,7 @@ func DeleteAgentAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to delete agent")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to delete agent")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_agent"),
 			})

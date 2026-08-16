@@ -47,7 +47,7 @@ func GetBillingStatusAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_subscription_not_found"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to get billing status")
+			util.Error(err).Msg("Failed to get billing status")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_billing_status"),
 			})
@@ -93,7 +93,7 @@ func GetBillingUsageAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_subscription_not_found"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to get billing usage")
+			util.Error(err).Msg("Failed to get billing usage")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_billing_usage"),
 			})
@@ -165,7 +165,7 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "stripe_billing_not_configured"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to create billing checkout session")
+			util.Error(err).Msg("Failed to create billing checkout session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_billing_checkout_session"),
 			})
@@ -220,7 +220,7 @@ func CreateBillingPortalAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "stripe_billing_not_configured"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to create billing portal session")
+			util.Error(err).Msg("Failed to create billing portal session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_billing_portal_session"),
 			})
@@ -264,12 +264,13 @@ func StripeWebhookAction(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, stripe.ErrBillingDisabled), errors.Is(err, stripe.ErrWebhookNotConfigured):
+			util.CaptureError(err)
 			log.Warn().Err(err).Msg("Stripe webhook rejected: billing not configured")
 			util.WriteJSON(w, http.StatusServiceUnavailable, map[string]any{
 				"errorMessage": locale.TR(r, "stripe_billing_not_configured"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to handle Stripe webhook")
+			util.Error(err).Msg("Failed to handle Stripe webhook")
 			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "invalid_stripe_webhook"),
 			})

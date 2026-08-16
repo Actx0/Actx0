@@ -49,8 +49,7 @@ func CreateUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to create API key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -87,8 +86,7 @@ func ListUserAPIKeysAction(w http.ResponseWriter, r *http.Request) {
 	am := module.NewAPIKey(db.NewAPIKeyRepository(db.GetDB()))
 	result, err := am.ListAPIKeys(user, limit, offset)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to list API keys")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -140,8 +138,7 @@ func GetUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("apiKeyId", apiKeyId).
 				Str("userId", user.Id.String()).
 				Msg("Failed to get API key")
@@ -188,8 +185,7 @@ func DeleteUserAPIKeyAction(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("apiKeyId", apiKeyId).
 				Str("userId", user.Id.String()).
 				Msg("Failed to delete API key")

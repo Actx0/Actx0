@@ -12,7 +12,6 @@ import (
 	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/util"
 
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -45,7 +44,7 @@ func GetMeAction(w http.ResponseWriter, r *http.Request) {
 					"errorMessage": locale.TR(r, "invalid_api_key"),
 				})
 			default:
-				log.Error().Err(err).Msg("Failed to resolve API key for /me")
+				util.Error(err).Msg("Failed to resolve API key for /me")
 				util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 					"errorMessage": locale.TR(r, "failed_get_me"),
 				})
@@ -66,7 +65,7 @@ func GetMeAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invalid_access_key"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to resolve access key for /me")
+			util.Error(err).Msg("Failed to resolve access key for /me")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_me"),
 			})

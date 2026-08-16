@@ -58,7 +58,7 @@ func CreateWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invalid_access_key_permissions"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to create workspace access key")
+			util.Error(err).Str("workspaceId", wid).Msg("Failed to create workspace access key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_access_key"),
 			})
@@ -106,7 +106,7 @@ func ListWorkspaceAccessKeysAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("workspaceId", wid).Msg("Failed to list workspace access keys")
+			util.Error(err).Str("workspaceId", wid).Msg("Failed to list workspace access keys")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_access_keys"),
 			})
@@ -159,7 +159,7 @@ func GetWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "access_key_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("accessKeyId", keyId).Msg("Failed to get workspace access key")
+			util.Error(err).Str("accessKeyId", keyId).Msg("Failed to get workspace access key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_access_key"),
 			})
@@ -205,7 +205,7 @@ func DeleteWorkspaceAccessKeyAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "access_key_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("accessKeyId", keyId).Msg("Failed to delete workspace access key")
+			util.Error(err).Str("accessKeyId", keyId).Msg("Failed to delete workspace access key")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_access_key"),
 			})

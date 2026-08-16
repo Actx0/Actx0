@@ -13,7 +13,6 @@ import (
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -94,7 +93,7 @@ func CreateAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to create agent session")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to create agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_agent_session"),
 			})
@@ -166,7 +165,7 @@ func ListAgentSessionsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "invalid_session_labels"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to list agent sessions")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to list agent sessions")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_agent_sessions"),
 			})
@@ -238,7 +237,7 @@ func GetAgentSessionAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to get agent session")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to get agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_agent_session"),
 			})
@@ -313,7 +312,7 @@ func GetAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to get agent session")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to get agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_agent_session"),
 			})
@@ -399,7 +398,7 @@ func UpdateAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_already_exists"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to update agent session")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to update agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_agent_session"),
 			})
@@ -482,7 +481,7 @@ func DeleteAgentSessionByLabelsAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("agentId", agentId).Msg("Failed to delete agent session")
+			util.Error(err).Str("agentId", agentId).Msg("Failed to delete agent session")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_agent_session"),
 			})

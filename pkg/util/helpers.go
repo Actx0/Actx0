@@ -14,7 +14,10 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
@@ -22,6 +25,17 @@ import (
 // AppURL returns the configured app URL joined with a relative path.
 func AppURL(path string) string {
 	return strings.TrimRight(viper.GetString("app.url"), "/") + path
+}
+
+// CaptureError reports an unexpected error to Sentry.
+func CaptureError(err error) {
+	sentry.CaptureException(err)
+}
+
+// Error reports err to Sentry and returns a zerolog error event with it attached.
+func Error(err error) *zerolog.Event {
+	CaptureError(err)
+	return log.Error().Err(err)
 }
 
 // WriteJSON writes a value as JSON to an HTTP response.

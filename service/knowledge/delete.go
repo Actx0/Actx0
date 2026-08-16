@@ -11,6 +11,7 @@ import (
 	"github.com/clivern/actx0/db"
 	"github.com/clivern/actx0/migration"
 	"github.com/clivern/actx0/pkg/storage"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 )
@@ -31,6 +32,7 @@ func (s *Service) Delete(ctx context.Context, documentId db.Id, internalId strin
 		migration.PayloadDocumentInternalID: internalId,
 	})
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("document_id", documentId.String()).

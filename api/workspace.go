@@ -53,8 +53,7 @@ func CreateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_limit_reached"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("userId", user.Id.String()).
 				Msg("Failed to create workspace")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -105,8 +104,7 @@ func ListWorkspacesAction(w http.ResponseWriter, r *http.Request) {
 
 	result, err := wm.ListWorkspaces(user, limit, offset)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("userId", user.Id.String()).
 			Msg("Failed to list workspaces")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -164,8 +162,7 @@ func GetWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("workspaceId", wid).
 				Str("userId", user.Id.String()).
 				Msg("Failed to get workspace")
@@ -225,8 +222,7 @@ func UpdateWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("workspaceId", wid).
 				Str("userId", user.Id.String()).
 				Msg("Failed to update workspace")
@@ -283,8 +279,7 @@ func DeleteWorkspaceAction(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("workspaceId", wid).
 				Msg("Failed to delete workspace")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{

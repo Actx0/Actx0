@@ -490,6 +490,7 @@ func (m *Message) SearchSessionMessages(ctx context.Context, workspaceId, agentI
 			return nil, err
 		}
 
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspaceId", workspaceId.String()).

@@ -40,8 +40,7 @@ func ForgotPasswordAction(w http.ResponseWriter, r *http.Request) {
 
 	err = au.ForgotPassword(r.Context(), &req)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("email", req.Email).
 			Msg("Failed to process forgot password request")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -83,7 +82,7 @@ func ResetPasswordAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "reset_link_invalid_or_expired"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to reset password")
+			util.Error(err).Msg("Failed to reset password")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_reset_password"),
 			})

@@ -17,7 +17,6 @@ import (
 	"github.com/clivern/actx0/service/agent"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 )
 
@@ -86,7 +85,7 @@ func CreateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to create session message")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to create session message")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session_message"),
 			})
@@ -170,7 +169,7 @@ func BatchCreateSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "workspace_capacity_reached"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch create session messages")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to batch create session messages")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_create_session_message"),
 			})
@@ -249,7 +248,7 @@ func ListSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "agent_session_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to list session messages")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to list session messages")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_list_session_messages"),
 			})
@@ -334,7 +333,7 @@ func GetSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("messageId", messageId).Msg("Failed to get session message")
+			util.Error(err).Str("messageId", messageId).Msg("Failed to get session message")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_get_session_message"),
 			})
@@ -419,7 +418,7 @@ func UpdateSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("messageId", messageId).Msg("Failed to update session message")
+			util.Error(err).Str("messageId", messageId).Msg("Failed to update session message")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_update_session_message"),
 			})
@@ -505,7 +504,7 @@ func DeleteSessionMessageAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("messageId", messageId).Msg("Failed to delete session message")
+			util.Error(err).Str("messageId", messageId).Msg("Failed to delete session message")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_session_message"),
 			})
@@ -589,7 +588,7 @@ func BatchDeleteSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "session_message_not_found"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to batch delete session messages")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to batch delete session messages")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_delete_session_message"),
 			})
@@ -645,7 +644,7 @@ func SearchSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 
 	vdb, err := qdrant.New()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize qdrant")
+		util.Error(err).Msg("Failed to initialize qdrant")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 			"errorMessage": locale.TR(r, "failed_process_request"),
 		})
@@ -653,7 +652,7 @@ func SearchSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		if err := vdb.Close(); err != nil {
-			log.Error().Err(err).Msg("Failed to close qdrant client")
+			util.Error(err).Msg("Failed to close qdrant client")
 		}
 	}()
 
@@ -707,7 +706,7 @@ func SearchSessionMessagesAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "semantic_search_requires_paid_plan"),
 			})
 		default:
-			log.Error().Err(err).Str("sessionId", sessionId).Msg("Failed to search session messages")
+			util.Error(err).Str("sessionId", sessionId).Msg("Failed to search session messages")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_search_session_messages"),
 			})

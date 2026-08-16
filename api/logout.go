@@ -44,9 +44,8 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 
 	err := am.Logout(r.Context(), user.Id)
 	if err != nil {
-		log.Error().
+		util.Error(err).
 			Str("userId", user.Id.String()).
-			Err(err).
 			Msg("Failed to revoke session")
 	}
 

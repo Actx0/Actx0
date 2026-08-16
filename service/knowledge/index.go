@@ -15,6 +15,7 @@ import (
 	"github.com/clivern/actx0/pkg/chunk"
 	"github.com/clivern/actx0/pkg/qdrant"
 	"github.com/clivern/actx0/pkg/storage"
+	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -92,6 +93,7 @@ func (s *Service) Index(ctx context.Context, documentId db.Id) error {
 
 	sub, err := s.subscriptions.GetByWorkspaceId(document.WorkspaceId)
 	if err != nil {
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspace_id", document.WorkspaceId.String()).

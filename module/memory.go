@@ -455,6 +455,7 @@ func (m *Memory) SearchSessionMemories(ctx context.Context, workspaceId, agentId
 			return nil, err
 		}
 
+		util.CaptureError(err)
 		log.Warn().
 			Err(err).
 			Str("workspaceId", workspaceId.String()).

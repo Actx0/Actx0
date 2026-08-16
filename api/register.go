@@ -41,16 +41,14 @@ func RegisterAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "account_with_email_already_exists"),
 			})
 		case errors.Is(err, module.ErrFailedCompleteRegistration):
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("email", req.Email).
 				Msg("Failed to complete registration")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_complete_registration"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("email", req.Email).
 				Msg("Registration failed")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -92,7 +90,7 @@ func VerifyEmailAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "verify_link_invalid"),
 			})
 		default:
-			log.Error().Err(err).Msg("Failed to verify email")
+			util.Error(err).Msg("Failed to verify email")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
 				"errorMessage": locale.TR(r, "failed_verify_email"),
 			})

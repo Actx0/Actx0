@@ -11,8 +11,6 @@ import (
 	"github.com/clivern/actx0/module"
 	"github.com/clivern/actx0/pkg/meteo"
 	"github.com/clivern/actx0/pkg/util"
-
-	"github.com/rs/zerolog/log"
 )
 
 // GetCityInformationAction runs the getCityInformation tool.
@@ -38,8 +36,7 @@ func GetCityInformationAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "city_required"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("toolName", "getCityInformation").
 				Msg("Failed to run tool")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -75,8 +72,7 @@ func GetWeatherByCityAction(w http.ResponseWriter, r *http.Request) {
 				"errorMessage": locale.TR(r, "city_required"),
 			})
 		default:
-			log.Error().
-				Err(err).
+			util.Error(err).
 				Str("toolName", "getWeatherByCity").
 				Msg("Failed to run tool")
 			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
@@ -102,8 +98,7 @@ func GetWeatherByCoordinatesAction(w http.ResponseWriter, r *http.Request) {
 
 	weather, err := tools.GetWeatherByCoordinates(r.Context(), &req)
 	if err != nil {
-		log.Error().
-			Err(err).
+		util.Error(err).
 			Str("toolName", "getWeatherByCoordinates").
 			Msg("Failed to run tool")
 		util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
