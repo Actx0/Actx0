@@ -21,7 +21,7 @@ app:
 
   mailer:
     provider: ${ACTX0_MAILER_PROVIDER:-resend}
-    from: ${ACTX0_MAILER_FROM:-no_reply@clivern.com}
+    from: ${ACTX0_MAILER_FROM:-no_reply@actx0.com}
     # Create Resend API key at https://resend.com/api-keys
     resend:
       api_key: ${ACTX0_RESEND_API_KEY:-}
