@@ -85,6 +85,14 @@
                   <dt class="text-sm text-theme-textLight">{{ $t('billing_page.status_label') }}</dt>
                   <dd class="text-sm font-medium text-theme-text">{{ statusLabel }}</dd>
                 </div>
+                <div class="flex justify-between gap-4 border-b border-theme-border py-3">
+                  <dt class="text-sm text-theme-textLight">{{ $t('billing_page.period_start') }}</dt>
+                  <dd class="text-sm font-medium text-theme-text">{{ formatDate(billingStatus.periodStart, locale) }}</dd>
+                </div>
+                <div class="flex justify-between gap-4 border-b border-theme-border py-3">
+                  <dt class="text-sm text-theme-textLight">{{ $t('billing_page.period_end') }}</dt>
+                  <dd class="text-sm font-medium text-theme-text">{{ formatDate(billingStatus.periodEnd, locale) }}</dd>
+                </div>
                 <div v-if="billingStatus.updatedAt" class="flex justify-between gap-4 py-3">
                   <dt class="text-sm text-theme-textLight">{{ $t('billing_page.last_updated') }}</dt>
                   <dd class="text-sm font-medium text-theme-text">{{ formatDate(billingStatus.updatedAt, locale) }}</dd>
@@ -288,6 +296,8 @@ const billingStatus = ref({
   plan: 'hobby',
   status: 'active',
   providerCustomerID: '',
+  periodStart: '',
+  periodEnd: '',
   updatedAt: ''
 })
 
