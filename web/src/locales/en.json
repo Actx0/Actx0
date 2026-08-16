@@ -627,7 +627,7 @@
     "failed_create_key": "Failed to create API key",
     "failed_revoke_key": "Failed to revoke API key",
     "email_unverified_title": "Verify your email",
-    "email_unverified_desc": "Check your inbox for a verification link. If you did not receive it, you can request another email (up to 5 per day).",
+    "email_unverified_desc": "Check your inbox for a verification link. If you did not receive it, you can request another email.",
     "email_unverified_resend": "Resend verification email",
     "email_unverified_sending": "Sending…",
     "email_unverified_sent": "Verification email sent. Please check your inbox.",
