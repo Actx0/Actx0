@@ -15,7 +15,7 @@
           </p>
           <p id="cookie-banner-desc" class="mt-1.5 text-xs leading-relaxed text-theme-textLight">
             {{ $t('cookies.banner_desc') }}
-            <a href="https://actx0.com/docs" class="font-medium text-primary-800 hover:text-primary-900 underline-offset-2 hover:underline" target="_blank" rel="noopener">
+            <a href="https://docs.actx0.com/" class="font-medium text-primary-800 hover:text-primary-900 underline-offset-2 hover:underline" target="_blank" rel="noopener">
               {{ $t('cookies.learn_more') }}
             </a>
           </p>
