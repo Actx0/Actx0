@@ -6,7 +6,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/clivern/actx0/pkg/buildinfo"
+	"github.com/clivern/actx0/build"
 	"github.com/clivern/actx0/pkg/util"
 
 	"github.com/rs/zerolog/log"
@@ -17,9 +17,9 @@ func VersionAction(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("Version check")
 
 	util.WriteJSON(w, http.StatusOK, map[string]any{
-		"version": buildinfo.Version,
-		"commit":  buildinfo.Commit,
-		"date":    buildinfo.Date,
-		"builtBy": buildinfo.BuiltBy,
+		"version": build.Version,
+		"commit":  build.Commit,
+		"date":    build.Date,
+		"builtBy": build.BuiltBy,
 	})
 }

@@ -7,7 +7,7 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/clivern/actx0/pkg/buildinfo"
+	"github.com/clivern/actx0/build"
 
 	"github.com/spf13/cobra"
 )
@@ -23,10 +23,10 @@ var versionCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf(
 			"Current Actx0 version %v commit %v, built @%v by %v.\n",
-			buildinfo.Version,
-			buildinfo.Commit,
-			buildinfo.Date,
-			buildinfo.BuiltBy,
+			build.Version,
+			build.Commit,
+			build.Date,
+			build.BuiltBy,
 		)
 	},
 }

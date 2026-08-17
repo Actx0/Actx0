@@ -7,9 +7,9 @@ import (
 	"embed"
 	"io/fs"
 
+	"github.com/clivern/actx0/build"
 	"github.com/clivern/actx0/cli"
 	"github.com/clivern/actx0/locale"
-	"github.com/clivern/actx0/pkg/buildinfo"
 	"github.com/clivern/actx0/pkg/resend"
 )
 
@@ -31,10 +31,10 @@ var mailsFS embed.FS
 
 // main is the application entry point.
 func main() {
-	buildinfo.Version = version
-	buildinfo.Commit = commit
-	buildinfo.Date = date
-	buildinfo.BuiltBy = builtBy
+	build.Version = version
+	build.Commit = commit
+	build.Date = date
+	build.BuiltBy = builtBy
 	cli.Static = static
 
 	// Load locales
