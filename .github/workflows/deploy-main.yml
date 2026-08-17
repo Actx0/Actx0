@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  RUNDECK_REPO: actx0/Rundeck
+  RUNDECK_REPO: Actx0/Rundeck
 
 jobs:
   deploy:
