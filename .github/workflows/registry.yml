@@ -27,6 +27,10 @@ jobs:
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 1200
 
+      - name: Set build date
+        id: builddate
+        run: echo "value=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@b13d25e5fcf2e04305d8aedc9a6c28ebe258e934
@@ -51,7 +55,7 @@ jobs:
           build-args: |
             ACTX0_VERSION=${{ github.ref_type == 'tag' && github.ref_name || format('{0}-{1}', github.ref_name, github.sha) }}
             ACTX0_COMMIT=${{ github.sha }}
-            ACTX0_BUILD_DATE=${{ github.event.head_commit.timestamp || github.run_started_at }}
+            ACTX0_BUILD_DATE=${{ steps.builddate.outputs.value }}
             ACTX0_BUILT_BY=github-actions
 
       - name: Prune old image tags
