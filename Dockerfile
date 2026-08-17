@@ -14,7 +14,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -trimpath \
-    -ldflags="-s -w -X main.version=${ACTX0_VERSION} -X main.commit=${ACTX0_COMMIT} -X main.date=${ACTX0_BUILD_DATE} -X main.builtBy=${ACTX0_BUILT_BY}" \
+    -ldflags="-s -w -X main.version=${ACTX0_VERSION} -X main.commit=${ACTX0_COMMIT} -X main.date=${ACTX0_BUILD_DATE:-unknown} -X main.builtBy=${ACTX0_BUILT_BY}" \
     -o /out/actx0 .
 
 RUN mkdir -p /out/configs /out/var/logs && \
