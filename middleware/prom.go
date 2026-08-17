@@ -6,12 +6,12 @@ package middleware
 import (
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/clivern/actx0/conf"
 	"github.com/clivern/actx0/db"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -296,16 +296,6 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 		}
 
 		start := time.Now().UTC()
-		path := r.URL.Path
-		if strings.HasPrefix(r.URL.Path, "/assets/") {
-			path = "/assets/*"
-		}
-
-		reqSize := float64(r.ContentLength)
-		if reqSize > 0 {
-			httpRequestSize.WithLabelValues(r.Method, path).Observe(reqSize)
-		}
-
 		wrapped := &MetricsResponseWriter{
 			ResponseWriter: w,
 			statusCode:     http.StatusOK,
@@ -313,9 +303,19 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(wrapped, r)
 
+		path := chi.RouteContext(r.Context()).RoutePattern()
+		if path == "" {
+			path = "unmatched"
+		}
+
 		elapsed := time.Since(start)
 		duration := elapsed.Seconds()
 		status := strconv.Itoa(wrapped.statusCode)
+
+		reqSize := float64(r.ContentLength)
+		if reqSize > 0 {
+			httpRequestSize.WithLabelValues(r.Method, path).Observe(reqSize)
+		}
 
 		httpRequestsTotal.WithLabelValues(
 			r.Method,
