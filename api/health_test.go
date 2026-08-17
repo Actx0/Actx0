@@ -14,7 +14,7 @@ import (
 
 func TestIntegrationHealthEndpoint(t *testing.T) {
 	t.Run("HealthAction should return OK status", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/_health", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/public/_health", nil)
 		w := httptest.NewRecorder()
 
 		HealthAction(w, req)

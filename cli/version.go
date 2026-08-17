@@ -7,18 +7,12 @@ import (
 	"embed"
 	"fmt"
 
+	"github.com/clivern/actx0/pkg/buildinfo"
+
 	"github.com/spf13/cobra"
 )
 
 var (
-	// Version buildinfo item
-	Version = "dev"
-	// Commit buildinfo item
-	Commit = "none"
-	// Date buildinfo item
-	Date = "unknown"
-	// BuiltBy buildinfo item
-	BuiltBy = "unknown"
 	// Static embedded files
 	Static embed.FS
 )
@@ -29,10 +23,10 @@ var versionCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf(
 			"Current Actx0 version %v commit %v, built @%v by %v.\n",
-			Version,
-			Commit,
-			Date,
-			BuiltBy,
+			buildinfo.Version,
+			buildinfo.Commit,
+			buildinfo.Date,
+			buildinfo.BuiltBy,
 		)
 	},
 }

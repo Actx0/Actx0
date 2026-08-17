@@ -1,7 +1,9 @@
 # Dependencies & build output (biggest token savings)
 web/node_modules/
-web/dist/
+# Ignore other dist dirs, but NOT web/dist (required by //go:embed in actx0.go)
 dist/
+!web/dist/
+!web/dist/**
 .ruff_cache/
 
 # Lock files & generated artifacts

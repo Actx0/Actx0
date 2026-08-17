@@ -59,6 +59,7 @@ func SetupServer(Static embed.FS) http.Handler {
 	r.Group(func(r chi.Router) { // public — no auth required
 		r.Get("/api/v1/public/_health", api.HealthAction)                                   // liveness probe
 		r.Get("/api/v1/public/_ready", api.ReadyAction)                                     // readiness probe (db, deps)
+		r.Get("/api/v1/public/_version", api.VersionAction) // binary build info
 		r.Post("/api/v1/public/action/setup", api.SetupAction)                              // initial app setup
 		r.Get("/api/v1/public/action/setup/status", api.SetupStatusAction)                  // setup completion status
 		r.Post("/api/v1/public/action/login", api.LoginAction)                              // user login
