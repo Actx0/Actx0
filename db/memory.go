@@ -62,9 +62,9 @@ func (r *SessionMemoryRepositoryPostgres) Create(memory *SessionMemory) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING created_at, updated_at`,
-		memory.Id.String(),
-		memory.InternalId.String(),
-		memory.SessionId.String(),
+		memory.Id,
+		memory.InternalId,
+		memory.SessionId,
 		memory.Kind,
 		memory.Content,
 		memory.Meta,
@@ -76,13 +76,17 @@ func (r *SessionMemoryRepositoryPostgres) Create(memory *SessionMemory) error {
 
 // GetById returns a session memory by id.
 func (r *SessionMemoryRepositoryPostgres) GetById(id Id) (*SessionMemory, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &SessionMemory{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, internal_id, session_id, kind, content, meta, created_at, updated_at
 		FROM session_memories
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.InternalId,
@@ -93,7 +97,7 @@ func (r *SessionMemoryRepositoryPostgres) GetById(id Id) (*SessionMemory, error)
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -101,13 +105,17 @@ func (r *SessionMemoryRepositoryPostgres) GetById(id Id) (*SessionMemory, error)
 
 // GetByInternalId returns a session memory by internal id.
 func (r *SessionMemoryRepositoryPostgres) GetByInternalId(internalId Id) (*SessionMemory, error) {
+	if IsInvalidUUID(internalId) {
+		return nil, nil
+	}
+
 	item := &SessionMemory{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, internal_id, session_id, kind, content, meta, created_at, updated_at
 		FROM session_memories
 		WHERE internal_id = $1`,
-		internalId.String(),
+		internalId,
 	).Scan(
 		&item.Id,
 		&item.InternalId,
@@ -118,7 +126,7 @@ func (r *SessionMemoryRepositoryPostgres) GetByInternalId(internalId Id) (*Sessi
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -139,7 +147,7 @@ func (r *SessionMemoryRepositoryPostgres) Update(memory *SessionMemory) error {
 		memory.Content,
 		memory.Meta,
 		time.Now().UTC(),
-		memory.Id.String(),
+		memory.Id,
 	).Scan(&memory.UpdatedAt)
 }
 
@@ -148,7 +156,7 @@ func (r *SessionMemoryRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM session_memories
 		WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -158,7 +166,7 @@ func (r *SessionMemoryRepositoryPostgres) DeleteBySessionId(sessionId Id) error 
 	_, err := r.db.Exec(
 		`DELETE FROM session_memories
 		WHERE session_id = $1`,
-		sessionId.String(),
+		sessionId,
 	)
 	return err
 }
@@ -170,7 +178,7 @@ func (r *SessionMemoryRepositoryPostgres) CountBySessionId(sessionId Id) (int64,
 		`SELECT COUNT(*)
 		FROM session_memories
 		WHERE session_id = $1`,
-		sessionId.String(),
+		sessionId,
 	).Scan(&count)
 	return count, err
 }
@@ -183,7 +191,7 @@ func (r *SessionMemoryRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (in
 		FROM session_memories sm
 		INNER JOIN sessions s ON s.id = sm.session_id
 		WHERE s.workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -197,7 +205,7 @@ func (r *SessionMemoryRepositoryPostgres) ListBySessionId(sessionId Id, limit, o
 		WHERE session_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		sessionId.String(),
+		sessionId,
 		limit,
 		offset,
 	)

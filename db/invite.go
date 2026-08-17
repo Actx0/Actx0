@@ -63,13 +63,13 @@ func (r *UserInviteRepositoryPostgres) Create(invite *UserInvite) error {
 		`INSERT INTO user_invites
 		(id, email, role, token, status, inviter_user_id, workspace_id, expires_at, accepted_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-		invite.Id.String(),
+		invite.Id,
 		invite.Email,
 		invite.Role,
 		invite.Token,
 		invite.Status,
-		invite.InviterUserId.String(),
-		invite.WorkspaceId.String(),
+		invite.InviterUserId,
+		invite.WorkspaceId,
 		invite.ExpiresAt,
 		invite.AcceptedAt,
 	)
@@ -78,6 +78,10 @@ func (r *UserInviteRepositoryPostgres) Create(invite *UserInvite) error {
 
 // GetById returns a user invite by Id
 func (r *UserInviteRepositoryPostgres) GetById(id Id) (*UserInvite, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	u := &UserInvite{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -85,7 +89,7 @@ func (r *UserInviteRepositoryPostgres) GetById(id Id) (*UserInvite, error) {
 			expires_at, accepted_at, created_at, updated_at
 		FROM user_invites
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&u.Id,
 		&u.Email,
@@ -99,7 +103,7 @@ func (r *UserInviteRepositoryPostgres) GetById(id Id) (*UserInvite, error) {
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return u, err
@@ -128,7 +132,7 @@ func (r *UserInviteRepositoryPostgres) GetByToken(token string) (*UserInvite, er
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return u, err
@@ -147,7 +151,7 @@ func (r *UserInviteRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, 
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -234,7 +238,7 @@ func (r *UserInviteRepositoryPostgres) UpdateStatus(id Id, status string, accept
 		status,
 		acceptedAt,
 		time.Now().UTC(),
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -260,7 +264,7 @@ func (r *UserInviteRepositoryPostgres) MarkExpiredAsExpired() (int64, error) {
 func (r *UserInviteRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM user_invites WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -282,7 +286,7 @@ func (r *UserInviteRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64
 		`SELECT COUNT(*)
 		FROM user_invites
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -306,7 +310,7 @@ func (r *UserInviteRepositoryPostgres) CountPendingByEmailInWorkspace(workspaceI
 		`SELECT COUNT(*)
 		FROM user_invites
 		WHERE workspace_id = $1 AND email = $2 AND status = 'pending' AND expires_at > $3`,
-		workspaceId.String(),
+		workspaceId,
 		email,
 		time.Now().UTC(),
 	).Scan(&count)

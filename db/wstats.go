@@ -48,6 +48,10 @@ func NewWorkspaceStatsRepository(db *sql.DB) WorkspaceStatsRepository {
 
 // GetByWorkspaceId returns a workspace stats by workspace id.
 func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*WorkspaceStats, error) {
+	if IsInvalidUUID(workspaceId) {
+		return nil, nil
+	}
+
 	stats := &WorkspaceStats{}
 
 	// Memories Stored
@@ -56,7 +60,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		FROM session_memories sm
 		INNER JOIN sessions s ON s.id = sm.session_id
 		WHERE s.workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&stats.MemoriesStored)
 	if err != nil {
 		return nil, err
@@ -69,7 +73,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		WHERE workspace_id = $1
 			AND type = $2
 			AND period_start = (SELECT period_start FROM subscriptions WHERE workspace_id = $1)`,
-		workspaceId.String(),
+		workspaceId,
 		UsageTypeAPICalls,
 	).Scan(&stats.APICallsMonth)
 	if err != nil {
@@ -81,7 +85,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		`SELECT COUNT(*)
 		FROM agents
 		WHERE workspace_id = $1 AND status = 'active'`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&stats.ActiveAgents)
 	if err != nil {
 		return nil, err
@@ -92,7 +96,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 		`SELECT COUNT(*)
 		FROM prompts
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&stats.Prompts)
 	if err != nil {
 		return nil, err
@@ -123,7 +127,7 @@ func (r *WorkspaceStatsRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Wo
 			AND (COALESCE(sc.sessions_count, 0) > 0 OR COALESCE(mc.memories_count, 0) > 0)
 		ORDER BY sessions_count DESC, memories_count DESC, a.name ASC
 		LIMIT 5`,
-		workspaceId.String(),
+		workspaceId,
 	)
 	if err != nil {
 		return nil, err

@@ -61,9 +61,9 @@ func (r *SessionMessageRepositoryPostgres) Create(message *SessionMessage) error
 		)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING created_at`,
-		message.Id.String(),
-		message.InternalId.String(),
-		message.SessionId.String(),
+		message.Id,
+		message.InternalId,
+		message.SessionId,
 		message.Role,
 		message.Content,
 		message.Meta,
@@ -72,13 +72,17 @@ func (r *SessionMessageRepositoryPostgres) Create(message *SessionMessage) error
 
 // GetById returns a session message by id.
 func (r *SessionMessageRepositoryPostgres) GetById(id Id) (*SessionMessage, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &SessionMessage{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, internal_id, session_id, role, content, meta, created_at
 		FROM session_messages
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.InternalId,
@@ -88,7 +92,7 @@ func (r *SessionMessageRepositoryPostgres) GetById(id Id) (*SessionMessage, erro
 		&item.Meta,
 		&item.CreatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -96,13 +100,17 @@ func (r *SessionMessageRepositoryPostgres) GetById(id Id) (*SessionMessage, erro
 
 // GetByInternalId returns a session message by internal id.
 func (r *SessionMessageRepositoryPostgres) GetByInternalId(internalId Id) (*SessionMessage, error) {
+	if IsInvalidUUID(internalId) {
+		return nil, nil
+	}
+
 	item := &SessionMessage{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, internal_id, session_id, role, content, meta, created_at
 		FROM session_messages
 		WHERE internal_id = $1`,
-		internalId.String(),
+		internalId,
 	).Scan(
 		&item.Id,
 		&item.InternalId,
@@ -112,7 +120,7 @@ func (r *SessionMessageRepositoryPostgres) GetByInternalId(internalId Id) (*Sess
 		&item.Meta,
 		&item.CreatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -124,7 +132,7 @@ func (r *SessionMessageRepositoryPostgres) Update(message *SessionMessage) error
 		`UPDATE session_messages
 		SET role = $2, content = $3, meta = $4
 		WHERE id = $1`,
-		message.Id.String(),
+		message.Id,
 		message.Role,
 		message.Content,
 		message.Meta,
@@ -137,7 +145,7 @@ func (r *SessionMessageRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM session_messages
 		WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -147,7 +155,7 @@ func (r *SessionMessageRepositoryPostgres) DeleteBySessionId(sessionId Id) error
 	_, err := r.db.Exec(
 		`DELETE FROM session_messages
 		WHERE session_id = $1`,
-		sessionId.String(),
+		sessionId,
 	)
 	return err
 }
@@ -159,7 +167,7 @@ func (r *SessionMessageRepositoryPostgres) CountBySessionId(sessionId Id) (int64
 		`SELECT COUNT(*)
 		FROM session_messages
 		WHERE session_id = $1`,
-		sessionId.String(),
+		sessionId,
 	).Scan(&count)
 	return count, err
 }
@@ -172,7 +180,7 @@ func (r *SessionMessageRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (i
 		FROM session_messages sm
 		INNER JOIN sessions s ON s.id = sm.session_id
 		WHERE s.workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -186,7 +194,7 @@ func (r *SessionMessageRepositoryPostgres) ListBySessionId(sessionId Id, limit, 
 		WHERE session_id = $1
 		ORDER BY created_at ASC
 		LIMIT $2 OFFSET $3`,
-		sessionId.String(),
+		sessionId,
 		limit,
 		offset,
 	)

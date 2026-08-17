@@ -60,9 +60,9 @@ func (r *SessionRepositoryPostgres) Create(session *Session) error {
 		`INSERT INTO user_sessions
 		(id, token, user_id, ip_address, user_agent, expires_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`,
-		session.Id.String(),
+		session.Id,
 		session.Token,
-		session.UserId.String(),
+		session.UserId,
 		session.IPAddress,
 		session.UserAgent,
 		session.ExpiresAt,
@@ -90,7 +90,7 @@ func (r *SessionRepositoryPostgres) GetByToken(token string) (*Session, error) {
 		&s.CreatedAt,
 		&s.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return s, err
@@ -98,6 +98,10 @@ func (r *SessionRepositoryPostgres) GetByToken(token string) (*Session, error) {
 
 // GetById returns a session by Id
 func (r *SessionRepositoryPostgres) GetById(id Id) (*Session, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	s := &Session{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -105,7 +109,7 @@ func (r *SessionRepositoryPostgres) GetById(id Id) (*Session, error) {
 			expires_at, created_at, updated_at
 		FROM user_sessions
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&s.Id,
 		&s.Token,
@@ -116,7 +120,7 @@ func (r *SessionRepositoryPostgres) GetById(id Id) (*Session, error) {
 		&s.CreatedAt,
 		&s.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return s, err
@@ -124,6 +128,10 @@ func (r *SessionRepositoryPostgres) GetById(id Id) (*Session, error) {
 
 // GetByUserId returns a list of sessions by user Id
 func (r *SessionRepositoryPostgres) GetByUserId(userId Id) ([]*Session, error) {
+	if IsInvalidUUID(userId) {
+		return nil, nil
+	}
+
 	rows, err := r.db.Query(
 		`SELECT
 			id, token, user_id, ip_address, user_agent,
@@ -131,7 +139,7 @@ func (r *SessionRepositoryPostgres) GetByUserId(userId Id) ([]*Session, error) {
 		FROM user_sessions
 		WHERE user_id = $1
 		ORDER BY created_at DESC`,
-		userId.String(),
+		userId,
 	)
 	if err != nil {
 		return nil, err
@@ -161,7 +169,7 @@ func (r *SessionRepositoryPostgres) GetByUserId(userId Id) ([]*Session, error) {
 func (r *SessionRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM user_sessions WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -179,7 +187,7 @@ func (r *SessionRepositoryPostgres) DeleteByToken(token string) error {
 func (r *SessionRepositoryPostgres) DeleteByUserId(userId Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM user_sessions WHERE user_id = $1`,
-		userId.String(),
+		userId,
 	)
 	return err
 }
@@ -217,7 +225,7 @@ func (r *SessionRepositoryPostgres) UpdateExpiration(id Id, expiresAt time.Time)
 			expires_at = $1,
 			updated_at = $2
 		WHERE id = $3`,
-		expiresAt, time.Now().UTC(), id.String(),
+		expiresAt, time.Now().UTC(), id,
 	)
 	return err
 }
@@ -241,7 +249,7 @@ func (r *SessionRepositoryPostgres) CountByUserId(userId Id) (int64, error) {
 		`SELECT COUNT(*)
 		FROM user_sessions
 		WHERE user_id = $1 AND expires_at > $2`,
-		userId.String(), time.Now().UTC(),
+		userId, time.Now().UTC(),
 	).Scan(&count)
 	return count, err
 }

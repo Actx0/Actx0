@@ -58,8 +58,8 @@ func (r *AuditEventRepositoryPostgres) Create(event *AuditEvent) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING created_at`,
-		event.Id.String(),
-		event.WorkspaceId.String(),
+		event.Id,
+		event.WorkspaceId,
 		lo.FromPtr(event.ActorId),
 		event.ActorName,
 		event.ActorType,
@@ -75,6 +75,10 @@ func (r *AuditEventRepositoryPostgres) Create(event *AuditEvent) error {
 
 // GetById returns an audit event by id.
 func (r *AuditEventRepositoryPostgres) GetById(id Id) (*AuditEvent, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	event := &AuditEvent{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -82,7 +86,7 @@ func (r *AuditEventRepositoryPostgres) GetById(id Id) (*AuditEvent, error) {
 			resource_type, resource_id, ip_address, user_agent, meta, created_at
 		FROM audit
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&event.Id,
 		&event.WorkspaceId,
@@ -98,7 +102,7 @@ func (r *AuditEventRepositoryPostgres) GetById(id Id) (*AuditEvent, error) {
 		&event.CreatedAt,
 	)
 
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return event, err
@@ -114,7 +118,7 @@ func (r *AuditEventRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, 
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -155,7 +159,7 @@ func (r *AuditEventRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64
 		`SELECT COUNT(*)
 		FROM audit
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }

@@ -46,8 +46,8 @@ func (r *PromptRepositoryPostgres) Create(workspaceId Id, name, handle, descript
 	}
 	_, err = r.db.Exec(
 		`INSERT INTO prompts (id, workspace_id, name, description, handle) VALUES ($1, $2, $3, $4, $5)`,
-		id.String(),
-		workspaceId.String(),
+		id,
+		workspaceId,
 		name,
 		description,
 		handle,
@@ -60,7 +60,7 @@ func (r *PromptRepositoryPostgres) ExistsByHandle(workspaceId Id, handle string)
 	var exists bool
 	err := r.db.QueryRow(
 		`SELECT EXISTS(SELECT 1 FROM prompts WHERE workspace_id = $1 AND handle = $2)`,
-		workspaceId.String(),
+		workspaceId,
 		handle,
 	).Scan(&exists)
 	return exists, err
@@ -68,6 +68,10 @@ func (r *PromptRepositoryPostgres) ExistsByHandle(workspaceId Id, handle string)
 
 // GetById returns a prompt with its version count.
 func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*Prompt, error) {
+	if IsInvalidUUID(workspaceId, id) {
+		return nil, nil
+	}
+
 	item := &Prompt{}
 	err := r.db.QueryRow(`
 		SELECT
@@ -78,8 +82,8 @@ func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*Prompt, error) 
 			(SELECT COUNT(*) FROM prompt_versions v WHERE v.prompt_id = p.id)
 		FROM prompts p
 		WHERE p.workspace_id = $1 AND p.id = $2`,
-		workspaceId.String(),
-		id.String(),
+		workspaceId,
+		id,
 	).Scan(
 		&item.Id,
 		&item.Name,
@@ -87,7 +91,7 @@ func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*Prompt, error) 
 		&item.Description,
 		&item.VersionCount,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -95,6 +99,10 @@ func (r *PromptRepositoryPostgres) GetById(workspaceId, id Id) (*Prompt, error) 
 
 // GetByHandle returns a prompt by workspace and handle.
 func (r *PromptRepositoryPostgres) GetByHandle(workspaceId Id, handle string) (*Prompt, error) {
+	if IsInvalidUUID(workspaceId) {
+		return nil, nil
+	}
+
 	item := &Prompt{}
 	err := r.db.QueryRow(`
 		SELECT
@@ -105,7 +113,7 @@ func (r *PromptRepositoryPostgres) GetByHandle(workspaceId Id, handle string) (*
 			(SELECT COUNT(*) FROM prompt_versions v WHERE v.prompt_id = p.id)
 		FROM prompts p
 		WHERE p.workspace_id = $1 AND p.handle = $2`,
-		workspaceId.String(),
+		workspaceId,
 		handle,
 	).Scan(
 		&item.Id,
@@ -114,7 +122,7 @@ func (r *PromptRepositoryPostgres) GetByHandle(workspaceId Id, handle string) (*
 		&item.Description,
 		&item.VersionCount,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -124,8 +132,8 @@ func (r *PromptRepositoryPostgres) GetByHandle(workspaceId Id, handle string) (*
 func (r *PromptRepositoryPostgres) Delete(workspaceId Id, promptId Id) error {
 	result, err := r.db.Exec(
 		`DELETE FROM prompts WHERE id = $1 AND workspace_id = $2`,
-		promptId.String(),
-		workspaceId.String(),
+		promptId,
+		workspaceId,
 	)
 	if err != nil {
 		return err
@@ -152,7 +160,7 @@ func (r *PromptRepositoryPostgres) ListByWorkspace(workspaceId Id, limit, offset
 		FROM prompts p
 		WHERE p.workspace_id = $1
 		ORDER BY p.handle ASC
-		LIMIT $2 OFFSET $3`, workspaceId.String(), limit, offset)
+		LIMIT $2 OFFSET $3`, workspaceId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +190,7 @@ func (r *PromptRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, er
 		`SELECT COUNT(*)
 		FROM prompts
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -232,19 +240,23 @@ func (r *PromptMetaRepositoryPostgres) Create(id Id, key, value string) error {
 	_, err = r.db.Exec(
 		`INSERT INTO prompts_meta (id, prompt_id, key, value)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(), id.String(), key, value,
+		metaId, id, key, value,
 	)
 	return err
 }
 
 // Get returns prompt metadata by key.
 func (r *PromptMetaRepositoryPostgres) Get(id Id, key string) (*PromptMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &PromptMeta{}
 	err := r.db.QueryRow(
 		`SELECT id, prompt_id, key, value, created_at, updated_at
 		FROM prompts_meta
 		WHERE prompt_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	).Scan(
 		&meta.Id,
 		&meta.PromptId,
@@ -253,7 +265,7 @@ func (r *PromptMetaRepositoryPostgres) Get(id Id, key string) (*PromptMeta, erro
 		&meta.CreatedAt,
 		&meta.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -265,7 +277,7 @@ func (r *PromptMetaRepositoryPostgres) Update(id Id, key, value string) error {
 		`UPDATE prompts_meta
 		SET value = $1, updated_at = $2
 		WHERE prompt_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value, time.Now().UTC(), id, key,
 	)
 	return err
 }
@@ -275,7 +287,7 @@ func (r *PromptMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM prompts_meta
 		WHERE prompt_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	)
 	return err
 }
@@ -287,7 +299,7 @@ func (r *PromptMetaRepositoryPostgres) ListByPromptId(id Id) ([]*PromptMeta, err
 		FROM prompts_meta
 		WHERE prompt_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err
