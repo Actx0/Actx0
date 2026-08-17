@@ -1,0 +1,42 @@
+name: Deploy Main
+
+on:
+  workflow_run:
+    workflows: ["Dashboard Build"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  RUNDECK_REPO: actx0/Rundeck
+
+jobs:
+  deploy:
+    name: Publish and deploy main
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish image via registry workflow
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh workflow run registry.yml --repo "${{ github.repository }}" --ref main
+
+          sleep 5
+          RUN_ID=$(gh run list --repo "${{ github.repository }}" --workflow=registry.yml --limit 1 --json databaseId --jq '.[0].databaseId')
+          echo "Watching registry run: $RUN_ID"
+          gh run watch "$RUN_ID" --repo "${{ github.repository }}" --exit-status
+
+      - name: Deploy via Rundeck playbook
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh workflow run playbook.yml \
+            --repo "$RUNDECK_REPO" \
+            -f docker_image_tag=main
+
+          sleep 5
+          gh run list --repo "$RUNDECK_REPO" --workflow=playbook.yml --limit 1
