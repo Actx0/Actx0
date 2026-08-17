@@ -48,8 +48,8 @@ func (r *PasswordResetTokenRepositoryPostgres) Create(t *PasswordResetToken) err
 	_, err = r.db.Exec(
 		`INSERT INTO password_reset_tokens (id, user_id, token, expires_at)
 		VALUES ($1, $2, $3, $4)`,
-		t.Id.String(),
-		t.UserId.String(),
+		t.Id,
+		t.UserId,
 		t.Token,
 		t.ExpiresAt,
 	)
@@ -76,7 +76,7 @@ func (r *PasswordResetTokenRepositoryPostgres) GetByToken(token string) (*Passwo
 		&tok.ExpiresAt,
 		&tok.CreatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return tok, err
@@ -86,7 +86,7 @@ func (r *PasswordResetTokenRepositoryPostgres) GetByToken(token string) (*Passwo
 func (r *PasswordResetTokenRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM password_reset_tokens WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }

@@ -121,7 +121,7 @@ func (r *UserRepositoryPostgres) Create(user *User) error {
 		`INSERT INTO users
 		(id, name, email, pwd_hash, provider, provider_user_id, role, is_active, is_email_verified, email_verify_token, last_login_at, language, theme)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-		user.Id.String(),
+		user.Id,
 		user.Name,
 		user.Email,
 		user.Password,
@@ -140,6 +140,10 @@ func (r *UserRepositoryPostgres) Create(user *User) error {
 
 // GetById returns a user by Id
 func (r *UserRepositoryPostgres) GetById(id Id) (*User, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	user := &User{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -147,7 +151,7 @@ func (r *UserRepositoryPostgres) GetById(id Id) (*User, error) {
 			is_email_verified, email_verify_token, last_login_at, language, theme, created_at, updated_at
 		FROM users
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&user.Id,
 		&user.Name,
@@ -165,7 +169,7 @@ func (r *UserRepositoryPostgres) GetById(id Id) (*User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return user, err
@@ -203,7 +207,7 @@ func (r *UserRepositoryPostgres) GetByAPIKey(apiKey string) (*User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return user, err
@@ -236,7 +240,7 @@ func (r *UserRepositoryPostgres) GetByEmail(email string) (*User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return user, err
@@ -270,7 +274,7 @@ func (r *UserRepositoryPostgres) GetByProvider(provider, providerUserId string) 
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return user, err
@@ -303,7 +307,7 @@ func (r *UserRepositoryPostgres) GetByEmailVerifyToken(token string) (*User, err
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return user, err
@@ -341,7 +345,7 @@ func (r *UserRepositoryPostgres) Update(user *User) error {
 		user.Language,
 		user.Theme,
 		time.Now().UTC(),
-		user.Id.String(),
+		user.Id,
 	)
 	return err
 }
@@ -357,7 +361,7 @@ func (r *UserRepositoryPostgres) UpdateLastLogin(id Id) error {
 		WHERE id = $3`,
 		now,
 		now,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -366,7 +370,7 @@ func (r *UserRepositoryPostgres) UpdateLastLogin(id Id) error {
 func (r *UserRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM users WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -439,8 +443,8 @@ func (r *UserMetaRepositoryPostgres) Create(id Id, key, value string) error {
 	_, err = r.db.Exec(
 		`INSERT INTO users_meta (id, user_id, key, value)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(),
-		id.String(),
+		metaId,
+		id,
 		key,
 		value,
 	)
@@ -449,12 +453,16 @@ func (r *UserMetaRepositoryPostgres) Create(id Id, key, value string) error {
 
 // Get returns a user meta
 func (r *UserMetaRepositoryPostgres) Get(id Id, key string) (*UserMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &UserMeta{}
 	err := r.db.QueryRow(
 		`SELECT id, key, value, user_id, created_at, updated_at
 		FROM users_meta
 		WHERE user_id = $1 AND key = $2`,
-		id.String(),
+		id,
 		key,
 	).Scan(
 		&meta.Id,
@@ -464,7 +472,7 @@ func (r *UserMetaRepositoryPostgres) Get(id Id, key string) (*UserMeta, error) {
 		&meta.CreatedAt,
 		&meta.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -480,7 +488,7 @@ func (r *UserMetaRepositoryPostgres) Update(id Id, key, value string) error {
 		WHERE user_id = $3 AND key = $4`,
 		value,
 		time.Now().UTC(),
-		id.String(),
+		id,
 		key,
 	)
 	return err
@@ -490,7 +498,7 @@ func (r *UserMetaRepositoryPostgres) Update(id Id, key, value string) error {
 func (r *UserMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM users_meta WHERE user_id = $1 AND key = $2`,
-		id.String(),
+		id,
 		key,
 	)
 	return err
@@ -503,7 +511,7 @@ func (r *UserMetaRepositoryPostgres) ListByUser(id Id) ([]*UserMeta, error) {
 		FROM users_meta
 		WHERE user_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err

@@ -77,8 +77,8 @@ func (r *IntegrationRepositoryPostgres) Create(integration *Integration) error {
 		`INSERT INTO integrations (id, workspace_id, type, name, config)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING created_at, updated_at`,
-		integration.Id.String(),
-		integration.WorkspaceId.String(),
+		integration.Id,
+		integration.WorkspaceId,
 		integration.Type,
 		integration.Name,
 		integration.Config,
@@ -88,13 +88,17 @@ func (r *IntegrationRepositoryPostgres) Create(integration *Integration) error {
 
 // GetById returns a integration by Id
 func (r *IntegrationRepositoryPostgres) GetById(id Id) (*Integration, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	inv := &Integration{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, workspace_id, type, name, config, created_at, updated_at
 		FROM integrations
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&inv.Id,
 		&inv.WorkspaceId,
@@ -104,7 +108,7 @@ func (r *IntegrationRepositoryPostgres) GetById(id Id) (*Integration, error) {
 		&inv.CreatedAt,
 		&inv.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return inv, err
@@ -121,12 +125,12 @@ func (r *IntegrationRepositoryPostgres) Update(integration *Integration) error {
 			config = $4,
 			updated_at = $5
 		WHERE id = $6`,
-		integration.WorkspaceId.String(),
+		integration.WorkspaceId,
 		integration.Type,
 		integration.Name,
 		integration.Config,
 		time.Now().UTC(),
-		integration.Id.String(),
+		integration.Id,
 	)
 	return err
 }
@@ -135,7 +139,7 @@ func (r *IntegrationRepositoryPostgres) Update(integration *Integration) error {
 func (r *IntegrationRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM integrations WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -148,7 +152,7 @@ func (r *IntegrationRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit,
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -182,7 +186,7 @@ func (r *IntegrationRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int6
 		`SELECT COUNT(*)
 		FROM integrations
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -202,21 +206,25 @@ func (r *IntegrationMetaRepositoryPostgres) Create(id Id, key, value string) err
 	_, err = r.db.Exec(
 		`INSERT INTO integrations_meta (id, integration_id, key, value)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(), id.String(), key, value,
+		metaId, id, key, value,
 	)
 	return err
 }
 
 // Get returns integration metadata by key.
 func (r *IntegrationMetaRepositoryPostgres) Get(id Id, key string) (*IntegrationMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &IntegrationMeta{}
 	err := r.db.QueryRow(
 		`SELECT id, integration_id, key, value, created_at, updated_at
 		FROM integrations_meta
 		WHERE integration_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	).Scan(&meta.Id, &meta.IntegrationId, &meta.Key, &meta.Value, &meta.CreatedAt, &meta.UpdatedAt)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -228,7 +236,7 @@ func (r *IntegrationMetaRepositoryPostgres) Update(id Id, key, value string) err
 		`UPDATE integrations_meta
 		SET value = $1, updated_at = $2
 		WHERE integration_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value, time.Now().UTC(), id, key,
 	)
 	return err
 }
@@ -238,7 +246,7 @@ func (r *IntegrationMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM integrations_meta
 		WHERE integration_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	)
 	return err
 }
@@ -250,7 +258,7 @@ func (r *IntegrationMetaRepositoryPostgres) ListByIntegrationId(id Id) ([]*Integ
 		FROM integrations_meta
 		WHERE integration_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err

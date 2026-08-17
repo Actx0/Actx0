@@ -1,7 +1,7 @@
 // Copyright 2026 Clivern. All rights reserved.
 // License can be found in the LICENSE file.
 
-package buildinfo
+package build
 
 var (
 	// Version is the release version baked in at build time.

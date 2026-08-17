@@ -13,10 +13,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func isNotFound(err error) bool {
-	return errors.Is(err, sql.ErrNoRows)
-}
-
 var (
 	// rwConn holds the primary read-write database connection.
 	rwConn *Connection
@@ -134,4 +130,20 @@ func CloseConnections(connections []*Connection) error {
 	}
 
 	return closeErr
+}
+
+// IsNotFound reports whether err is a missing-row result.
+func IsNotFound(err error) bool {
+	return errors.Is(err, sql.ErrNoRows)
+}
+
+// IsInvalidUUID reports whether any id is not a UUID.
+func IsInvalidUUID(ids ...Id) bool {
+	for _, id := range ids {
+		if !id.Valid() {
+			return true
+		}
+	}
+
+	return false
 }

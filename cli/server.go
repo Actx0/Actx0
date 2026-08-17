@@ -6,8 +6,8 @@ package cli
 import (
 	"fmt"
 
+	"github.com/clivern/actx0/build"
 	"github.com/clivern/actx0/core"
-	"github.com/clivern/actx0/pkg/buildinfo"
 
 	"github.com/spf13/cobra"
 )
@@ -21,7 +21,7 @@ var serverCmd = &cobra.Command{
 			panic(err.Error())
 		}
 
-		err = core.SetupSentry(buildinfo.Version)
+		err = core.SetupSentry(build.Version)
 		if err != nil {
 			panic(err.Error())
 		}

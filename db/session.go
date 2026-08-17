@@ -86,10 +86,10 @@ func (r *AgentSessionRepositoryPostgres) Create(session *AgentSession) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING created_at, updated_at`,
-		session.Id.String(),
+		session.Id,
 		session.ExternalId,
-		session.WorkspaceId.String(),
-		session.AgentId.String(),
+		session.WorkspaceId,
+		session.AgentId,
 		session.Title,
 		session.Status,
 		session.Labels,
@@ -103,13 +103,17 @@ func (r *AgentSessionRepositoryPostgres) Create(session *AgentSession) error {
 
 // GetById returns an agent session by id.
 func (r *AgentSessionRepositoryPostgres) GetById(id Id) (*AgentSession, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &AgentSession{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.ExternalId,
@@ -123,7 +127,7 @@ func (r *AgentSessionRepositoryPostgres) GetById(id Id) (*AgentSession, error) {
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -131,13 +135,17 @@ func (r *AgentSessionRepositoryPostgres) GetById(id Id) (*AgentSession, error) {
 
 // GetByAgentIdAndExternalId returns an agent session by agent id and caller-provided external id.
 func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExternalId(agentId Id, externalId string) (*AgentSession, error) {
+	if IsInvalidUUID(agentId) {
+		return nil, nil
+	}
+
 	item := &AgentSession{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE agent_id = $1 AND external_id = $2`,
-		agentId.String(),
+		agentId,
 		externalId,
 	).Scan(
 		&item.Id,
@@ -152,7 +160,7 @@ func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExternalId(agentId Id, e
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -160,13 +168,17 @@ func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExternalId(agentId Id, e
 
 // GetByAgentIdAndExactLabels returns an agent session by agent id and exact labels match.
 func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExactLabels(agentId Id, labels string) (*AgentSession, error) {
+	if IsInvalidUUID(agentId) {
+		return nil, nil
+	}
+
 	item := &AgentSession{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, external_id, workspace_id, agent_id, title, status, labels, meta, last_activity_at, created_at, updated_at
 		FROM sessions
 		WHERE agent_id = $1 AND labels = $2::jsonb`,
-		agentId.String(),
+		agentId,
 		labels,
 	).Scan(
 		&item.Id,
@@ -181,7 +193,7 @@ func (r *AgentSessionRepositoryPostgres) GetByAgentIdAndExactLabels(agentId Id, 
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -200,14 +212,14 @@ func (r *AgentSessionRepositoryPostgres) Update(session *AgentSession) error {
 			meta = $6,
 			updated_at = $7
 		WHERE id = $8`,
-		session.WorkspaceId.String(),
-		session.AgentId.String(),
+		session.WorkspaceId,
+		session.AgentId,
 		session.Title,
 		session.Status,
 		session.Labels,
 		session.Meta,
 		time.Now().UTC(),
-		session.Id.String(),
+		session.Id,
 	)
 	return err
 }
@@ -219,7 +231,7 @@ func (r *AgentSessionRepositoryPostgres) TouchLastActivityAt(sessionId Id, at ti
 		`UPDATE sessions
 		SET last_activity_at = $2, updated_at = $2
 		WHERE id = $1`,
-		sessionId.String(),
+		sessionId,
 		at,
 	)
 	return err
@@ -230,7 +242,7 @@ func (r *AgentSessionRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM sessions
 		WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -244,7 +256,7 @@ func (r *AgentSessionRepositoryPostgres) ListByAgentId(agentId Id, limit, offset
 		WHERE agent_id = $1
 		ORDER BY COALESCE(last_activity_at, created_at) DESC
 		LIMIT $2 OFFSET $3`,
-		agentId.String(),
+		agentId,
 		limit,
 		offset,
 	)
@@ -284,7 +296,7 @@ func (r *AgentSessionRepositoryPostgres) ListByAgentIdAndLabels(agentId Id, labe
 		WHERE agent_id = $1 AND labels @> $2::jsonb
 		ORDER BY COALESCE(last_activity_at, created_at) DESC
 		LIMIT $3 OFFSET $4`,
-		agentId.String(),
+		agentId,
 		labels,
 		limit,
 		offset,
@@ -323,7 +335,7 @@ func (r *AgentSessionRepositoryPostgres) CountByAgentId(agentId Id) (int64, erro
 		`SELECT COUNT(*)
 		FROM sessions
 		WHERE agent_id = $1`,
-		agentId.String(),
+		agentId,
 	).Scan(&count)
 	return count, err
 }
@@ -335,7 +347,7 @@ func (r *AgentSessionRepositoryPostgres) CountByAgentIdAndLabels(agentId Id, lab
 		`SELECT COUNT(*)
 		FROM sessions
 		WHERE agent_id = $1 AND labels @> $2::jsonb`,
-		agentId.String(),
+		agentId,
 		labels,
 	).Scan(&count)
 	return count, err
@@ -348,7 +360,7 @@ func (r *AgentSessionRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int
 		`SELECT COUNT(*)
 		FROM sessions
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -369,20 +381,24 @@ func (r *AgentSessionMetaRepositoryPostgres) Create(id Id, key, value string) er
 			id, session_id, key, value
 		)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(), id.String(), key, value,
+		metaId, id, key, value,
 	)
 	return err
 }
 
 // Get returns agent session metadata by key.
 func (r *AgentSessionMetaRepositoryPostgres) Get(id Id, key string) (*AgentSessionMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &AgentSessionMeta{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, session_id, key, value, created_at, updated_at
 		FROM sessions_meta
 		WHERE session_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	).Scan(
 		&meta.Id,
 		&meta.SessionId,
@@ -391,7 +407,7 @@ func (r *AgentSessionMetaRepositoryPostgres) Get(id Id, key string) (*AgentSessi
 		&meta.CreatedAt,
 		&meta.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -405,7 +421,7 @@ func (r *AgentSessionMetaRepositoryPostgres) Update(id Id, key, value string) er
 			value = $1,
 			updated_at = $2
 		WHERE session_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value, time.Now().UTC(), id, key,
 	)
 	return err
 }
@@ -415,7 +431,7 @@ func (r *AgentSessionMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM sessions_meta
 		WHERE session_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	)
 	return err
 }
@@ -428,7 +444,7 @@ func (r *AgentSessionMetaRepositoryPostgres) ListBySessionId(id Id) ([]*AgentSes
 		FROM sessions_meta
 		WHERE session_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err

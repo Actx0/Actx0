@@ -46,7 +46,7 @@ func (r *ConfigRepositoryPostgres) Create(key, value string) error {
 	_, err = r.db.Exec(
 		`INSERT INTO configs (id, key, value)
 		VALUES ($1, $2, to_jsonb($3::text))`,
-		id.String(), key, value,
+		id, key, value,
 	)
 	return err
 }
@@ -61,7 +61,7 @@ func (r *ConfigRepositoryPostgres) Get(key string) (*Config, error) {
 		key,
 	).Scan(&o.Id, &o.Key, &o.Value, &o.CreatedAt, &o.UpdatedAt)
 
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return o, err

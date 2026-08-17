@@ -106,9 +106,9 @@ func (r *WorkspaceDocumentRepositoryPostgres) Create(document *WorkspaceDocument
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 		RETURNING created_at, updated_at`,
-		document.Id.String(),
-		document.InternalId.String(),
-		document.WorkspaceId.String(),
+		document.Id,
+		document.InternalId,
+		document.WorkspaceId,
 		document.Title,
 		document.Filename,
 		document.ContentType,
@@ -125,6 +125,10 @@ func (r *WorkspaceDocumentRepositoryPostgres) Create(document *WorkspaceDocument
 
 // GetById returns a workspace document by id.
 func (r *WorkspaceDocumentRepositoryPostgres) GetById(id Id) (*WorkspaceDocument, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &WorkspaceDocument{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -132,7 +136,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) GetById(id Id) (*WorkspaceDocument
 			labels, processed_at, chunking_config, meta, status, created_at, updated_at
 		FROM workspace_documents
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.InternalId,
@@ -151,7 +155,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) GetById(id Id) (*WorkspaceDocument
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -159,6 +163,10 @@ func (r *WorkspaceDocumentRepositoryPostgres) GetById(id Id) (*WorkspaceDocument
 
 // GetByInternalId returns a workspace document by internal id.
 func (r *WorkspaceDocumentRepositoryPostgres) GetByInternalId(internalId Id) (*WorkspaceDocument, error) {
+	if IsInvalidUUID(internalId) {
+		return nil, nil
+	}
+
 	item := &WorkspaceDocument{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -166,7 +174,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) GetByInternalId(internalId Id) (*W
 			labels, processed_at, chunking_config, meta, status, created_at, updated_at
 		FROM workspace_documents
 		WHERE internal_id = $1`,
-		internalId.String(),
+		internalId,
 	).Scan(
 		&item.Id,
 		&item.InternalId,
@@ -185,7 +193,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) GetByInternalId(internalId Id) (*W
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -210,7 +218,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) Update(document *WorkspaceDocument
 			status = $12,
 			updated_at = $13
 		WHERE id = $14`,
-		document.WorkspaceId.String(),
+		document.WorkspaceId,
 		document.Title,
 		document.Filename,
 		document.ContentType,
@@ -223,7 +231,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) Update(document *WorkspaceDocument
 		document.Meta,
 		document.Status,
 		time.Now().UTC(),
-		document.Id.String(),
+		document.Id,
 	)
 	return err
 }
@@ -233,7 +241,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM workspace_documents
 		WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -248,7 +256,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) ListByWorkspaceId(workspaceId Id, 
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -292,7 +300,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) CountByWorkspaceId(workspaceId Id)
 		`SELECT COUNT(*)
 		FROM workspace_documents
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -304,7 +312,7 @@ func (r *WorkspaceDocumentRepositoryPostgres) SumSizeByWorkspaceId(workspaceId I
 		`SELECT COALESCE(SUM(size), 0)
 		FROM workspace_documents
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&total)
 	return total, err
 }
@@ -325,20 +333,24 @@ func (r *WorkspaceDocumentMetaRepositoryPostgres) Create(id Id, key, value strin
 			id, workspace_document_id, key, value
 		)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(), id.String(), key, value,
+		metaId, id, key, value,
 	)
 	return err
 }
 
 // Get returns workspace document metadata by key.
 func (r *WorkspaceDocumentMetaRepositoryPostgres) Get(id Id, key string) (*WorkspaceDocumentMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &WorkspaceDocumentMeta{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, workspace_document_id, key, value, created_at, updated_at
 		FROM workspace_documents_meta
 		WHERE workspace_document_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	).Scan(
 		&meta.Id,
 		&meta.WorkspaceDocumentId,
@@ -347,7 +359,7 @@ func (r *WorkspaceDocumentMetaRepositoryPostgres) Get(id Id, key string) (*Works
 		&meta.CreatedAt,
 		&meta.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -361,7 +373,7 @@ func (r *WorkspaceDocumentMetaRepositoryPostgres) Update(id Id, key, value strin
 			value = $1,
 			updated_at = $2
 		WHERE workspace_document_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value, time.Now().UTC(), id, key,
 	)
 	return err
 }
@@ -371,7 +383,7 @@ func (r *WorkspaceDocumentMetaRepositoryPostgres) Delete(id Id, key string) erro
 	_, err := r.db.Exec(
 		`DELETE FROM workspace_documents_meta
 		WHERE workspace_document_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	)
 	return err
 }
@@ -384,7 +396,7 @@ func (r *WorkspaceDocumentMetaRepositoryPostgres) ListByWorkspaceDocumentId(id I
 		FROM workspace_documents_meta
 		WHERE workspace_document_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err

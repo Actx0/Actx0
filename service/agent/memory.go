@@ -28,7 +28,10 @@ func (s *Service) ConsolidateMemory(ctx context.Context, sessionId db.Id) error 
 		return fmt.Errorf("%w: get session: %v", ErrConsolidateFailed, err)
 	}
 	if session == nil {
-		return ErrSessionNotFound
+		log.Info().
+			Str("session_id", sessionId.String()).
+			Msg("Agent session not found, skipping")
+		return nil
 	}
 
 	count, err := s.memories.CountBySessionId(sessionId)
@@ -219,7 +222,10 @@ func (s *Service) IndexSessionMessage(ctx context.Context, messageId db.Id) erro
 		return fmt.Errorf("%w: get message: %v", ErrIndexFailed, err)
 	}
 	if message == nil {
-		return ErrMessageNotFound
+		log.Info().
+			Str("message_id", messageId.String()).
+			Msg("Session message not found, skipping")
+		return nil
 	}
 
 	session, err := s.sessions.GetById(message.SessionId)
@@ -227,7 +233,11 @@ func (s *Service) IndexSessionMessage(ctx context.Context, messageId db.Id) erro
 		return fmt.Errorf("%w: get session: %v", ErrIndexFailed, err)
 	}
 	if session == nil {
-		return ErrSessionNotFound
+		log.Info().
+			Str("message_id", messageId.String()).
+			Str("session_id", message.SessionId.String()).
+			Msg("Agent session not found, skipping")
+		return nil
 	}
 
 	embeddings, usage, err := s.embed.EmbedDocuments(ctx, []string{message.Content}, ai.EmbedOptions{
@@ -309,7 +319,10 @@ func (s *Service) IndexSessionMemory(ctx context.Context, memoryId db.Id) error 
 		return fmt.Errorf("%w: get memory: %v", ErrIndexFailed, err)
 	}
 	if memory == nil {
-		return ErrMemoryNotFound
+		log.Info().
+			Str("memory_id", memoryId.String()).
+			Msg("Session memory not found, skipping")
+		return nil
 	}
 
 	session, err := s.sessions.GetById(memory.SessionId)
@@ -317,7 +330,11 @@ func (s *Service) IndexSessionMemory(ctx context.Context, memoryId db.Id) error 
 		return fmt.Errorf("%w: get session: %v", ErrIndexFailed, err)
 	}
 	if session == nil {
-		return ErrSessionNotFound
+		log.Info().
+			Str("memory_id", memoryId.String()).
+			Str("session_id", memory.SessionId.String()).
+			Msg("Agent session not found, skipping")
+		return nil
 	}
 
 	embeddings, usage, err := s.embed.EmbedDocuments(ctx, []string{memory.Content}, ai.EmbedOptions{
@@ -399,7 +416,10 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 		return fmt.Errorf("%w: get message: %v", ErrGenerateFailed, err)
 	}
 	if message == nil {
-		return ErrMessageNotFound
+		log.Info().
+			Str("message_id", messageId.String()).
+			Msg("Session message not found, skipping")
+		return nil
 	}
 
 	session, err := s.sessions.GetById(message.SessionId)
@@ -407,7 +427,11 @@ func (s *Service) GenerateMemoryFromMessage(ctx context.Context, messageId db.Id
 		return fmt.Errorf("%w: get session: %v", ErrGenerateFailed, err)
 	}
 	if session == nil {
-		return ErrSessionNotFound
+		log.Info().
+			Str("message_id", messageId.String()).
+			Str("session_id", message.SessionId.String()).
+			Msg("Agent session not found, skipping")
+		return nil
 	}
 
 	reply, usage, err := s.liteLLM.Complete(ctx, []ai.Message{
@@ -533,7 +557,14 @@ func (s *Service) RegenerateSessionMemories(ctx context.Context, agentId, sessio
 	if err != nil {
 		return fmt.Errorf("%w: get session: %v", ErrRegenerateFailed, err)
 	}
-	if session == nil || session.AgentId != agentId {
+	if session == nil {
+		log.Info().
+			Str("agent_id", agentId.String()).
+			Str("session_id", sessionId.String()).
+			Msg("Agent session not found, skipping")
+		return nil
+	}
+	if session.AgentId != agentId {
 		return ErrSessionNotFound
 	}
 

@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/clivern/actx0/build"
 	"github.com/clivern/actx0/mcp"
-	"github.com/clivern/actx0/pkg/buildinfo"
 
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ var mcpCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		err := mcp.Run(context.Background(), mcp.Options{
 			Name:    "actx0",
-			Version: buildinfo.Version,
+			Version: build.Version,
 			Mgt:     mcpMgt,
 			Port:    mcpPort,
 			Path:    mcpPath,

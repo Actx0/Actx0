@@ -95,7 +95,7 @@ func (r *NotificationRepositoryPostgres) Create(notification *Notification) erro
 		)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING created_at, updated_at`,
-		notification.Id.String(),
+		notification.Id,
 		lo.FromPtr(notification.UserId),
 		lo.FromPtr(notification.WorkspaceId),
 		notification.Type,
@@ -107,13 +107,17 @@ func (r *NotificationRepositoryPostgres) Create(notification *Notification) erro
 
 // GetById returns a notification by id.
 func (r *NotificationRepositoryPostgres) GetById(id Id) (*Notification, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	notification := &Notification{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, user_id, workspace_id, type, title, body, read_at, archived_at, created_at, updated_at
 		FROM notifications
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&notification.Id,
 		&notification.UserId,
@@ -127,7 +131,7 @@ func (r *NotificationRepositoryPostgres) GetById(id Id) (*Notification, error) {
 		&notification.UpdatedAt,
 	)
 
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return notification, err
@@ -142,7 +146,7 @@ func (r *NotificationRepositoryPostgres) ListByUserId(userId Id, limit, offset i
 		WHERE user_id = $1 AND archived_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		userId.String(),
+		userId,
 		limit,
 		offset,
 	)
@@ -183,7 +187,7 @@ func (r *NotificationRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit
 		WHERE workspace_id = $1 AND archived_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -224,8 +228,8 @@ func (r *NotificationRepositoryPostgres) ListByUserIdAndWorkspaceId(userId, work
 		WHERE (user_id = $1 OR workspace_id = $2) AND archived_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $3 OFFSET $4`,
-		userId.String(),
-		workspaceId.String(),
+		userId,
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -264,7 +268,7 @@ func (r *NotificationRepositoryPostgres) CountByUserId(userId Id) (int64, error)
 		`SELECT COUNT(*)
 		FROM notifications
 		WHERE user_id = $1 AND archived_at IS NULL`,
-		userId.String(),
+		userId,
 	).Scan(&count)
 	return count, err
 }
@@ -276,7 +280,7 @@ func (r *NotificationRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int
 		`SELECT COUNT(*)
 		FROM notifications
 		WHERE workspace_id = $1 AND archived_at IS NULL`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -288,8 +292,8 @@ func (r *NotificationRepositoryPostgres) CountByUserIdAndWorkspaceId(userId, wor
 		`SELECT COUNT(*)
 		FROM notifications
 		WHERE (user_id = $1 OR workspace_id = $2) AND archived_at IS NULL`,
-		userId.String(),
-		workspaceId.String(),
+		userId,
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -303,7 +307,7 @@ func (r *NotificationRepositoryPostgres) ExistsByUserIdAndType(userId Id, notifi
 			FROM notifications
 			WHERE user_id = $1 AND type = $2 AND archived_at IS NULL
 		)`,
-		userId.String(),
+		userId,
 		notificationType,
 	).Scan(&exists)
 	return exists, err
@@ -318,7 +322,7 @@ func (r *NotificationRepositoryPostgres) ExistsByWorkspaceIdAndType(workspaceId 
 			FROM notifications
 			WHERE workspace_id = $1 AND type = $2 AND archived_at IS NULL
 		)`,
-		workspaceId.String(),
+		workspaceId,
 		notificationType,
 	).Scan(&exists)
 	return exists, err
@@ -335,7 +339,7 @@ func (r *NotificationRepositoryPostgres) MarkRead(id Id) error {
 		WHERE id = $3`,
 		now,
 		now,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -351,7 +355,7 @@ func (r *NotificationRepositoryPostgres) MarkArchived(id Id) error {
 		WHERE id = $3`,
 		now,
 		now,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -367,7 +371,7 @@ func (r *NotificationRepositoryPostgres) ArchiveByUserIdAndType(userId Id, notif
 		WHERE user_id = $3 AND type = $4 AND archived_at IS NULL`,
 		now,
 		now,
-		userId.String(),
+		userId,
 		notificationType,
 	)
 	return err
@@ -377,7 +381,7 @@ func (r *NotificationRepositoryPostgres) ArchiveByUserIdAndType(userId Id, notif
 func (r *NotificationRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM notifications WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -392,8 +396,8 @@ func (r *NotificationMetaRepositoryPostgres) Create(id Id, key, value string) er
 	_, err = r.db.Exec(
 		`INSERT INTO notifications_meta (id, notification_id, key, value)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(),
-		id.String(),
+		metaId,
+		id,
 		key,
 		value,
 	)
@@ -402,12 +406,16 @@ func (r *NotificationMetaRepositoryPostgres) Create(id Id, key, value string) er
 
 // Get returns a notification meta
 func (r *NotificationMetaRepositoryPostgres) Get(id Id, key string) (*NotificationMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &NotificationMeta{}
 	err := r.db.QueryRow(
 		`SELECT id, key, value, notification_id, created_at, updated_at
 		FROM notifications_meta
 		WHERE notification_id = $1 AND key = $2`,
-		id.String(),
+		id,
 		key,
 	).Scan(
 		&meta.Id,
@@ -417,7 +425,7 @@ func (r *NotificationMetaRepositoryPostgres) Get(id Id, key string) (*Notificati
 		&meta.CreatedAt,
 		&meta.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -433,7 +441,7 @@ func (r *NotificationMetaRepositoryPostgres) Update(id Id, key, value string) er
 		WHERE notification_id = $3 AND key = $4`,
 		value,
 		time.Now().UTC(),
-		id.String(),
+		id,
 		key,
 	)
 	return err
@@ -443,7 +451,7 @@ func (r *NotificationMetaRepositoryPostgres) Update(id Id, key, value string) er
 func (r *NotificationMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM notifications_meta WHERE notification_id = $1 AND key = $2`,
-		id.String(),
+		id,
 		key,
 	)
 	return err
@@ -456,7 +464,7 @@ func (r *NotificationMetaRepositoryPostgres) ListByNotification(id Id) ([]*Notif
 		FROM notifications_meta
 		WHERE notification_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err

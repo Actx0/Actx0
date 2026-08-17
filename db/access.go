@@ -54,8 +54,8 @@ func (r *WorkspaceAccessKeyRepositoryPostgres) Create(accessKey *WorkspaceAccess
 		(id, workspace_id, name, token, expires_at, meta)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING created_at, updated_at`,
-		accessKey.Id.String(),
-		accessKey.WorkspaceId.String(),
+		accessKey.Id,
+		accessKey.WorkspaceId,
 		accessKey.Name,
 		accessKey.Key,
 		accessKey.ExpiresAt,
@@ -65,12 +65,16 @@ func (r *WorkspaceAccessKeyRepositoryPostgres) Create(accessKey *WorkspaceAccess
 
 // GetById returns a workspace access key by id.
 func (r *WorkspaceAccessKeyRepositoryPostgres) GetById(id Id) (*WorkspaceAccessKey, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &WorkspaceAccessKey{}
 	err := r.db.QueryRow(
 		`SELECT id, workspace_id, name, token, expires_at, meta, created_at, updated_at
 		FROM workspace_access_keys
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.WorkspaceId,
@@ -81,7 +85,7 @@ func (r *WorkspaceAccessKeyRepositoryPostgres) GetById(id Id) (*WorkspaceAccessK
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -106,7 +110,7 @@ func (r *WorkspaceAccessKeyRepositoryPostgres) GetByKey(key string) (*WorkspaceA
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -120,7 +124,7 @@ func (r *WorkspaceAccessKeyRepositoryPostgres) ListByWorkspaceId(workspaceId Id,
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -151,7 +155,7 @@ func (r *WorkspaceAccessKeyRepositoryPostgres) ListByWorkspaceId(workspaceId Id,
 
 // Delete deletes a workspace access key row.
 func (r *WorkspaceAccessKeyRepositoryPostgres) Delete(id Id) error {
-	_, err := r.db.Exec(`DELETE FROM workspace_access_keys WHERE id = $1`, id.String())
+	_, err := r.db.Exec(`DELETE FROM workspace_access_keys WHERE id = $1`, id)
 	return err
 }
 
@@ -187,7 +191,7 @@ func (r *WorkspaceAccessKeyRepositoryPostgres) CountByWorkspaceId(workspaceId Id
 		`SELECT COUNT(*)
 		FROM workspace_access_keys
 		WHERE workspace_id = $1 AND (expires_at IS NULL OR expires_at > $2)`,
-		workspaceId.String(),
+		workspaceId,
 		time.Now().UTC(),
 	).Scan(&count)
 	return count, err

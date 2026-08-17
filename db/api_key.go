@@ -54,8 +54,8 @@ func (r *APIKeyRepositoryPostgres) Create(apiKey *APIKey) error {
 		(id, user_id, name, token, expires_at)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING created_at, updated_at`,
-		apiKey.Id.String(),
-		apiKey.UserId.String(),
+		apiKey.Id,
+		apiKey.UserId,
 		apiKey.Name,
 		apiKey.Key,
 		apiKey.ExpiresAt,
@@ -68,13 +68,17 @@ func (r *APIKeyRepositoryPostgres) Create(apiKey *APIKey) error {
 
 // GetById returns a API key by Id
 func (r *APIKeyRepositoryPostgres) GetById(id Id) (*APIKey, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	k := &APIKey{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, user_id, name, token, expires_at, created_at, updated_at
 		FROM user_api_keys
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&k.Id,
 		&k.UserId,
@@ -84,7 +88,7 @@ func (r *APIKeyRepositoryPostgres) GetById(id Id) (*APIKey, error) {
 		&k.CreatedAt,
 		&k.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return k, err
@@ -108,7 +112,7 @@ func (r *APIKeyRepositoryPostgres) GetByKey(key string) (*APIKey, error) {
 		&k.CreatedAt,
 		&k.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return k, err
@@ -123,7 +127,7 @@ func (r *APIKeyRepositoryPostgres) ListByUserId(userId Id, limit, offset int) ([
 		WHERE user_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		userId.String(),
+		userId,
 		limit,
 		offset,
 	)
@@ -154,7 +158,7 @@ func (r *APIKeyRepositoryPostgres) ListByUserId(userId Id, limit, offset int) ([
 func (r *APIKeyRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM user_api_keys WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -191,7 +195,7 @@ func (r *APIKeyRepositoryPostgres) CountByUserId(userId Id) (int64, error) {
 		`SELECT COUNT(*)
 		FROM user_api_keys
 		WHERE user_id = $1 AND (expires_at IS NULL OR expires_at > $2)`,
-		userId.String(), time.Now().UTC(),
+		userId, time.Now().UTC(),
 	).Scan(&count)
 	return count, err
 }

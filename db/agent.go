@@ -94,8 +94,8 @@ func (r *AgentRepositoryPostgres) Create(agent *Agent) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING status, created_at, updated_at`,
-		agent.Id.String(),
-		agent.WorkspaceId.String(),
+		agent.Id,
+		agent.WorkspaceId,
 		agent.Name,
 		agent.Kind,
 		lo.FromPtr(agent.PromptId),
@@ -113,13 +113,17 @@ func (r *AgentRepositoryPostgres) Create(agent *Agent) error {
 
 // GetById returns an agent by id.
 func (r *AgentRepositoryPostgres) GetById(id Id) (*Agent, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &Agent{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, workspace_id, name, kind, prompt_id, kb_labels, handle, description, status, config, created_at, updated_at
 		FROM agents
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.WorkspaceId,
@@ -134,7 +138,7 @@ func (r *AgentRepositoryPostgres) GetById(id Id) (*Agent, error) {
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -163,7 +167,7 @@ func (r *AgentRepositoryPostgres) GetByHandle(handle string) (*Agent, error) {
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -183,7 +187,7 @@ func (r *AgentRepositoryPostgres) Update(agent *Agent) error {
 			config = $7,
 			updated_at = $8
 		WHERE id = $9`,
-		agent.WorkspaceId.String(),
+		agent.WorkspaceId,
 		agent.Name,
 		agent.Kind,
 		lo.FromPtr(agent.PromptId),
@@ -191,7 +195,7 @@ func (r *AgentRepositoryPostgres) Update(agent *Agent) error {
 		agent.Description,
 		agent.Config,
 		time.Now().UTC(),
-		agent.Id.String(),
+		agent.Id,
 	)
 	return err
 }
@@ -201,7 +205,7 @@ func (r *AgentRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM agents
 		WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -215,7 +219,7 @@ func (r *AgentRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, offse
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -254,7 +258,7 @@ func (r *AgentRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, err
 		`SELECT COUNT(*)
 		FROM agents
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -275,20 +279,24 @@ func (r *AgentMetaRepositoryPostgres) Create(id Id, key, value string) error {
 			id, agent_id, key, value
 		)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(), id.String(), key, value,
+		metaId, id, key, value,
 	)
 	return err
 }
 
 // Get returns agent metadata by key.
 func (r *AgentMetaRepositoryPostgres) Get(id Id, key string) (*AgentMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &AgentMeta{}
 	err := r.db.QueryRow(
 		`SELECT
 			id, agent_id, key, value, created_at, updated_at
 		FROM agents_meta
 		WHERE agent_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	).Scan(
 		&meta.Id,
 		&meta.AgentId,
@@ -297,7 +305,7 @@ func (r *AgentMetaRepositoryPostgres) Get(id Id, key string) (*AgentMeta, error)
 		&meta.CreatedAt,
 		&meta.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -311,7 +319,7 @@ func (r *AgentMetaRepositoryPostgres) Update(id Id, key, value string) error {
 			value = $1,
 			updated_at = $2
 		WHERE agent_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value, time.Now().UTC(), id, key,
 	)
 	return err
 }
@@ -321,7 +329,7 @@ func (r *AgentMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM agents_meta
 		WHERE agent_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	)
 	return err
 }
@@ -334,7 +342,7 @@ func (r *AgentMetaRepositoryPostgres) ListByAgentId(id Id) ([]*AgentMeta, error)
 		FROM agents_meta
 		WHERE agent_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err
