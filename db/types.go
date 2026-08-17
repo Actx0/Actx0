@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 )
 
 // Id is a PostgreSQL UUID primary or foreign key.
@@ -42,11 +41,17 @@ func (id *Id) Scan(value interface{}) error {
 	}
 }
 
+// Valid reports whether the Id is a UUID.
+func (id Id) Valid() bool {
+	return uuid.Validate(string(id)) == nil
+}
+
 // Value implements driver.Valuer for INSERT/UPDATE.
 func (id Id) Value() (driver.Value, error) {
-	if lo.IsEmpty(id) {
+	if !id.Valid() {
 		return nil, nil
 	}
+
 	return string(id), nil
 }
 

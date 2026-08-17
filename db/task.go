@@ -88,7 +88,7 @@ func (r *AsyncTaskRepositoryPostgres) Create(task *AsyncTask) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING created_at, updated_at`,
-		task.Id.String(),
+		task.Id,
 		task.WorkspaceId,
 		task.Type,
 		task.Status,
@@ -106,6 +106,10 @@ func (r *AsyncTaskRepositoryPostgres) Create(task *AsyncTask) error {
 
 // GetById returns an async task by id.
 func (r *AsyncTaskRepositoryPostgres) GetById(id Id) (*AsyncTask, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &AsyncTask{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -113,7 +117,7 @@ func (r *AsyncTaskRepositoryPostgres) GetById(id Id) (*AsyncTask, error) {
 			run_at, locked_at, completed_at, created_at, updated_at
 		FROM async_tasks
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.WorkspaceId,
@@ -130,7 +134,7 @@ func (r *AsyncTaskRepositoryPostgres) GetById(id Id) (*AsyncTask, error) {
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -166,14 +170,14 @@ func (r *AsyncTaskRepositoryPostgres) Update(task *AsyncTask) error {
 		task.LockedAt,
 		task.CompletedAt,
 		time.Now().UTC(),
-		task.Id.String(),
+		task.Id,
 	)
 	return err
 }
 
 // Delete deletes an async task row.
 func (r *AsyncTaskRepositoryPostgres) Delete(id Id) error {
-	_, err := r.db.Exec(`DELETE FROM async_tasks WHERE id = $1`, id.String())
+	_, err := r.db.Exec(`DELETE FROM async_tasks WHERE id = $1`, id)
 	return err
 }
 
@@ -319,7 +323,7 @@ func (r *AsyncTaskRepositoryPostgres) ReleaseClaim(id Id) error {
 		SET status = 'pending', run_at = NULL, locked_at = NULL, updated_at = $1
 		WHERE id = $2 AND status = 'running'`,
 		time.Now().UTC(),
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -364,19 +368,23 @@ func (r *AsyncTaskMetaRepositoryPostgres) Create(id Id, key, value string) error
 	_, err = r.db.Exec(
 		`INSERT INTO async_tasks_meta (id, async_task_id, key, value)
 		VALUES ($1, $2, $3, $4)`,
-		metaId.String(), id.String(), key, value,
+		metaId, id, key, value,
 	)
 	return err
 }
 
 // Get returns async task metadata by key.
 func (r *AsyncTaskMetaRepositoryPostgres) Get(id Id, key string) (*AsyncTaskMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &AsyncTaskMeta{}
 	err := r.db.QueryRow(
 		`SELECT id, async_task_id, key, value, created_at, updated_at
 		FROM async_tasks_meta
 		WHERE async_task_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	).Scan(
 		&meta.Id,
 		&meta.AsyncTaskId,
@@ -385,7 +393,7 @@ func (r *AsyncTaskMetaRepositoryPostgres) Get(id Id, key string) (*AsyncTaskMeta
 		&meta.CreatedAt,
 		&meta.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -397,7 +405,7 @@ func (r *AsyncTaskMetaRepositoryPostgres) Update(id Id, key, value string) error
 		`UPDATE async_tasks_meta
 		SET value = $1, updated_at = $2
 		WHERE async_task_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value, time.Now().UTC(), id, key,
 	)
 	return err
 }
@@ -407,7 +415,7 @@ func (r *AsyncTaskMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM async_tasks_meta
 		WHERE async_task_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	)
 	return err
 }
@@ -419,7 +427,7 @@ func (r *AsyncTaskMetaRepositoryPostgres) ListByAsyncTaskId(id Id) ([]*AsyncTask
 		FROM async_tasks_meta
 		WHERE async_task_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err

@@ -81,8 +81,8 @@ func (r *SubscriptionRepositoryPostgres) Create(subscription *Subscription) erro
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING created_at, updated_at`,
-		subscription.Id.String(),
-		subscription.WorkspaceId.String(),
+		subscription.Id,
+		subscription.WorkspaceId,
 		subscription.Plan,
 		subscription.Status,
 		subscription.Provider,
@@ -97,6 +97,10 @@ func (r *SubscriptionRepositoryPostgres) Create(subscription *Subscription) erro
 
 // GetById returns a subscription by id.
 func (r *SubscriptionRepositoryPostgres) GetById(id Id) (*Subscription, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &Subscription{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -104,7 +108,7 @@ func (r *SubscriptionRepositoryPostgres) GetById(id Id) (*Subscription, error) {
 			provider_customer_id, period_start, period_end, created_at, updated_at
 		FROM subscriptions
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.WorkspaceId,
@@ -119,7 +123,7 @@ func (r *SubscriptionRepositoryPostgres) GetById(id Id) (*Subscription, error) {
 		&item.UpdatedAt,
 	)
 
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -127,6 +131,10 @@ func (r *SubscriptionRepositoryPostgres) GetById(id Id) (*Subscription, error) {
 
 // GetByWorkspaceId returns a subscription by workspace id.
 func (r *SubscriptionRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Subscription, error) {
+	if IsInvalidUUID(workspaceId) {
+		return nil, nil
+	}
+
 	item := &Subscription{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -134,7 +142,7 @@ func (r *SubscriptionRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Subs
 			provider_customer_id, period_start, period_end, created_at, updated_at
 		FROM subscriptions
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(
 		&item.Id,
 		&item.WorkspaceId,
@@ -149,7 +157,7 @@ func (r *SubscriptionRepositoryPostgres) GetByWorkspaceId(workspaceId Id) (*Subs
 		&item.UpdatedAt,
 	)
 
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -179,7 +187,7 @@ func (r *SubscriptionRepositoryPostgres) GetByProviderSubscriptionId(providerSub
 		&item.UpdatedAt,
 	)
 
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -200,7 +208,7 @@ func (r *SubscriptionRepositoryPostgres) Update(subscription *Subscription) erro
 			period_end = $8,
 			updated_at = $9
 		WHERE id = $10`,
-		subscription.WorkspaceId.String(),
+		subscription.WorkspaceId,
 		subscription.Plan,
 		subscription.Status,
 		subscription.Provider,
@@ -209,7 +217,7 @@ func (r *SubscriptionRepositoryPostgres) Update(subscription *Subscription) erro
 		subscription.CurrentPeriodStart,
 		subscription.CurrentPeriodEnd,
 		time.Now().UTC(),
-		subscription.Id.String(),
+		subscription.Id,
 	)
 	return err
 }
@@ -226,7 +234,7 @@ func (r *SubscriptionRepositoryPostgres) HasOwnedPaidWorkspace(userId Id) (bool,
 				AND wu.role = $2
 				AND s.plan IN ('starter', 'growth', 'pro')
 		)`,
-		userId.String(),
+		userId,
 		UserRoleOwner,
 	).Scan(&exists)
 	return exists, err
@@ -246,19 +254,23 @@ func (r *SubscriptionMetaRepositoryPostgres) Create(id Id, key, value string) er
 	_, err = r.db.Exec(
 		`INSERT INTO subscriptions_meta (id, subscription_id, key, value)
 		VALUES ($1, $2, $3, to_jsonb($4::text))`,
-		metaId.String(), id.String(), key, value,
+		metaId, id, key, value,
 	)
 	return err
 }
 
 // Get returns subscription metadata by key.
 func (r *SubscriptionMetaRepositoryPostgres) Get(id Id, key string) (*SubscriptionMeta, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	meta := &SubscriptionMeta{}
 	err := r.db.QueryRow(
 		`SELECT id, subscription_id, key, value #>> '{}', created_at, updated_at
 		FROM subscriptions_meta
 		WHERE subscription_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	).Scan(
 		&meta.Id,
 		&meta.SubscriptionId,
@@ -268,7 +280,7 @@ func (r *SubscriptionMetaRepositoryPostgres) Get(id Id, key string) (*Subscripti
 		&meta.UpdatedAt,
 	)
 
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return meta, err
@@ -280,7 +292,7 @@ func (r *SubscriptionMetaRepositoryPostgres) Update(id Id, key, value string) er
 		`UPDATE subscriptions_meta
 		SET value = to_jsonb($1::text), updated_at = $2
 		WHERE subscription_id = $3 AND key = $4`,
-		value, time.Now().UTC(), id.String(), key,
+		value, time.Now().UTC(), id, key,
 	)
 	return err
 }
@@ -290,7 +302,7 @@ func (r *SubscriptionMetaRepositoryPostgres) Delete(id Id, key string) error {
 	_, err := r.db.Exec(
 		`DELETE FROM subscriptions_meta
 		WHERE subscription_id = $1 AND key = $2`,
-		id.String(), key,
+		id, key,
 	)
 	return err
 }
@@ -302,7 +314,7 @@ func (r *SubscriptionMetaRepositoryPostgres) ListBySubscriptionId(id Id) ([]*Sub
 		FROM subscriptions_meta
 		WHERE subscription_id = $1
 		ORDER BY key`,
-		id.String(),
+		id,
 	)
 	if err != nil {
 		return nil, err

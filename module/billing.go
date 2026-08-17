@@ -386,15 +386,28 @@ func (b *Billing) HandleWebhook(payload []byte, signature string) error {
 
 // SyncStripeSubscription syncs a Stripe subscription with the local database.
 func (b *Billing) SyncStripeSubscription(payload *stripesdk.Subscription, eventType string) error {
-	subscription, err := b.SubscriptionRepository.GetByWorkspaceId(db.Id(payload.Metadata["workspaceId"]))
+	subscription, err := b.SubscriptionRepository.GetByProviderSubscriptionId(payload.ID)
 	if err != nil {
 		return err
+	}
+
+	if subscription == nil {
+		subscription, err = b.SubscriptionRepository.GetByWorkspaceId(db.Id(payload.Metadata["workspaceId"]))
+		if err != nil {
+			return err
+		}
+	}
+
+	if subscription == nil {
+		return nil
 	}
 
 	subscription.Provider = new(BillingProviderStripe)
 	subscription.ProviderCustomerId = new(payload.Customer.ID)
 	subscription.ProviderSubscriptionId = new(payload.ID)
-	subscription.Plan = payload.Metadata["plan"]
+	if plan := payload.Metadata["plan"]; lo.IsNotEmpty(plan) {
+		subscription.Plan = plan
+	}
 	subscription.Status = lo.Ternary(eventType == "customer.subscription.deleted", BillingStatusCanceled, string(payload.Status))
 
 	if eventType == "invoice.payment_failed" {

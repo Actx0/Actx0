@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/clivern/actx0/pkg/buildinfo"
+	"github.com/clivern/actx0/build"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -25,9 +25,9 @@ func TestIntegrationVersionEndpoint(t *testing.T) {
 
 		var body map[string]any
 		assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
-		assert.Equal(t, buildinfo.Version, body["version"])
-		assert.Equal(t, buildinfo.Commit, body["commit"])
-		assert.Equal(t, buildinfo.Date, body["date"])
-		assert.Equal(t, buildinfo.BuiltBy, body["builtBy"])
+		assert.Equal(t, build.Version, body["version"])
+		assert.Equal(t, build.Commit, body["commit"])
+		assert.Equal(t, build.Date, body["date"])
+		assert.Equal(t, build.BuiltBy, body["builtBy"])
 	})
 }

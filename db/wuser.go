@@ -56,9 +56,9 @@ func (r *WorkspaceUserRepositoryPostgres) Create(m *WorkspaceUser) error {
 		`INSERT INTO workspace_users (id, workspace_id, user_id, role)
 		VALUES ($1, $2, $3, $4)
 		RETURNING created_at, updated_at`,
-		m.Id.String(),
-		m.WorkspaceId.String(),
-		m.UserId.String(),
+		m.Id,
+		m.WorkspaceId,
+		m.UserId,
 		m.Role,
 	).Scan(&m.CreatedAt, &m.UpdatedAt)
 	return err
@@ -66,11 +66,15 @@ func (r *WorkspaceUserRepositoryPostgres) Create(m *WorkspaceUser) error {
 
 // GetById returns a workspace user by Id
 func (r *WorkspaceUserRepositoryPostgres) GetById(id Id) (*WorkspaceUser, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	m := &WorkspaceUser{}
 	err := r.db.QueryRow(
 		`SELECT id, workspace_id, user_id, role, created_at, updated_at
 		FROM workspace_users WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&m.Id,
 		&m.WorkspaceId,
@@ -79,7 +83,7 @@ func (r *WorkspaceUserRepositoryPostgres) GetById(id Id) (*WorkspaceUser, error)
 		&m.CreatedAt,
 		&m.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return m, err
@@ -87,12 +91,16 @@ func (r *WorkspaceUserRepositoryPostgres) GetById(id Id) (*WorkspaceUser, error)
 
 // GetByWorkspaceAndUser returns a workspace user by workspace and user Id
 func (r *WorkspaceUserRepositoryPostgres) GetByWorkspaceAndUser(workspaceId, userId Id) (*WorkspaceUser, error) {
+	if IsInvalidUUID(workspaceId, userId) {
+		return nil, nil
+	}
+
 	m := &WorkspaceUser{}
 	err := r.db.QueryRow(
 		`SELECT id, workspace_id, user_id, role, created_at, updated_at
 		FROM workspace_users WHERE workspace_id = $1 AND user_id = $2`,
-		workspaceId.String(),
-		userId.String(),
+		workspaceId,
+		userId,
 	).Scan(
 		&m.Id,
 		&m.WorkspaceId,
@@ -101,7 +109,7 @@ func (r *WorkspaceUserRepositoryPostgres) GetByWorkspaceAndUser(workspaceId, use
 		&m.CreatedAt,
 		&m.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return m, err
@@ -112,11 +120,11 @@ func (r *WorkspaceUserRepositoryPostgres) Update(m *WorkspaceUser) error {
 	_, err := r.db.Exec(
 		`UPDATE workspace_users SET workspace_id = $1, user_id = $2, role = $3, updated_at = $4
 		WHERE id = $5`,
-		m.WorkspaceId.String(),
-		m.UserId.String(),
+		m.WorkspaceId,
+		m.UserId,
 		m.Role,
 		time.Now().UTC(),
-		m.Id.String(),
+		m.Id,
 	)
 	return err
 }
@@ -125,7 +133,7 @@ func (r *WorkspaceUserRepositoryPostgres) Update(m *WorkspaceUser) error {
 func (r *WorkspaceUserRepositoryPostgres) Delete(id Id) error {
 	_, err := r.db.Exec(
 		`DELETE FROM workspace_users WHERE id = $1`,
-		id.String(),
+		id,
 	)
 	return err
 }
@@ -181,7 +189,7 @@ func (r *WorkspaceUserRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limi
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -215,7 +223,7 @@ func (r *WorkspaceUserRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (in
 		`SELECT COUNT(*)
 		FROM workspace_users
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
@@ -227,7 +235,7 @@ func (r *WorkspaceUserRepositoryPostgres) CountOwnedByUserId(userId Id) (int64, 
 		`SELECT COUNT(*)
 		FROM workspace_users
 		WHERE user_id = $1 AND role = $2`,
-		userId.String(),
+		userId,
 		UserRoleOwner,
 	).Scan(&count)
 	return count, err

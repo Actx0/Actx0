@@ -55,8 +55,8 @@ func (r *UsageRepositoryPostgres) Create(usage *Usage) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING created_at, updated_at`,
-		usage.Id.String(),
-		usage.WorkspaceId.String(),
+		usage.Id,
+		usage.WorkspaceId,
 		usage.Type,
 		usage.Quantity,
 		usage.Unit,
@@ -69,6 +69,10 @@ func (r *UsageRepositoryPostgres) Create(usage *Usage) error {
 
 // GetById returns an usage by id.
 func (r *UsageRepositoryPostgres) GetById(id Id) (*Usage, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &Usage{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -76,7 +80,7 @@ func (r *UsageRepositoryPostgres) GetById(id Id) (*Usage, error) {
 			created_at, updated_at
 		FROM usage
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.WorkspaceId,
@@ -89,7 +93,7 @@ func (r *UsageRepositoryPostgres) GetById(id Id) (*Usage, error) {
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -105,7 +109,7 @@ func (r *UsageRepositoryPostgres) ListByWorkspaceId(workspaceId Id, limit, offse
 		WHERE workspace_id = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`,
-		workspaceId.String(),
+		workspaceId,
 		limit,
 		offset,
 	)
@@ -143,13 +147,17 @@ func (r *UsageRepositoryPostgres) CountByWorkspaceId(workspaceId Id) (int64, err
 		`SELECT COUNT(*)
 		FROM usage
 		WHERE workspace_id = $1`,
-		workspaceId.String(),
+		workspaceId,
 	).Scan(&count)
 	return count, err
 }
 
 // GetQuantityByPeriod returns usage quantity for a billing period.
 func (r *UsageRepositoryPostgres) GetQuantityByPeriod(workspaceId Id, utype string, pstart time.Time) (int64, error) {
+	if IsInvalidUUID(workspaceId) {
+		return 0, nil
+	}
+
 	var quantity int64
 	err := r.db.QueryRow(
 		`SELECT COALESCE(quantity, 0)
@@ -157,11 +165,11 @@ func (r *UsageRepositoryPostgres) GetQuantityByPeriod(workspaceId Id, utype stri
 		WHERE workspace_id = $1
 			AND type = $2
 			AND period_start = $3`,
-		workspaceId.String(),
+		workspaceId,
 		utype,
 		pstart,
 	).Scan(&quantity)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return 0, nil
 	}
 	return quantity, err
@@ -187,8 +195,8 @@ func (r *UsageRepositoryPostgres) IncrementByPeriod(workspaceId Id, utype string
 		DO UPDATE SET
 			quantity = usage.quantity + EXCLUDED.quantity,
 			updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'`,
-		id.String(),
-		workspaceId.String(),
+		id,
+		workspaceId,
 		utype,
 		quantity,
 		unit,

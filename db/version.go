@@ -64,7 +64,7 @@ func (r *PromptVersionRepositoryPostgres) Create(version *PromptVersion) error {
 		var maxVersion int
 		err := r.db.QueryRow(
 			`SELECT COALESCE(MAX(version), 0) FROM prompt_versions WHERE prompt_id = $1`,
-			version.PromptId.String(),
+			version.PromptId,
 		).Scan(&maxVersion)
 		if err != nil {
 			return err
@@ -91,8 +91,8 @@ func (r *PromptVersionRepositoryPostgres) Create(version *PromptVersion) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING created_at, updated_at`,
-		version.Id.String(),
-		version.PromptId.String(),
+		version.Id,
+		version.PromptId,
 		version.Version,
 		version.Type,
 		version.Content,
@@ -110,13 +110,17 @@ func (r *PromptVersionRepositoryPostgres) Create(version *PromptVersion) error {
 	_, err = r.db.Exec(
 		`UPDATE prompts SET updated_at = $1 WHERE id = $2`,
 		time.Now().UTC(),
-		version.PromptId.String(),
+		version.PromptId,
 	)
 	return err
 }
 
 // GetById returns a prompt version by id.
 func (r *PromptVersionRepositoryPostgres) GetById(id Id) (*PromptVersion, error) {
+	if IsInvalidUUID(id) {
+		return nil, nil
+	}
+
 	item := &PromptVersion{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -124,7 +128,7 @@ func (r *PromptVersionRepositoryPostgres) GetById(id Id) (*PromptVersion, error)
 			commit_message, commit_hash, meta, status, production, created_at, updated_at
 		FROM prompt_versions
 		WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(
 		&item.Id,
 		&item.PromptId,
@@ -141,7 +145,7 @@ func (r *PromptVersionRepositoryPostgres) GetById(id Id) (*PromptVersion, error)
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -149,6 +153,10 @@ func (r *PromptVersionRepositoryPostgres) GetById(id Id) (*PromptVersion, error)
 
 // GetByPromptIdAndVersion returns a prompt version by prompt id and version number.
 func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndVersion(promptId Id, version int) (*PromptVersion, error) {
+	if IsInvalidUUID(promptId) {
+		return nil, nil
+	}
+
 	item := &PromptVersion{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -156,7 +164,7 @@ func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndVersion(promptId Id, v
 			commit_message, commit_hash, meta, status, production, created_at, updated_at
 		FROM prompt_versions
 		WHERE prompt_id = $1 AND version = $2`,
-		promptId.String(),
+		promptId,
 		version,
 	).Scan(
 		&item.Id,
@@ -174,7 +182,7 @@ func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndVersion(promptId Id, v
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -182,6 +190,10 @@ func (r *PromptVersionRepositoryPostgres) GetByPromptIdAndVersion(promptId Id, v
 
 // GetLatestByPromptId returns the newest version for a prompt.
 func (r *PromptVersionRepositoryPostgres) GetLatestByPromptId(promptId Id) (*PromptVersion, error) {
+	if IsInvalidUUID(promptId) {
+		return nil, nil
+	}
+
 	item := &PromptVersion{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -191,7 +203,7 @@ func (r *PromptVersionRepositoryPostgres) GetLatestByPromptId(promptId Id) (*Pro
 		WHERE prompt_id = $1
 		ORDER BY version DESC
 		LIMIT 1`,
-		promptId.String(),
+		promptId,
 	).Scan(
 		&item.Id,
 		&item.PromptId,
@@ -208,7 +220,7 @@ func (r *PromptVersionRepositoryPostgres) GetLatestByPromptId(promptId Id) (*Pro
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -216,6 +228,10 @@ func (r *PromptVersionRepositoryPostgres) GetLatestByPromptId(promptId Id) (*Pro
 
 // GetProductionByPromptId returns the production version for a prompt.
 func (r *PromptVersionRepositoryPostgres) GetProductionByPromptId(promptId Id) (*PromptVersion, error) {
+	if IsInvalidUUID(promptId) {
+		return nil, nil
+	}
+
 	item := &PromptVersion{}
 	err := r.db.QueryRow(
 		`SELECT
@@ -224,7 +240,7 @@ func (r *PromptVersionRepositoryPostgres) GetProductionByPromptId(promptId Id) (
 		FROM prompt_versions
 		WHERE prompt_id = $1 AND production = TRUE
 		LIMIT 1`,
-		promptId.String(),
+		promptId,
 	).Scan(
 		&item.Id,
 		&item.PromptId,
@@ -241,7 +257,7 @@ func (r *PromptVersionRepositoryPostgres) GetProductionByPromptId(promptId Id) (
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
-	if isNotFound(err) {
+	if IsNotFound(err) {
 		return nil, nil
 	}
 	return item, err
@@ -271,7 +287,7 @@ func (r *PromptVersionRepositoryPostgres) Update(version *PromptVersion) error {
 		version.Status,
 		version.Production,
 		time.Now().UTC(),
-		version.Id.String(),
+		version.Id,
 	)
 	if err != nil {
 		return err
@@ -279,7 +295,7 @@ func (r *PromptVersionRepositoryPostgres) Update(version *PromptVersion) error {
 	_, err = r.db.Exec(
 		`UPDATE prompts SET updated_at = $1 WHERE id = $2`,
 		time.Now().UTC(),
-		version.PromptId.String(),
+		version.PromptId,
 	)
 	return err
 }
@@ -289,13 +305,13 @@ func (r *PromptVersionRepositoryPostgres) Delete(id Id) error {
 	var promptId Id
 	err := r.db.QueryRow(
 		`SELECT prompt_id FROM prompt_versions WHERE id = $1`,
-		id.String(),
+		id,
 	).Scan(&promptId)
 	if err != nil {
 		return err
 	}
 
-	_, err = r.db.Exec(`DELETE FROM prompt_versions WHERE id = $1`, id.String())
+	_, err = r.db.Exec(`DELETE FROM prompt_versions WHERE id = $1`, id)
 	if err != nil {
 		return err
 	}
@@ -303,13 +319,13 @@ func (r *PromptVersionRepositoryPostgres) Delete(id Id) error {
 	var remaining int
 	err = r.db.QueryRow(
 		`SELECT COUNT(*) FROM prompt_versions WHERE prompt_id = $1`,
-		promptId.String(),
+		promptId,
 	).Scan(&remaining)
 	if err != nil {
 		return err
 	}
 	if remaining == 0 {
-		_, err = r.db.Exec(`DELETE FROM prompts WHERE id = $1`, promptId.String())
+		_, err = r.db.Exec(`DELETE FROM prompts WHERE id = $1`, promptId)
 	}
 	return err
 }
@@ -332,7 +348,7 @@ func (r *PromptVersionRepositoryPostgres) ClearLabelFromPromptId(promptId Id, la
 			AND labels @> jsonb_build_array($1::text)`,
 		label,
 		time.Now().UTC(),
-		promptId.String(),
+		promptId,
 	)
 	return err
 }
@@ -340,10 +356,10 @@ func (r *PromptVersionRepositoryPostgres) ClearLabelFromPromptId(promptId Id, la
 // ClearProductionFromPromptId clears the production flag on sibling versions.
 func (r *PromptVersionRepositoryPostgres) ClearProductionFromPromptId(promptId Id, exceptId *Id) error {
 	query := `UPDATE prompt_versions SET production = FALSE, updated_at = $1 WHERE prompt_id = $2 AND production = TRUE`
-	args := []interface{}{time.Now().UTC(), promptId.String()}
+	args := []interface{}{time.Now().UTC(), promptId}
 	if exceptId != nil {
 		query += ` AND id != $3`
-		args = append(args, exceptId.String())
+		args = append(args, exceptId)
 	}
 	_, err := r.db.Exec(query, args...)
 	return err
@@ -359,7 +375,7 @@ func (r *PromptVersionRepositoryPostgres) ListByPromptId(promptId Id, limit, off
 		WHERE prompt_id = $1
 		ORDER BY version DESC
 		LIMIT $2 OFFSET $3`,
-		promptId.String(),
+		promptId,
 		limit,
 		offset,
 	)
@@ -400,7 +416,7 @@ func (r *PromptVersionRepositoryPostgres) CountByPromptId(promptId Id) (int64, e
 	var count int64
 	err := r.db.QueryRow(
 		`SELECT COUNT(*) FROM prompt_versions WHERE prompt_id = $1`,
-		promptId.String(),
+		promptId,
 	).Scan(&count)
 	return count, err
 }
