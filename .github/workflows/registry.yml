@@ -51,7 +51,7 @@ jobs:
           build-args: |
             ACTX0_VERSION=${{ github.ref_type == 'tag' && github.ref_name || format('{0}-{1}', github.ref_name, github.sha) }}
             ACTX0_COMMIT=${{ github.sha }}
-            ACTX0_BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            ACTX0_BUILD_DATE=${{ github.event.head_commit.timestamp || github.run_started_at }}
             ACTX0_BUILT_BY=github-actions
 
       - name: Prune old image tags

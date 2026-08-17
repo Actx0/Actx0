@@ -21,7 +21,7 @@ var serverCmd = &cobra.Command{
 			panic(err.Error())
 		}
 
-		err = core.SetupSentry(buildinfo.Commit)
+		err = core.SetupSentry(buildinfo.Version)
 		if err != nil {
 			panic(err.Error())
 		}
