@@ -135,6 +135,7 @@ func SetupServer(Static embed.FS) http.Handler {
 		r.With(middleware.Protect(middleware.Config{Perm: module.CanGetWorkspaceBilling})).Get("/billing/usage", api.GetBillingUsageAction)                          // get billing usage
 		r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanUpdateWorkspaceBilling})).Post("/billing/checkout", api.CreateBillingCheckoutAction) // start Stripe checkout
 		r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanUpdateWorkspaceBilling})).Post("/billing/portal", api.CreateBillingPortalAction)     // open Stripe customer portal
+		r.With(middleware.Protect(middleware.Config{User: true, Perm: module.CanUpdateWorkspaceBilling})).Post("/billing/interest", api.RecordBillingInterestAction) // record paid plan interest
 		r.With(middleware.Protect(middleware.Config{Perm: module.CanGetWorkspace})).Get("/stats", api.GetWorkspaceStatsAction)                                       // get workspace stats
 
 		r.Route("/audits", func(r chi.Router) {

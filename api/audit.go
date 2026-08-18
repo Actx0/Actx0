@@ -64,6 +64,7 @@ const (
 
 	ActionBillingCheckout = "billing.checkout"
 	ActionBillingPortal   = "billing.portal"
+	ActionBillingInterest = "billing.interest"
 )
 
 // Audit resource types.
