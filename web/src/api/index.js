@@ -121,6 +121,7 @@ export const billing_api = {
   usage: (workspaceId) => api.get(`/workspaces/${workspaceId}/billing/usage`),
   checkout: (workspaceId, data) => api.post(`/workspaces/${workspaceId}/billing/checkout`, data),
   portal: (workspaceId) => api.post(`/workspaces/${workspaceId}/billing/portal`),
+  interest: (workspaceId) => api.post(`/workspaces/${workspaceId}/billing/interest`),
 }
 
 export const workspace_access_key_api = {

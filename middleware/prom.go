@@ -98,6 +98,24 @@ var (
 
 	_ = promauto.NewGaugeFunc(
 		prometheus.GaugeOpts{
+			Name: "db_workspaces_intention_to_pay_total",
+			Help: "Current number of workspaces that recorded an intention to pay.",
+		},
+		func() float64 {
+			conn := db.GetDB()
+			if conn == nil {
+				return 0
+			}
+			count, err := db.NewWorkspaceMetaRepository(conn).CountByKey("intention_to_pay")
+			if err != nil {
+				return 0
+			}
+			return float64(count)
+		},
+	)
+
+	_ = promauto.NewGaugeFunc(
+		prometheus.GaugeOpts{
 			Name: "db_user_sessions_total",
 			Help: "Current number of non-expired user sessions in database.",
 		},

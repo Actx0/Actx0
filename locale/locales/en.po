@@ -573,6 +573,12 @@ msgstr "Stripe billing is not configured."
 msgid "workspace_subscription_not_found"
 msgstr "Workspace subscription not found."
 
+msgid "paid_subscription_not_open"
+msgstr "Paid subscriptions are not open yet."
+
+msgid "failed_record_payment_intention"
+msgstr "Failed to record payment intention."
+
 msgid "workspace_capacity_reached"
 msgstr "Workspace capacity reached for the current plan."
 

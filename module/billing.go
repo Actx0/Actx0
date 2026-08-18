@@ -23,12 +23,16 @@ const (
 	BillingStatusActive   = "active"
 	BillingStatusPastDue  = "past_due"
 	BillingStatusCanceled = "canceled"
+
+	OpenPaidSubscriptionConfigKey = "_open_paid_subscription"
+	IntentionToPayMetaKey         = "intention_to_pay"
 )
 
 var (
 	ErrBillingPortalUnavailable    = errors.New("stripe billing portal is unavailable for this workspace")
 	ErrBillingFreePlan             = errors.New("hobby is the default free plan and does not use checkout")
 	ErrBillingSubscriptionNotFound = errors.New("workspace subscription not found")
+	ErrPaidSubscriptionClosed      = errors.New("paid subscriptions are not open")
 )
 
 // PlanUsageLimits are the consumption caps for a billing plan.
@@ -108,23 +112,27 @@ var PlanLimits = map[string]PlanUsageLimits{
 
 // Billing coordinates local subscription state with Stripe Checkout and Portal.
 type Billing struct {
-	WorkspaceRepository    db.WorkspaceRepository
-	SubscriptionRepository db.SubscriptionRepository
-	Usage                  Usage
+	WorkspaceRepository     db.WorkspaceRepository
+	SubscriptionRepository  db.SubscriptionRepository
+	ConfigRepository        db.ConfigRepository
+	WorkspaceMetaRepository db.WorkspaceMetaRepository
+	Usage                   Usage
 }
 
 // BillingStatusResponse is the billing state exposed to the UI.
 type BillingStatusResponse struct {
-	Id                 db.Id   `json:"id"`
-	WorkspaceId        db.Id   `json:"workspaceId"`
-	Plan               string  `json:"plan"`
-	Status             string  `json:"status"`
-	Provider           *string `json:"provider"`
-	ProviderCustomerId string  `json:"providerCustomerId"`
-	PeriodStart        string  `json:"periodStart"`
-	PeriodEnd          string  `json:"periodEnd"`
-	CreatedAt          string  `json:"createdAt"`
-	UpdatedAt          string  `json:"updatedAt"`
+	Id                   db.Id   `json:"id"`
+	WorkspaceId          db.Id   `json:"workspaceId"`
+	Plan                 string  `json:"plan"`
+	Status               string  `json:"status"`
+	Provider             *string `json:"provider"`
+	ProviderCustomerId   string  `json:"providerCustomerId"`
+	PeriodStart          string  `json:"periodStart"`
+	PeriodEnd            string  `json:"periodEnd"`
+	CreatedAt            string  `json:"createdAt"`
+	UpdatedAt            string  `json:"updatedAt"`
+	OpenPaidSubscription bool    `json:"openPaidSubscription"`
+	IntentionToPay       bool    `json:"intentionToPay"`
 }
 
 // BillingCheckoutRequest is the body for creating a Stripe Checkout session.
@@ -151,11 +159,19 @@ type BillingUsageResponse struct {
 }
 
 // NewBilling creates a billing module.
-func NewBilling(workspaces db.WorkspaceRepository, subscriptions db.SubscriptionRepository, usage Usage) *Billing {
+func NewBilling(
+	workspaces db.WorkspaceRepository,
+	subscriptions db.SubscriptionRepository,
+	configs db.ConfigRepository,
+	workspaceMeta db.WorkspaceMetaRepository,
+	usage Usage,
+) *Billing {
 	return &Billing{
-		WorkspaceRepository:    workspaces,
-		SubscriptionRepository: subscriptions,
-		Usage:                  usage,
+		WorkspaceRepository:     workspaces,
+		SubscriptionRepository:  subscriptions,
+		ConfigRepository:        configs,
+		WorkspaceMetaRepository: workspaceMeta,
+		Usage:                   usage,
 	}
 }
 
@@ -192,17 +208,29 @@ func (b *Billing) GetBillingStatus(workspaceId db.Id) (*BillingStatusResponse, e
 		return nil, err
 	}
 
+	openPaidSubscription, err := b.isOpenPaidSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	intentionToPay, err := b.hasPaymentIntention(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &BillingStatusResponse{
-		Id:                 subscription.Id,
-		WorkspaceId:        subscription.WorkspaceId,
-		Plan:               subscription.Plan,
-		Status:             subscription.Status,
-		Provider:           subscription.Provider,
-		ProviderCustomerId: lo.FromPtr(subscription.ProviderCustomerId),
-		PeriodStart:        subscription.CurrentPeriodStart.UTC().Format(time.RFC3339),
-		PeriodEnd:          subscription.CurrentPeriodEnd.UTC().Format(time.RFC3339),
-		CreatedAt:          subscription.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:          subscription.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:                   subscription.Id,
+		WorkspaceId:          subscription.WorkspaceId,
+		Plan:                 subscription.Plan,
+		Status:               subscription.Status,
+		Provider:             subscription.Provider,
+		ProviderCustomerId:   lo.FromPtr(subscription.ProviderCustomerId),
+		PeriodStart:          subscription.CurrentPeriodStart.UTC().Format(time.RFC3339),
+		PeriodEnd:            subscription.CurrentPeriodEnd.UTC().Format(time.RFC3339),
+		CreatedAt:            subscription.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:            subscription.UpdatedAt.UTC().Format(time.RFC3339),
+		OpenPaidSubscription: openPaidSubscription,
+		IntentionToPay:       intentionToPay,
 	}, nil
 }
 
@@ -257,6 +285,14 @@ func (b *Billing) CreateCheckoutSession(ctx context.Context, workspaceId db.Id, 
 		return nil, ErrBillingFreePlan
 	}
 
+	open, err := b.isOpenPaidSubscription()
+	if err != nil {
+		return nil, err
+	}
+	if !open {
+		return nil, ErrPaidSubscriptionClosed
+	}
+
 	client, err := stripe.New()
 	if err != nil {
 		return nil, err
@@ -286,6 +322,43 @@ func (b *Billing) CreateCheckoutSession(ctx context.Context, workspaceId db.Id, 
 	}
 
 	return &BillingSessionResponse{URL: session.URL}, nil
+}
+
+// RecordPaymentIntention stores that this workspace wants a paid plan.
+func (b *Billing) RecordPaymentIntention(workspaceId db.Id) error {
+	workspace, err := b.WorkspaceRepository.GetById(workspaceId)
+	if err != nil {
+		return err
+	}
+	if workspace == nil {
+		return ErrWorkspaceNotFound
+	}
+
+	return b.WorkspaceMetaRepository.Upsert(workspaceId, IntentionToPayMetaKey, "1")
+}
+
+func (b *Billing) isOpenPaidSubscription() (bool, error) {
+	config, err := b.ConfigRepository.Get(OpenPaidSubscriptionConfigKey)
+	if err != nil {
+		return false, err
+	}
+	if config == nil {
+		return false, nil
+	}
+
+	return config.Value == "1", nil
+}
+
+func (b *Billing) hasPaymentIntention(workspaceId db.Id) (bool, error) {
+	meta, err := b.WorkspaceMetaRepository.Get(workspaceId, IntentionToPayMetaKey)
+	if err != nil {
+		return false, err
+	}
+	if meta == nil {
+		return false, nil
+	}
+
+	return meta.Value == "1", nil
 }
 
 // CreatePortalSession opens Stripe's customer portal.
