@@ -52,6 +52,7 @@ type WorkspaceMetaRepository interface {
 	Delete(id Id, key string) error
 	ListByWorkspaceId(id Id) ([]*WorkspaceMeta, error)
 	Upsert(id Id, key, value string) error
+	CountByKey(key string) (int64, error)
 }
 
 type WorkspaceMetaRepositoryPostgres struct {
@@ -380,4 +381,16 @@ func (r *WorkspaceMetaRepositoryPostgres) Upsert(id Id, key, value string) error
 		return r.Create(id, key, value)
 	}
 	return r.Update(id, key, value)
+}
+
+// CountByKey returns how many workspaces have a metadata row for the given key.
+func (r *WorkspaceMetaRepositoryPostgres) CountByKey(key string) (int64, error) {
+	var count int64
+	err := r.db.QueryRow(
+		`SELECT COUNT(*)
+		FROM workspaces_meta
+		WHERE key = $1`,
+		key,
+	).Scan(&count)
+	return count, err
 }
