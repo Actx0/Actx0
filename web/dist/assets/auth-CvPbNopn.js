@@ -1,1 +1,0 @@
-import{R as e}from"./runtime-core.esm-bundler-lHd9hHCv.js";import{c as t,o as n,u as r}from"./index-BABE7Tal.js";var i=e(n());function a(e){i.value=e,r(e)}function o(){i.value=null,t()}export{a as n,i as r,o as t};
