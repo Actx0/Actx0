@@ -32,6 +32,8 @@ func GetBillingStatusAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		db.NewConfigRepository(db.GetDB()),
+		db.NewWorkspaceMetaRepository(db.GetDB()),
 		module.Usage{},
 	)
 
@@ -68,6 +70,8 @@ func GetBillingUsageAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		db.NewConfigRepository(db.GetDB()),
+		db.NewWorkspaceMetaRepository(db.GetDB()),
 		module.Usage{},
 	)
 
@@ -131,6 +135,8 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		db.NewConfigRepository(db.GetDB()),
+		db.NewWorkspaceMetaRepository(db.GetDB()),
 		module.Usage{},
 	)
 	session, err := bm.CreateCheckoutSession(
@@ -151,6 +157,10 @@ func CreateBillingCheckoutAction(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, module.ErrBillingFreePlan):
 			util.WriteJSON(w, http.StatusBadRequest, map[string]any{
 				"errorMessage": locale.TR(r, "billing_free_plan_default"),
+			})
+		case errors.Is(err, module.ErrPaidSubscriptionClosed):
+			util.WriteJSON(w, http.StatusForbidden, map[string]any{
+				"errorMessage": locale.TR(r, "paid_subscription_not_open"),
 			})
 		case errors.Is(err, module.ErrBillingSubscriptionNotFound):
 			util.WriteJSON(w, http.StatusNotFound, map[string]any{
@@ -193,6 +203,8 @@ func CreateBillingPortalAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		db.NewConfigRepository(db.GetDB()),
+		db.NewWorkspaceMetaRepository(db.GetDB()),
 		module.Usage{},
 	)
 	session, err := bm.CreatePortalSession(
@@ -237,6 +249,57 @@ func CreateBillingPortalAction(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, http.StatusOK, session)
 }
 
+// RecordBillingInterestAction stores that this workspace wants a paid plan.
+func RecordBillingInterestAction(w http.ResponseWriter, r *http.Request) {
+	user, ok := middleware.GetUserFromContext(r.Context())
+	if !ok || user == nil {
+		util.WriteJSON(w, http.StatusUnauthorized, map[string]any{
+			"errorMessage": locale.TR(r, "not_authenticated"),
+		})
+		return
+	}
+
+	workspaceId := chi.URLParam(r, "workspaceId")
+	log.Info().
+		Str("workspaceId", workspaceId).
+		Str("userId", user.Id.String()).
+		Msg("Recording billing payment intention")
+
+	bm := module.NewBilling(
+		db.NewWorkspaceRepository(db.GetDB()),
+		db.NewSubscriptionRepository(db.GetDB()),
+		db.NewConfigRepository(db.GetDB()),
+		db.NewWorkspaceMetaRepository(db.GetDB()),
+		module.Usage{},
+	)
+
+	err := bm.RecordPaymentIntention(db.Id(workspaceId))
+	if err != nil {
+		switch {
+		case errors.Is(err, module.ErrWorkspaceNotFound):
+			util.WriteJSON(w, http.StatusNotFound, map[string]any{
+				"errorMessage": locale.TR(r, "workspace_not_found"),
+			})
+		default:
+			util.Error(err).Msg("Failed to record payment intention")
+			util.WriteJSON(w, http.StatusInternalServerError, map[string]any{
+				"errorMessage": locale.TR(r, "failed_record_payment_intention"),
+			})
+		}
+		return
+	}
+
+	defer record(r, &module.RecordAuditEvent{
+		WorkspaceId:  db.Id(workspaceId),
+		Action:       ActionBillingInterest,
+		ResourceType: ResourceSubscription,
+	})
+
+	util.WriteJSON(w, http.StatusOK, map[string]any{
+		"intentionToPay": true,
+	})
+}
+
 // StripeWebhookAction receives Stripe billing webhook events.
 func StripeWebhookAction(w http.ResponseWriter, r *http.Request) {
 	payload, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
@@ -257,6 +320,8 @@ func StripeWebhookAction(w http.ResponseWriter, r *http.Request) {
 	bm := module.NewBilling(
 		db.NewWorkspaceRepository(db.GetDB()),
 		db.NewSubscriptionRepository(db.GetDB()),
+		db.NewConfigRepository(db.GetDB()),
+		db.NewWorkspaceMetaRepository(db.GetDB()),
 		module.Usage{},
 	)
 

@@ -561,6 +561,12 @@ msgstr "La facturation Stripe n'est pas configurée."
 msgid "workspace_subscription_not_found"
 msgstr "Abonnement de l'espace de travail introuvable."
 
+msgid "paid_subscription_not_open"
+msgstr "Les abonnements payants ne sont pas encore ouverts."
+
+msgid "failed_record_payment_intention"
+msgstr "Échec de l'enregistrement de l'intention de paiement."
+
 msgid "workspace_capacity_reached"
 msgstr "Capacité de l'espace de travail atteinte pour le forfait actuel."
 

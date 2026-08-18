@@ -57,7 +57,7 @@
               </ul>
 
               <div class="mt-8 flex flex-wrap gap-3">
-                <button type="button" class="btn-primary" @click="planModalOpen = true">
+                <button type="button" class="btn-primary" @click="openUpgradeModal">
                   {{ isPaidPlan ? $t('billing_page.change_plan') : $t('billing_page.upgrade_plan') }}
                 </button>
                 <button
@@ -129,7 +129,7 @@
               <p class="mt-2 text-sm leading-6 text-theme-textLight">
                 {{ $t('billing_page.starter_pitch') }}
               </p>
-              <button type="button" class="btn-primary mt-4 w-full" @click="planModalOpen = true">
+              <button type="button" class="btn-primary mt-4 w-full" @click="openUpgradeModal">
                 {{ $t('billing_page.view_plans') }}
               </button>
             </section>
@@ -273,6 +273,63 @@
         </div>
       </Transition>
     </Teleport>
+
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="interestModalOpen"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="interest-title"
+          @click.self="!interestLoading && (interestModalOpen = false)"
+        >
+          <section class="relative w-full max-w-sm rounded-lg border border-theme-border bg-white p-6 shadow-xl">
+            <button
+              type="button"
+              class="absolute right-5 top-5 text-theme-textLight hover:text-theme-text"
+              :aria-label="$t('billing_page.close_interest_dialog')"
+              :disabled="interestLoading"
+              @click="interestModalOpen = false"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <template v-if="billingStatus.intentionToPay">
+              <h2 id="interest-title" class="text-lg font-semibold text-theme-text pr-8">
+                {{ $t('billing_page.interest_thanks_title') }}
+              </h2>
+              <p class="mt-2 text-sm leading-6 text-theme-textLight">
+                {{ $t('billing_page.interest_thanks_desc') }}
+              </p>
+              <div class="mt-6 flex justify-end">
+                <button type="button" class="btn-primary" @click="interestModalOpen = false">
+                  {{ $t('common.close') }}
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <h2 id="interest-title" class="text-lg font-semibold text-theme-text pr-8">
+                {{ $t('billing_page.interest_title') }}
+              </h2>
+              <p class="mt-2 text-sm leading-6 text-theme-textLight">
+                {{ $t('billing_page.interest_desc') }}
+              </p>
+              <div class="mt-6 flex justify-end gap-3">
+                <button type="button" class="btn-secondary" :disabled="interestLoading" @click="interestModalOpen = false">
+                  {{ $t('billing_page.interest_no') }}
+                </button>
+                <button type="button" class="btn-primary" :disabled="interestLoading" @click="recordInterest">
+                  {{ interestLoading ? $t('billing_page.recording') : $t('billing_page.interest_yes') }}
+                </button>
+              </div>
+            </template>
+          </section>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -288,8 +345,10 @@ const { t, locale } = useI18n()
 const { currentWorkspace } = useWorkspaceContext()
 
 const planModalOpen = ref(false)
+const interestModalOpen = ref(false)
 const billingLoading = ref(false)
 const portalLoading = ref(false)
+const interestLoading = ref(false)
 const checkoutPlan = ref('')
 const errorMessage = ref('')
 const billingStatus = ref({
@@ -298,7 +357,9 @@ const billingStatus = ref({
   providerCustomerID: '',
   periodStart: '',
   periodEnd: '',
-  updatedAt: ''
+  updatedAt: '',
+  openPaidSubscription: false,
+  intentionToPay: false
 })
 
 const usageData = ref({
@@ -603,6 +664,28 @@ const loadBilling = async () => {
   }
 }
 
+const openUpgradeModal = () => {
+  if (billingStatus.value.openPaidSubscription) {
+    planModalOpen.value = true
+    return
+  }
+  interestModalOpen.value = true
+}
+
+const recordInterest = async () => {
+  interestLoading.value = true
+  errorMessage.value = ''
+  try {
+    await billing_api.interest(currentWorkspace.id)
+    billingStatus.value.intentionToPay = true
+  } catch (err) {
+    errorMessage.value = err.response?.data?.errorMessage || t('billing_page.failed_interest')
+    interestModalOpen.value = false
+  } finally {
+    interestLoading.value = false
+  }
+}
+
 const choosePlan = async (plan) => {
   checkoutPlan.value = plan.id
   errorMessage.value = ''
@@ -630,14 +713,16 @@ const openPortal = async () => {
 }
 
 watchEffect(() => {
-  if (!planModalOpen.value) {
+  if (!planModalOpen.value && !interestModalOpen.value) {
     document.body.style.overflow = ''
     return
   }
 
   document.body.style.overflow = 'hidden'
   const onEsc = (event) => {
-    if (event.key === 'Escape') planModalOpen.value = false
+    if (event.key !== 'Escape') return
+    planModalOpen.value = false
+    interestModalOpen.value = false
   }
   document.addEventListener('keydown', onEsc)
 
