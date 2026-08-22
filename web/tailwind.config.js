@@ -30,12 +30,12 @@ export default {
         },
       },
       boxShadow: {
-        card: '0 1px 3px rgba(55, 53, 47, 0.06), 0 4px 12px rgba(55, 53, 47, 0.04)',
-        code: '0 8px 30px rgba(55, 53, 47, 0.12)',
+        card: '0 1px 3px rgba(20, 20, 19, 0.06), 0 4px 12px rgba(20, 20, 19, 0.04)',
+        code: '0 8px 30px rgba(20, 20, 19, 0.12)',
       },
       backgroundImage: {
-        'hero-glow': 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(55, 53, 47, 0.06), transparent)',
-        'card-glow': 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(55, 53, 47, 0.04), transparent)',
+        'hero-glow': 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(217, 119, 87, 0.12), transparent)',
+        'card-glow': 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(217, 119, 87, 0.06), transparent)',
       },
       animation: {
         'fade-up': 'fadeUp 0.6s ease-out forwards',
