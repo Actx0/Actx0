@@ -1,1 +1,0 @@
-import{p as e}from"./api-C4GmI3nH.js";import{C as t,T as n,d as r}from"./runtime-core.esm-bundler-lHd9hHCv.js";import{m as i}from"./index-DcYiq0wj.js";var a={class:`min-h-screen bg-theme-bg`},o={__name:`Home`,setup(o){let s=i();return t(async()=>{let t=await e.checkInstalled();s.replace(t.data.installed?`/login`:`/setup`)}),(e,t)=>(n(),r(`div`,a))}};export{o as default};
