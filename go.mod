@@ -30,7 +30,7 @@ require (
 	github.com/stripe/stripe-go/v82 v82.5.1
 	github.com/tmc/langchaingo v0.1.14
 	golang.org/x/crypto v0.55.0
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.1
 )
 
 require (
