@@ -30,7 +30,7 @@ require (
 	github.com/stripe/stripe-go/v82 v82.5.1
 	github.com/tmc/langchaingo v0.1.14
 	golang.org/x/crypto v0.55.0
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.2
 )
 
 require (
@@ -83,7 +83,7 @@ require (
 	gitlab.com/golang-commonmark/puny v0.0.0-20191124015043-9f83538fa04f // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
