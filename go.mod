@@ -16,7 +16,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/leonelquinteros/gotext v1.7.2
 	github.com/lib/pq v1.12.3
-	github.com/modelcontextprotocol/go-sdk v1.7.0
+	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/prometheus/client_golang v1.24.1
 	github.com/qdrant/go-client v1.19.0
